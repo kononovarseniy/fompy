@@ -1,0 +1,3 @@
+fdint
+numpy
+scipy
