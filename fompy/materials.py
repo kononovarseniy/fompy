@@ -3,8 +3,8 @@ from functools import partial
 from fdint import fdk
 from scipy.optimize import bisect
 
-from constants import me, eV, k
-import phys
+from fompy.constants import me, eV, k
+from fompy import phys
 
 
 class Semiconductor:

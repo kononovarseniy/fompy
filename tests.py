@@ -1,7 +1,7 @@
 import unittest
 
-from constants import eV
-from materials import Si, DopedSemiconductor
+from fompy.constants import eV
+from fompy.materials import Si, DopedSemiconductor
 
 
 class TestSemiconductor(unittest.TestCase):

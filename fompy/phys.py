@@ -1,5 +1,5 @@
 from math import exp, pi, sqrt
-from constants import e, k, h_bar
+from fompy.constants import e, k, h_bar
 from scipy.optimize import bisect
 from fdint import fdk
 
