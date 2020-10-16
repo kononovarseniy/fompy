@@ -1,3 +1,6 @@
+[![PyPI version shields.io](https://img.shields.io/pypi/v/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
+[![PyPI license](https://img.shields.io/pypi/l/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
+
 # FOMpy
 FOMpy - подпрограммы для курса "Физические Основы Микроэлектроники"
 Предполагается что мы совместными усилиями сможем создать достаточную базу подпрограмм,
