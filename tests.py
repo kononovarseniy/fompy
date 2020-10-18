@@ -43,5 +43,16 @@ class TestDopedSemiconductor(unittest.TestCase):
         self.assertAlmostEqual(self.mat_d.fermi_level(T=200), Si.Eg - 0.035 * eV, delta=0.001 * eV)
 
 
+class TestUnits(unittest.TestCase):
+    def test_import(self):
+        # It uses itself so if it can be imported it is consistent
+        import fompy.units
+
+    def test_volt(self):
+        from fompy.units import unit
+        self.assertAlmostEqual(unit('V-1'), 300, delta=1)
+        self.assertAlmostEqual(unit('1 / V'), 300, delta=1)
+
+
 if __name__ == '__main__':
     unittest.main()

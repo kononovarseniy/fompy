@@ -40,7 +40,7 @@ FOMpy - подпрограммы для курса "Физические Осн�
     fompy() {
         cd <Полный путь до папки содержащей FOMpy>
         source .venv/bin/activate
-        PYTHONSTARTUP=<(echo -e 'from math import *\nfrom materials import *\nfrom constants import *\nfrom phys import *') python
+        PYTHONSTARTUP=<(echo -e 'from math import *\nfrom fompy.materials import *\nfrom fompy.constants import *\nfrom fompy.phys import *\nfrom fompy.units import unit') python
     }
     ```
 
