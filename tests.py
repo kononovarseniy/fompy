@@ -1,7 +1,8 @@
 import unittest
 
-from fompy.constants import eV
-from fompy.materials import Si, DopedSemiconductor
+from fompy.constants import eV, volt
+from fompy.materials import Si, DopedSemiconductor, Metal
+from fompy.phys import MetalSemiconductorContact, ContactType
 from fompy.units import unit, parse_unit
 
 
@@ -20,6 +21,9 @@ class TestSemiconductor(unittest.TestCase):
 
     def test_fermi_level(self):
         self.assertAlmostEqual(Si.fermi_level(), 0.57 * eV, delta=0.01 * eV)
+
+    def test_conductivity_type(self):
+        self.assertEqual(Si.conductivity_type(), 'i')
 
 
 class TestDopedSemiconductor(unittest.TestCase):
@@ -43,6 +47,10 @@ class TestDopedSemiconductor(unittest.TestCase):
         self.assertAlmostEqual(self.mat_a.fermi_level(T=200), 0.047 * eV, delta=0.001 * eV)
         self.assertAlmostEqual(self.mat_d.fermi_level(T=200), Si.Eg - 0.035 * eV, delta=0.001 * eV)
 
+    def test_conductivity_type(self):
+        self.assertEqual(self.mat_a.conductivity_type(), 'p')
+        self.assertEqual(self.mat_d.conductivity_type(), 'n')
+
 
 class TestUnits(unittest.TestCase):
     def test_volt(self):
@@ -61,6 +69,26 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(str(parse_unit('kg^2 m^3/2 / 1')), 'kg^2 m^3/2')
         self.assertEqual(str(parse_unit('kg^2 m^3/2 / A^-6/7 V^100')), 'kg^2 m^3/2 / A^-6/7 V^100')
         self.assertEqual(str(parse_unit('1 / s')), '1 / s')
+
+
+class TestMetalSemiconductorContact(unittest.TestCase):
+    def test_delta_phi(self):
+        c = MetalSemiconductorContact(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
+        self.assertAlmostEqual(c.delta_phi(300), 0.98 * volt, delta=0.1 * volt)
+
+    def test_contact_type(self):
+        # Al -- p-Si
+        c = MetalSemiconductorContact(Metal(4.1 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
+        self.assertEqual(c.contact_type(), ContactType.INVERSION)
+        # Pt -- n-Si
+        c = MetalSemiconductorContact(Metal(5.2 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        self.assertEqual(c.contact_type(), ContactType.INVERSION)
+        # Cs -- n-Si
+        c = MetalSemiconductorContact(Metal(2.14 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        self.assertEqual(c.contact_type(), ContactType.AUGMENTATION)
+        # Imaginary -- p-Si
+        c = MetalSemiconductorContact(Metal(4.8 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
+        self.assertEqual(c.contact_type(), ContactType.DEPLETION)
 
 
 if __name__ == '__main__':

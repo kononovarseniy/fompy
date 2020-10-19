@@ -59,6 +59,9 @@ class Semiconductor:
         """
         return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
 
+    def conductivity_type(self, *, T=None, Ef=None):
+        return 'i'
+
 
 class DopedSemiconductor(Semiconductor):
     def __init__(self, mat, Na, Ea, Nd, Ed):
@@ -82,8 +85,20 @@ class DopedSemiconductor(Semiconductor):
         return self.p_intrinsic(Ef, T) + self.p_donor_concentration(Ef, T) \
                - self.n_intrinsic(Ef, T) - self.n_acceptor_concentration(Ef, T)
 
+    def conductivity_type(self, *, T=None, Ef=None):
+        if Ef is not None and T is not None:
+            raise ValueError('Both T and Ef are specified')
+        if T is None:
+            T = 300
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return 'p' if self.p_intrinsic(Ef, T) > self.n_intrinsic(Ef, T) else 'n'
 
-# TODO: add classes for other material types, such as metals
+
+class Metal:
+    def __init__(self, work_function):
+        self.work_function = work_function
+
 
 # Values at 300K
 # http://www.ioffe.ru/SVA/NSM/Semicond/Si/index.html
@@ -93,6 +108,6 @@ Si = Semiconductor(0.36 * me, 0.81 * me, 1.12 * eV, 4.05 * eV)
 Ge = Semiconductor(0.22 * me, 0.34 * me, 0.661 * eV, 4.0 * eV)
 
 # http://www.ioffe.ru/SVA/NSM/Semicond/GaAs/index.html
-GaAs = Semiconductor(0.063 * me, 0.53 * me, 1.424 * eV, 4.07 * eV) # Gamma-valley
+GaAs = Semiconductor(0.063 * me, 0.53 * me, 1.424 * eV, 4.07 * eV)  # Gamma-valley
 
 # TODO: add more materials
