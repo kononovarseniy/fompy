@@ -27,11 +27,23 @@ class Semiconductor:
         return phys.effective_state_density(self.mh, T)
 
     def n_intrinsic(self, Ef=None, T=300):
+        """
+        Intrinsic electron concentration
+        
+        Ef -- The Fermi_level
+        Ev == 0 -- The valence band edge
+        """
         if Ef is None:
             Ef = self.fermi_level(T)
         return self.Nc(T) * fdk(0.5, (Ef - self.Eg) / (k * T))
 
     def p_intrinsic(self, Ef=None, T=300):
+        """
+        Intrinsic hole concentration
+        
+        Ef -- The Fermi_level
+        Ev == 0 -- The valence band edge
+        """
         if Ef is None:
             Ef = self.fermi_level(T)
         return self.Nv(T) * fdk(0.5, -Ef / (k * T))
@@ -40,6 +52,11 @@ class Semiconductor:
         return self.p_intrinsic(Ef, T) - self.n_intrinsic(Ef, T)
 
     def fermi_level(self, T=300):
+        """
+        Calculate fermi level (Not shure if it works correctly whith Nd!=0 and Na!=0)
+        
+        NOTE: all energies are counted from Ev
+        """
         return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
 
 
@@ -71,4 +88,11 @@ class DopedSemiconductor(Semiconductor):
 # Values at 300K
 # http://www.ioffe.ru/SVA/NSM/Semicond/Si/index.html
 Si = Semiconductor(0.36 * me, 0.81 * me, 1.12 * eV, 4.05 * eV)
+
+# http://www.ioffe.ru/SVA/NSM/Semicond/Ge/index.html
+Ge = Semiconductor(0.22 * me, 0.34 * me, 0.661 * eV, 4.0 * eV)
+
+# http://www.ioffe.ru/SVA/NSM/Semicond/GaAs/index.html
+GaAs = Semiconductor(0.063 * me, 0.53 * me, 1.424 * eV, 4.07 * eV) # Gamma-valley
+
 # TODO: add more materials
