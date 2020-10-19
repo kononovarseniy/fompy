@@ -2,6 +2,7 @@ import unittest
 
 from fompy.constants import eV
 from fompy.materials import Si, DopedSemiconductor
+from fompy.units import unit, parse_unit
 
 
 class TestSemiconductor(unittest.TestCase):
@@ -44,14 +45,22 @@ class TestDopedSemiconductor(unittest.TestCase):
 
 
 class TestUnits(unittest.TestCase):
-    def test_import(self):
-        # It uses itself so if it can be imported it is consistent
-        import fompy.units
-
     def test_volt(self):
-        from fompy.units import unit
         self.assertAlmostEqual(unit('V-1'), 300, delta=1)
         self.assertAlmostEqual(unit('1 / V'), 300, delta=1)
+
+    def test_power(self):
+        self.assertEqual(unit('kg^2'), 1e6)
+        self.assertEqual(unit('kg^2/2'), 1e3)
+        self.assertEqual(unit('kg^2/2 / 1'), 1e3)
+        self.assertEqual(unit('kg^4/2 / kg'), 1e3)
+        self.assertEqual(unit('1 / kg^-2'), 1e6)
+
+    def test_str(self):
+        self.assertEqual(str(parse_unit('kg^2')), 'kg^2')
+        self.assertEqual(str(parse_unit('kg^2 m^3/2 / 1')), 'kg^2 m^3/2')
+        self.assertEqual(str(parse_unit('kg^2 m^3/2 / A^-6/7 V^100')), 'kg^2 m^3/2 / A^-6/7 V^100')
+        self.assertEqual(str(parse_unit('1 / s')), '1 / s')
 
 
 if __name__ == '__main__':
