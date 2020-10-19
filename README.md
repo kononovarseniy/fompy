@@ -37,16 +37,24 @@ $ pip install fti-fompy
     ```
 
 ### Удобный скрипт для запуска
-- Рекомендую добавить в свой файл ```~/.bashrc``` следующие строки.
-    Это позволит использовать в терминале команду ```fompy``` для запуска настроенного интерпретатора python.
-    Для применения изменений перезапустите терминал.
+- Рекомендую добавить в свой файл ```~/.bashrc``` следующие строки
     ```
+    FOMPY_IMPORTS="
+    from math import *
+    from fompy.constants import *
+    from fompy.materials import *
+    from fompy.phys import *
+    from fompy.units import unit
+    "
+    
     fompy() {
-        cd <Полный путь до папки содержащей FOMpy>
-        source .venv/bin/activate
-        PYTHONSTARTUP=<(echo -e 'from math import *\nfrom fompy.materials import *\nfrom fompy.constants import *\nfrom fompy.phys import *\nfrom fompy.units import unit') python
+        cd <Путь до папки с FOMpy> # Эти две строки нужны только для 
+        source .venv/bin/activate  # запуска виртуальной среды
+        PYTHONSTARTUP=<(echo "$FOMPY_IMPORTS") python
     }
     ```
+    Это позволит использовать в терминале команду ```fompy``` для запуска настроенного интерпретатора python.
+    Для применения изменений перезапустите терминал.
 
 ## Применение FOMpy для расчета параметров полупроводников
 В модуле ```materials``` есть определения нескольких материалов (пока только Si).
