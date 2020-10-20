@@ -1,0 +1,1161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>fompy.materials API documentation</title>
+<meta name="description" content="This module contains classes useful for calculating properties of semiconducting materials.
+In addition, it includes instances of those classes for …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>fompy.materials</code></h1>
+</header>
+<section id="section-intro">
+<p>This module contains classes useful for calculating properties of semiconducting materials.
+In addition, it includes instances of those classes for particular materials.</p>
+<h2 id="classes">Classes</h2>
+<p>Semiconductor</p>
+<p>DopedSemiconductor : extends Semiconductor</p>
+<p>Metal</p>
+<h2 id="objects">Objects</h2>
+<p>Si : Semiconductor
+Silicon at 300 K.
+Ge : Semiconductor
+Germanium at 300 K.
+GaAs : Semiconductor
+Gallium arsenide at 300 K in Gamma valley.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module contains classes useful for calculating properties of semiconducting materials.
+In addition, it includes instances of those classes for particular materials.
+
+Classes
+-------
+Semiconductor
+
+DopedSemiconductor : extends Semiconductor
+
+Metal
+
+Objects
+-------
+Si : Semiconductor
+    Silicon at 300 K.
+Ge : Semiconductor
+    Germanium at 300 K.
+GaAs : Semiconductor
+    Gallium arsenide at 300 K in Gamma valley.
+&#34;&#34;&#34;
+
+from functools import partial
+
+from scipy.optimize import bisect
+
+from fompy.constants import me, eV, k
+from fompy import phys
+from fompy.util.fermi_dirac import fd1
+
+
+class Semiconductor:
+    &#34;&#34;&#34;
+    A class to calculate properties of an intrinsic (pure) semiconductor.
+
+    Attributes
+    ----------
+    me : float
+        The effective mass of an electron.
+    mh : float
+        The effective mass of a hole.
+    Eg : float
+        The energy gap.
+    chi : float
+        The electron affinity.
+
+    Methods
+    -------
+    Nc(T=300)
+        Calculate the effective density of states for electrons in the conduction band.
+    Nv(T=300)
+        Calculate the effective density of states for holes in the valence band.
+    n_intrinsic(Ef=None, T=300)
+        Calculate the intrinsic electron concentration.
+    p_intrinsic(Ef=None, T=300)
+        Calculate the intrinsic hole concentration.
+    fermi_level(T=300):
+        Determine the Fermi level from the condition of electroneutrality.
+    conductivity_type(*, T=None, Ef=None)
+        Tell the conductivity type.
+    &#34;&#34;&#34;
+
+    def __init__(self, me_eff, mh_eff, Eg, chi):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `Semiconductor` object.
+
+        Parameters
+        ----------
+        me_eff : float
+            The effective mass of an electron.
+        mh_eff : float
+            The effective mass of a hole.
+        Eg : float
+            The energy gap.
+        chi : float
+            The electron affinity.
+        &#34;&#34;&#34;
+        self.me = me_eff
+        self.mh = mh_eff
+        self.Eg = Eg
+        self.chi = chi
+
+    def Nc(self, T=300):
+        &#34;&#34;&#34;
+        Calculate the effective density of states for electrons in the conduction band.
+
+        Parameters
+        ----------
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The effective density of states for electrons in the conduction band.
+        &#34;&#34;&#34;
+        return phys.effective_state_density(self.me, T)
+
+    def Nv(self, T=300):
+        &#34;&#34;&#34;
+        Calculate the effective density of states for holes in the valence band.
+
+        Parameters
+        ----------
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The effective density of states for holes in the valence band.
+        &#34;&#34;&#34;
+        return phys.effective_state_density(self.mh, T)
+
+    def n_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the electron concentration.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron concentration.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Nc(T) * fd1((Ef - self.Eg) / (k * T))
+
+    def p_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the hole concentration.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Nv(T) * fd1(-Ef / (k * T))
+
+    def _charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
+    def fermi_level(self, T=300):
+        &#34;&#34;&#34;
+        Determine the Fermi level from the condition of electroneutrality.
+
+        Parameters
+        ----------
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+
+        Notes
+        -----
+        All energies are counted from the valence band edge Ev.
+        &#34;&#34;&#34;
+        # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+
+    def conductivity_type(self, *, T=None, Ef=None):
+        &#34;&#34;&#34;Tell the conductivity type.&#34;&#34;&#34;
+        return &#39;i&#39;
+
+
+class DopedSemiconductor(Semiconductor):
+    &#34;&#34;&#34;
+    A class to calculate properties of a doped semiconductor (extends `Semiconductor`).
+
+    Attributes
+    ----------
+    Na : float
+        The acceptor concentration.
+    Ea : float
+        The acceptor level.
+    Nd : float
+        The donor concentration.
+    Ed : float
+        The donor level.
+
+    Methods
+    -------
+    p_donor_concentration(Ef=None, T=300)
+        Calculate the concentration of positive donor ions.
+    n_acceptor_concentration(Ef=None, T=300)
+        Calculate the concentration of negative acceptor ions.
+    conductivity_type(*, T=None, Ef=None)
+        Tell the conductivity type (overrides `Semiconductor`).
+    &#34;&#34;&#34;
+
+    def __init__(self, mat, Na, Ea, Nd, Ed):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `DopedSemiconductor` object.
+
+        Parameters
+        ----------
+        mat : Semiconductor
+            The intrinsic (pure) semiconductor.
+        Na : float
+            The acceptor concentration.
+        Ea : float
+            The acceptor level.
+        Nd : float
+            The donor concentration.
+        Ed : float
+            The donor level.
+        &#34;&#34;&#34;
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi)
+        self.Na = Na
+        self.Ea = Ea
+        self.Nd = Nd
+        self.Ed = Ed
+
+    def p_donor_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the concentration of positive donor ions.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The concentration of positive donor ions.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Nd * (1 - phys.fermi(self.Ed, Ef, T))
+
+    def n_acceptor_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the concentration of negative acceptor ions.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The concentration of negative acceptor ions.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Na * phys.fermi(self.Ea, Ef, T)
+
+    def _charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
+               - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
+
+    def conductivity_type(self, *, T=None, Ef=None):
+        &#34;&#34;&#34;Tell the conductivity type (overrides `Semiconductor`).&#34;&#34;&#34;
+        if Ef is not None and T is not None:
+            raise ValueError(&#39;Both T and Ef are specified&#39;)
+        if T is None:
+            T = 300
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;
+
+
+class Metal:
+    &#34;&#34;&#34;
+    A class to calculate properties of a metal.
+
+    Attributes
+    ----------
+    work_function : float
+        The work function.
+    &#34;&#34;&#34;
+    def __init__(self, work_function):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `Metal` object.
+
+        Parameters
+        ----------
+        work_function : float
+            The work function.
+        &#34;&#34;&#34;
+        self.work_function = work_function
+
+
+# Values at 300K
+# http://www.ioffe.ru/SVA/NSM/Semicond/Si/index.html
+Si = Semiconductor(0.36 * me, 0.81 * me, 1.12 * eV, 4.05 * eV)
+&#34;&#34;&#34;A `Semiconductor` object for silicon at 300 K.&#34;&#34;&#34;
+
+# http://www.ioffe.ru/SVA/NSM/Semicond/Ge/index.html
+Ge = Semiconductor(0.22 * me, 0.34 * me, 0.661 * eV, 4.0 * eV)
+&#34;&#34;&#34;A `Semiconductor` object for germanium at 300 K.&#34;&#34;&#34;
+
+# http://www.ioffe.ru/SVA/NSM/Semicond/GaAs/index.html
+GaAs = Semiconductor(0.063 * me, 0.53 * me, 1.424 * eV, 4.07 * eV)  # Gamma-valley
+&#34;&#34;&#34;A `Semiconductor` object for gallium arsenide at 300 K in Gamma valley.&#34;&#34;&#34;
+
+# TODO: add more materials</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-variables">Global variables</h2>
+<dl>
+<dt id="fompy.materials.GaAs"><code class="name">var <span class="ident">GaAs</span></code></dt>
+<dd>
+<div class="desc"><p>A <code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code> object for gallium arsenide at 300 K in Gamma valley.</p></div>
+</dd>
+<dt id="fompy.materials.Ge"><code class="name">var <span class="ident">Ge</span></code></dt>
+<dd>
+<div class="desc"><p>A <code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code> object for germanium at 300 K.</p></div>
+</dd>
+<dt id="fompy.materials.Si"><code class="name">var <span class="ident">Si</span></code></dt>
+<dd>
+<div class="desc"><p>A <code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code> object for silicon at 300 K.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="fompy.materials.DopedSemiconductor"><code class="flex name class">
+<span>class <span class="ident">DopedSemiconductor</span></span>
+<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a doped semiconductor (extends <code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code>).</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor concentration.</dd>
+<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor level.</dd>
+<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor concentration.</dd>
+<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor level.</dd>
+</dl>
+<h2 id="methods">Methods</h2>
+<p>p_donor_concentration(Ef=None, T=300)
+Calculate the concentration of positive donor ions.
+n_acceptor_concentration(Ef=None, T=300)
+Calculate the concentration of negative acceptor ions.
+conductivity_type(*, T=None, Ef=None)
+Tell the conductivity type (overrides <code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code>).</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.materials.DopedSemiconductor" href="#fompy.materials.DopedSemiconductor">DopedSemiconductor</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code></dt>
+<dd>The intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor concentration.</dd>
+<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor level.</dd>
+<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor concentration.</dd>
+<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DopedSemiconductor(Semiconductor):
+    &#34;&#34;&#34;
+    A class to calculate properties of a doped semiconductor (extends `Semiconductor`).
+
+    Attributes
+    ----------
+    Na : float
+        The acceptor concentration.
+    Ea : float
+        The acceptor level.
+    Nd : float
+        The donor concentration.
+    Ed : float
+        The donor level.
+
+    Methods
+    -------
+    p_donor_concentration(Ef=None, T=300)
+        Calculate the concentration of positive donor ions.
+    n_acceptor_concentration(Ef=None, T=300)
+        Calculate the concentration of negative acceptor ions.
+    conductivity_type(*, T=None, Ef=None)
+        Tell the conductivity type (overrides `Semiconductor`).
+    &#34;&#34;&#34;
+
+    def __init__(self, mat, Na, Ea, Nd, Ed):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `DopedSemiconductor` object.
+
+        Parameters
+        ----------
+        mat : Semiconductor
+            The intrinsic (pure) semiconductor.
+        Na : float
+            The acceptor concentration.
+        Ea : float
+            The acceptor level.
+        Nd : float
+            The donor concentration.
+        Ed : float
+            The donor level.
+        &#34;&#34;&#34;
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi)
+        self.Na = Na
+        self.Ea = Ea
+        self.Nd = Nd
+        self.Ed = Ed
+
+    def p_donor_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the concentration of positive donor ions.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The concentration of positive donor ions.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Nd * (1 - phys.fermi(self.Ed, Ef, T))
+
+    def n_acceptor_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the concentration of negative acceptor ions.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The concentration of negative acceptor ions.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Na * phys.fermi(self.Ea, Ef, T)
+
+    def _charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
+               - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
+
+    def conductivity_type(self, *, T=None, Ef=None):
+        &#34;&#34;&#34;Tell the conductivity type (overrides `Semiconductor`).&#34;&#34;&#34;
+        if Ef is not None and T is not None:
+            raise ValueError(&#39;Both T and Ef are specified&#39;)
+        if T is None:
+            T = 300
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.materials.DopedSemiconductor.conductivity_type"><code class="name flex">
+<span>def <span class="ident">conductivity_type</span></span>(<span>self, *, T=None, Ef=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tell the conductivity type (overrides <code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code>).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def conductivity_type(self, *, T=None, Ef=None):
+    &#34;&#34;&#34;Tell the conductivity type (overrides `Semiconductor`).&#34;&#34;&#34;
+    if Ef is not None and T is not None:
+        raise ValueError(&#39;Both T and Ef are specified&#39;)
+    if T is None:
+        T = 300
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.DopedSemiconductor.n_acceptor_concentration"><code class="name flex">
+<span>def <span class="ident">n_acceptor_concentration</span></span>(<span>self, Ef=None, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the concentration of negative acceptor ions.</p>
+<h2 id="parameters">Parameters</h2>
+<p>Ef=None : float or None
+The Fermi level. If None, <code>Ef</code> is found via the <code>fermi_level</code> method.
+T=300 : float
+The temperature.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The concentration of negative acceptor ions.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def n_acceptor_concentration(self, Ef=None, T=300):
+    &#34;&#34;&#34;
+    Calculate the concentration of negative acceptor ions.
+
+    Parameters
+    ----------
+    Ef=None : float or None
+        The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+    T=300 : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The concentration of negative acceptor ions.
+    &#34;&#34;&#34;
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return self.Na * phys.fermi(self.Ea, Ef, T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.DopedSemiconductor.p_donor_concentration"><code class="name flex">
+<span>def <span class="ident">p_donor_concentration</span></span>(<span>self, Ef=None, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the concentration of positive donor ions.</p>
+<h2 id="parameters">Parameters</h2>
+<p>Ef=None : float or None
+The Fermi level. If None, <code>Ef</code> is found via the <code>fermi_level</code> method.
+T=300 : float
+The temperature.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The concentration of positive donor ions.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def p_donor_concentration(self, Ef=None, T=300):
+    &#34;&#34;&#34;
+    Calculate the concentration of positive donor ions.
+
+    Parameters
+    ----------
+    Ef=None : float or None
+        The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+    T=300 : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The concentration of positive donor ions.
+    &#34;&#34;&#34;
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return self.Nd * (1 - phys.fermi(self.Ed, Ef, T))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.materials.Semiconductor.Nc" href="#fompy.materials.Semiconductor.Nc">Nc</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.Nv" href="#fompy.materials.Semiconductor.Nv">Nv</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.fermi_level" href="#fompy.materials.Semiconductor.fermi_level">fermi_level</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.n_concentration" href="#fompy.materials.Semiconductor.n_concentration">n_concentration</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.p_concentration" href="#fompy.materials.Semiconductor.p_concentration">p_concentration</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="fompy.materials.Metal"><code class="flex name class">
+<span>class <span class="ident">Metal</span></span>
+<span>(</span><span>work_function)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a metal.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.materials.Metal" href="#fompy.materials.Metal">Metal</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Metal:
+    &#34;&#34;&#34;
+    A class to calculate properties of a metal.
+
+    Attributes
+    ----------
+    work_function : float
+        The work function.
+    &#34;&#34;&#34;
+    def __init__(self, work_function):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `Metal` object.
+
+        Parameters
+        ----------
+        work_function : float
+            The work function.
+        &#34;&#34;&#34;
+        self.work_function = work_function</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.Semiconductor"><code class="flex name class">
+<span>class <span class="ident">Semiconductor</span></span>
+<span>(</span><span>me_eff, mh_eff, Eg, chi)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of an intrinsic (pure) semiconductor.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>me</code></strong> :&ensp;<code>float</code></dt>
+<dd>The effective mass of an electron.</dd>
+<dt><strong><code>mh</code></strong> :&ensp;<code>float</code></dt>
+<dd>The effective mass of a hole.</dd>
+<dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy gap.</dd>
+<dt><strong><code>chi</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron affinity.</dd>
+</dl>
+<h2 id="methods">Methods</h2>
+<p>Nc(T=300)
+Calculate the effective density of states for electrons in the conduction band.
+Nv(T=300)
+Calculate the effective density of states for holes in the valence band.
+n_intrinsic(Ef=None, T=300)
+Calculate the intrinsic electron concentration.
+p_intrinsic(Ef=None, T=300)
+Calculate the intrinsic hole concentration.
+fermi_level(T=300):
+Determine the Fermi level from the condition of electroneutrality.
+conductivity_type(*, T=None, Ef=None)
+Tell the conductivity type.</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>me_eff</code></strong> :&ensp;<code>float</code></dt>
+<dd>The effective mass of an electron.</dd>
+<dt><strong><code>mh_eff</code></strong> :&ensp;<code>float</code></dt>
+<dd>The effective mass of a hole.</dd>
+<dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy gap.</dd>
+<dt><strong><code>chi</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron affinity.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Semiconductor:
+    &#34;&#34;&#34;
+    A class to calculate properties of an intrinsic (pure) semiconductor.
+
+    Attributes
+    ----------
+    me : float
+        The effective mass of an electron.
+    mh : float
+        The effective mass of a hole.
+    Eg : float
+        The energy gap.
+    chi : float
+        The electron affinity.
+
+    Methods
+    -------
+    Nc(T=300)
+        Calculate the effective density of states for electrons in the conduction band.
+    Nv(T=300)
+        Calculate the effective density of states for holes in the valence band.
+    n_intrinsic(Ef=None, T=300)
+        Calculate the intrinsic electron concentration.
+    p_intrinsic(Ef=None, T=300)
+        Calculate the intrinsic hole concentration.
+    fermi_level(T=300):
+        Determine the Fermi level from the condition of electroneutrality.
+    conductivity_type(*, T=None, Ef=None)
+        Tell the conductivity type.
+    &#34;&#34;&#34;
+
+    def __init__(self, me_eff, mh_eff, Eg, chi):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `Semiconductor` object.
+
+        Parameters
+        ----------
+        me_eff : float
+            The effective mass of an electron.
+        mh_eff : float
+            The effective mass of a hole.
+        Eg : float
+            The energy gap.
+        chi : float
+            The electron affinity.
+        &#34;&#34;&#34;
+        self.me = me_eff
+        self.mh = mh_eff
+        self.Eg = Eg
+        self.chi = chi
+
+    def Nc(self, T=300):
+        &#34;&#34;&#34;
+        Calculate the effective density of states for electrons in the conduction band.
+
+        Parameters
+        ----------
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The effective density of states for electrons in the conduction band.
+        &#34;&#34;&#34;
+        return phys.effective_state_density(self.me, T)
+
+    def Nv(self, T=300):
+        &#34;&#34;&#34;
+        Calculate the effective density of states for holes in the valence band.
+
+        Parameters
+        ----------
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The effective density of states for holes in the valence band.
+        &#34;&#34;&#34;
+        return phys.effective_state_density(self.mh, T)
+
+    def n_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the electron concentration.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron concentration.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Nc(T) * fd1((Ef - self.Eg) / (k * T))
+
+    def p_concentration(self, Ef=None, T=300):
+        &#34;&#34;&#34;
+        Calculate the hole concentration.
+
+        Parameters
+        ----------
+        Ef=None : float or None
+            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Nv(T) * fd1(-Ef / (k * T))
+
+    def _charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
+    def fermi_level(self, T=300):
+        &#34;&#34;&#34;
+        Determine the Fermi level from the condition of electroneutrality.
+
+        Parameters
+        ----------
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+
+        Notes
+        -----
+        All energies are counted from the valence band edge Ev.
+        &#34;&#34;&#34;
+        # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+
+    def conductivity_type(self, *, T=None, Ef=None):
+        &#34;&#34;&#34;Tell the conductivity type.&#34;&#34;&#34;
+        return &#39;i&#39;</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="fompy.materials.DopedSemiconductor" href="#fompy.materials.DopedSemiconductor">DopedSemiconductor</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.materials.Semiconductor.Nc"><code class="name flex">
+<span>def <span class="ident">Nc</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the effective density of states for electrons in the conduction band.</p>
+<h2 id="parameters">Parameters</h2>
+<p>T=300 : float
+The temperature.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The effective density of states for electrons in the conduction band.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Nc(self, T=300):
+    &#34;&#34;&#34;
+    Calculate the effective density of states for electrons in the conduction band.
+
+    Parameters
+    ----------
+    T=300 : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The effective density of states for electrons in the conduction band.
+    &#34;&#34;&#34;
+    return phys.effective_state_density(self.me, T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.Semiconductor.Nv"><code class="name flex">
+<span>def <span class="ident">Nv</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the effective density of states for holes in the valence band.</p>
+<h2 id="parameters">Parameters</h2>
+<p>T=300 : float
+The temperature.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The effective density of states for holes in the valence band.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def Nv(self, T=300):
+    &#34;&#34;&#34;
+    Calculate the effective density of states for holes in the valence band.
+
+    Parameters
+    ----------
+    T=300 : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The effective density of states for holes in the valence band.
+    &#34;&#34;&#34;
+    return phys.effective_state_density(self.mh, T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.Semiconductor.conductivity_type"><code class="name flex">
+<span>def <span class="ident">conductivity_type</span></span>(<span>self, *, T=None, Ef=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tell the conductivity type.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def conductivity_type(self, *, T=None, Ef=None):
+    &#34;&#34;&#34;Tell the conductivity type.&#34;&#34;&#34;
+    return &#39;i&#39;</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.Semiconductor.fermi_level"><code class="name flex">
+<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Determine the Fermi level from the condition of electroneutrality.</p>
+<h2 id="parameters">Parameters</h2>
+<p>T=300 : float
+The temperature.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Fermi level.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>All energies are counted from the valence band edge Ev.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fermi_level(self, T=300):
+    &#34;&#34;&#34;
+    Determine the Fermi level from the condition of electroneutrality.
+
+    Parameters
+    ----------
+    T=300 : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Fermi level.
+
+    Notes
+    -----
+    All energies are counted from the valence band edge Ev.
+    &#34;&#34;&#34;
+    # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
+    return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.Semiconductor.n_concentration"><code class="name flex">
+<span>def <span class="ident">n_concentration</span></span>(<span>self, Ef=None, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the electron concentration.</p>
+<h2 id="parameters">Parameters</h2>
+<p>Ef=None : float or None
+The Fermi level. If None, <code>Ef</code> is found via the <code>fermi_level</code> method.
+T=300 : float
+The temperature.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The electron concentration.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def n_concentration(self, Ef=None, T=300):
+    &#34;&#34;&#34;
+    Calculate the electron concentration.
+
+    Parameters
+    ----------
+    Ef=None : float or None
+        The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+    T=300 : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The electron concentration.
+    &#34;&#34;&#34;
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return self.Nc(T) * fd1((Ef - self.Eg) / (k * T))</code></pre>
+</details>
+</dd>
+<dt id="fompy.materials.Semiconductor.p_concentration"><code class="name flex">
+<span>def <span class="ident">p_concentration</span></span>(<span>self, Ef=None, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the hole concentration.</p>
+<h2 id="parameters">Parameters</h2>
+<p>Ef=None : float or None
+The Fermi level. If None, <code>Ef</code> is found via the <code>fermi_level</code> method.
+T=300 : float
+The temperature.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole concentration.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def p_concentration(self, Ef=None, T=300):
+    &#34;&#34;&#34;
+    Calculate the hole concentration.
+
+    Parameters
+    ----------
+    Ef=None : float or None
+        The Fermi level. If None, `Ef` is found via the `fermi_level` method.
+    T=300 : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The hole concentration.
+    &#34;&#34;&#34;
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return self.Nv(T) * fd1(-Ef / (k * T))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#classes">Classes</a></li>
+<li><a href="#objects">Objects</a></li>
+</ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="fompy" href="index.html">fompy</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-variables">Global variables</a></h3>
+<ul class="">
+<li><code><a title="fompy.materials.GaAs" href="#fompy.materials.GaAs">GaAs</a></code></li>
+<li><code><a title="fompy.materials.Ge" href="#fompy.materials.Ge">Ge</a></code></li>
+<li><code><a title="fompy.materials.Si" href="#fompy.materials.Si">Si</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="fompy.materials.DopedSemiconductor" href="#fompy.materials.DopedSemiconductor">DopedSemiconductor</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.materials.DopedSemiconductor.conductivity_type" href="#fompy.materials.DopedSemiconductor.conductivity_type">conductivity_type</a></code></li>
+<li><code><a title="fompy.materials.DopedSemiconductor.n_acceptor_concentration" href="#fompy.materials.DopedSemiconductor.n_acceptor_concentration">n_acceptor_concentration</a></code></li>
+<li><code><a title="fompy.materials.DopedSemiconductor.p_donor_concentration" href="#fompy.materials.DopedSemiconductor.p_donor_concentration">p_donor_concentration</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.materials.Metal" href="#fompy.materials.Metal">Metal</a></code></h4>
+</li>
+<li>
+<h4><code><a title="fompy.materials.Semiconductor" href="#fompy.materials.Semiconductor">Semiconductor</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fompy.materials.Semiconductor.Nc" href="#fompy.materials.Semiconductor.Nc">Nc</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.Nv" href="#fompy.materials.Semiconductor.Nv">Nv</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.conductivity_type" href="#fompy.materials.Semiconductor.conductivity_type">conductivity_type</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.fermi_level" href="#fompy.materials.Semiconductor.fermi_level">fermi_level</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.n_concentration" href="#fompy.materials.Semiconductor.n_concentration">n_concentration</a></code></li>
+<li><code><a title="fompy.materials.Semiconductor.p_concentration" href="#fompy.materials.Semiconductor.p_concentration">p_concentration</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
