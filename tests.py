@@ -14,10 +14,10 @@ class TestSemiconductor(unittest.TestCase):
         self.assertAlmostEqual(Si.Nv(), 1.8e19, delta=0.1e19)
 
     def test_ni_eq_pi(self):
-        self.assertAlmostEqual(Si.n_intrinsic(), Si.p_intrinsic(), delta=1e7)
+        self.assertAlmostEqual(Si.n_concentration(), Si.p_concentration(), delta=1e7)
 
     def test_ni(self):
-        self.assertAlmostEqual(Si.n_intrinsic(), 3.5e9, delta=1e8)
+        self.assertAlmostEqual(Si.n_concentration(), 3.5e9, delta=1e8)
 
     def test_fermi_level(self):
         self.assertAlmostEqual(Si.fermi_level(), 0.57 * eV, delta=0.01 * eV)

@@ -26,9 +26,9 @@ class Semiconductor:
     def Nv(self, T=300):
         return phys.effective_state_density(self.mh, T)
 
-    def n_intrinsic(self, Ef=None, T=300):
+    def n_concentration(self, Ef=None, T=300):
         """
-        Intrinsic electron concentration
+        Electron concentration
         
         Ef -- The Fermi_level
         Ev == 0 -- The valence band edge
@@ -37,9 +37,9 @@ class Semiconductor:
             Ef = self.fermi_level(T)
         return self.Nc(T) * fdk(0.5, (Ef - self.Eg) / (k * T))
 
-    def p_intrinsic(self, Ef=None, T=300):
+    def p_concentration(self, Ef=None, T=300):
         """
-        Intrinsic hole concentration
+        Hole concentration
         
         Ef -- The Fermi_level
         Ev == 0 -- The valence band edge
@@ -49,7 +49,7 @@ class Semiconductor:
         return self.Nv(T) * fdk(0.5, -Ef / (k * T))
 
     def _charge_imbalance(self, Ef, T):
-        return self.p_intrinsic(Ef, T) - self.n_intrinsic(Ef, T)
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def fermi_level(self, T=300):
         """
@@ -82,8 +82,8 @@ class DopedSemiconductor(Semiconductor):
         return self.Na * phys.fermi(self.Ea, Ef, T)
 
     def _charge_imbalance(self, Ef, T):
-        return self.p_intrinsic(Ef, T) + self.p_donor_concentration(Ef, T) \
-               - self.n_intrinsic(Ef, T) - self.n_acceptor_concentration(Ef, T)
+        return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
+               - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
 
     def conductivity_type(self, *, T=None, Ef=None):
         if Ef is not None and T is not None:
@@ -92,7 +92,7 @@ class DopedSemiconductor(Semiconductor):
             T = 300
         if Ef is None:
             Ef = self.fermi_level(T)
-        return 'p' if self.p_intrinsic(Ef, T) > self.n_intrinsic(Ef, T) else 'n'
+        return 'p' if self.p_concentration(Ef, T) > self.n_concentration(Ef, T) else 'n'
 
 
 class Metal:
