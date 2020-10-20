@@ -30,6 +30,6 @@
     $ python -m venv .venv
     $ source ./venv/bin/activate
     $ pip install --upgrade pip
-    $ pip install -e
+    $ pip install -e .
     ```
 - Теперь можно открыть проект в вашей любимой IDE, и внести необходимые изменения.
