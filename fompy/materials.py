@@ -8,10 +8,16 @@ Semiconductor
 
 DopedSemiconductor : extends Semiconductor
 
+Metal
+
 Objects
 -------
 Si : Semiconductor
     Silicon at 300 K.
+Ge : Semiconductor
+    Germanium at 300 K.
+GaAs : Semiconductor
+    Gallium arsenide at 300 K in Gamma valley.
 """
 
 from functools import partial
@@ -50,6 +56,8 @@ class Semiconductor:
         Calculate the intrinsic hole concentration.
     fermi_level(T=300):
         Determine the Fermi level from the condition of electroneutrality.
+    conductivity_type(*, T=None, Ef=None)
+        Tell the conductivity type.
     """
 
     def __init__(self, me_eff, mh_eff, Eg, chi):
@@ -169,6 +177,7 @@ class Semiconductor:
         return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
 
     def conductivity_type(self, *, T=None, Ef=None):
+        """Tell the conductivity type."""
         return 'i'
 
 
@@ -186,6 +195,15 @@ class DopedSemiconductor(Semiconductor):
         The donor concentration.
     Ed : float
         The donor level.
+
+    Methods
+    -------
+    p_donor_concentration(Ef=None, T=300)
+        Calculate the concentration of positive donor ions.
+    n_acceptor_concentration(Ef=None, T=300)
+        Calculate the concentration of negative acceptor ions.
+    conductivity_type(*, T=None, Ef=None)
+        Tell the conductivity type (overrides `Semiconductor`).
     """
 
     def __init__(self, mat, Na, Ea, Nd, Ed):
@@ -256,6 +274,7 @@ class DopedSemiconductor(Semiconductor):
                - self.n_intrinsic(Ef, T) - self.n_acceptor_concentration(Ef, T)
 
     def conductivity_type(self, *, T=None, Ef=None):
+        """Tell the conductivity type (overrides `Semiconductor`)."""
         if Ef is not None and T is not None:
             raise ValueError('Both T and Ef are specified')
         if T is None:
@@ -266,7 +285,23 @@ class DopedSemiconductor(Semiconductor):
 
 
 class Metal:
+    """
+    A class to calculate properties of a metal.
+
+    Attributes
+    ----------
+    work_function : float
+        The work function.
+    """
     def __init__(self, work_function):
+        """
+        Construct the necessary attributes for the `Metal` object.
+
+        Parameters
+        ----------
+        work_function : float
+            The work function.
+        """
         self.work_function = work_function
 
 
