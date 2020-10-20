@@ -1,3 +1,2 @@
-fdint
 numpy
 scipy

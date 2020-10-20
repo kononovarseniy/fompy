@@ -22,11 +22,11 @@ GaAs : Semiconductor
 
 from functools import partial
 
-from fdint import fdk
 from scipy.optimize import bisect
 
 from fompy.constants import me, eV, k
 from fompy import phys
+from fompy.util.fermi_dirac import fd1
 
 
 class Semiconductor:
@@ -130,7 +130,7 @@ class Semiconductor:
         """
         if Ef is None:
             Ef = self.fermi_level(T)
-        return self.Nc(T) * fdk(0.5, (Ef - self.Eg) / (k * T))
+        return self.Nc(T) * fd1((Ef - self.Eg) / (k * T))
 
     def p_concentration(self, Ef=None, T=300):
         """
@@ -150,7 +150,7 @@ class Semiconductor:
         """
         if Ef is None:
             Ef = self.fermi_level(T)
-        return self.Nv(T) * fdk(0.5, -Ef / (k * T))
+        return self.Nv(T) * fd1(-Ef / (k * T))
 
     def _charge_imbalance(self, Ef, T):
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
