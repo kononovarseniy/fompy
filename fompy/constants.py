@@ -69,20 +69,19 @@ volt = 1e8 / c
 ampere = 1e-1 * c
 """One ampere."""
 
-ohm = 1e9 / c**2
+ohm = 1e9 / c ** 2
 """One ohm."""
 
-farad = 1e-9 * c**2
+farad = 1e-9 * c ** 2
 """One farad."""
 
-henry = 1e9 / c**2
+henry = 1e9 / c ** 2
 """One henry."""
 
 ################################################################################
 
-Ry = e**4*me/(2*h_bar**2)
+Ry = e ** 4 * me / (2 * h_bar ** 2)
 """The Reynolds number."""
 
-a0 = h_bar**2/(me*e**2)
+a0 = h_bar ** 2 / (me * e ** 2)
 """The Bohr radius."""
-

@@ -15,7 +15,7 @@ def conductivity(n, n_mob, p, p_mob):
 def effective_state_density(m_eff, T):
     """
     Used to calculate Nc and Nv
-    
+
     m_eff -- Effective mass of density of states
     T -- Temperature
     """
@@ -54,7 +54,7 @@ class MetalSemiconductorContact:
         Ef = self.sc.fermi_level(T)
         dEf = self.delta_phi(T) * e
         if ct == 'i':
-            raise NotImplemented('I do not know which cases are possible')
+            raise NotImplementedError('I do not know which cases are possible')
         else:
             if ct != self.sc.conductivity_type(Ef=Ef + dEf):
                 return ContactType.INVERSION
