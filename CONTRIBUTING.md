@@ -25,14 +25,11 @@
     ```
     $ cd fompy
     ```
-- Теперь надо создать виртуальную среду чтобы устанавливать зависимости локально:
+- Теперь надо создать виртуальную среду и устанавливать требуемые пакеты:
     ```
     $ python -m venv .venv
     $ source ./venv/bin/activate
-    $ pip install --upgrade pip wheel
-    ```
-- И установить все зависимости
-    ```
-    $ pip install -r requirements.txt
+    $ pip install --upgrade pip
+    $ pip install -e
     ```
 - Теперь можно открыть проект в вашей любимой IDE, и внести необходимые изменения.
