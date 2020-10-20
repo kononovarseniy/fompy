@@ -1,5 +1,9 @@
-[![PyPI version shields.io](https://img.shields.io/pypi/v/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
+[![PyPI version](https://img.shields.io/pypi/v/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
 [![PyPI license](https://img.shields.io/pypi/l/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
+![GitHub contributors](https://img.shields.io/github/contributors/kononovarseniy/fompy)
+
+![PyPI - Downloads](https://img.shields.io/pypi/dm/fti-fompy?label=pypi%20downloads)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kononovarseniy/fompy)
 
 # FOMpy
 FOMpy - подпрограммы для курса "Физические Основы Микроэлектроники"
