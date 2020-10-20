@@ -1,9 +1,12 @@
 import unittest
 
+import numpy as np
+
 from fompy.constants import eV, volt
 from fompy.materials import Si, DopedSemiconductor, Metal
 from fompy.phys import MetalSemiconductorContact, ContactType
 from fompy.units import unit, parse_unit
+from fompy.util.fermi_dirac import fd1
 
 
 class TestSemiconductor(unittest.TestCase):
@@ -89,6 +92,21 @@ class TestMetalSemiconductorContact(unittest.TestCase):
         # Imaginary -- p-Si
         c = MetalSemiconductorContact(Metal(4.8 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.DEPLETION)
+
+
+class TestFermiDiracIntegral(unittest.TestCase):
+    def test_fd1(self):
+        xs = np.array([-3.0, -1.0, 1.0, 3.0, 7.0, 15.0, 30.0, 60.0])
+        ys = np.array([0.04336636755041557,
+                       0.2905008961699176,
+                       1.396375280666564,
+                       3.976985354047977,
+                       12.664637572252104,
+                       38.9430466009327,
+                       109.69481833726653,
+                       309.9448732700438
+                       ])
+        self.assertEqual(0.0, np.max(np.abs(ys - fd1(xs))))
 
 
 if __name__ == '__main__':
