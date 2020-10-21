@@ -3,10 +3,10 @@ import unittest
 import numpy as np
 
 from fompy.constants import eV, volt
-from fompy.materials import Si, DopedSemiconductor, Metal
-from fompy.phys import MetalSemiconductorContact, ContactType
+from fompy.materials import Si
+from fompy.models import MetalSemiconductorContact, ContactType, DopedSemiconductor, Metal
 from fompy.units import unit, parse_unit
-from fompy.util.fermi_dirac import fd1
+from fompy.functions import fd1
 
 
 class TestSemiconductor(unittest.TestCase):
