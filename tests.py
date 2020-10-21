@@ -3,10 +3,11 @@ import unittest
 import numpy as np
 
 from fompy.constants import eV, volt
-from fompy.materials import Si
-from fompy.models import MetalSemiconductorContact, ContactType, DopedSemiconductor, Metal
-from fompy.units import unit, parse_unit
 from fompy.functions import fd1
+from fompy.materials import Si
+from fompy.models import MetalSemiconductorContact, ContactType, DopedSemiconductor, Metal, PNJunction, \
+    PNJunctionFullDepletion
+from fompy.units import unit, parse_unit
 
 
 class TestSemiconductor(unittest.TestCase):
@@ -77,7 +78,7 @@ class TestUnits(unittest.TestCase):
 class TestMetalSemiconductorContact(unittest.TestCase):
     def test_delta_phi(self):
         c = MetalSemiconductorContact(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
-        self.assertAlmostEqual(c.delta_phi(300), 0.98 * volt, delta=0.1 * volt)
+        self.assertAlmostEqual(c.delta_phi(300), -0.98 * volt, delta=0.1 * volt)
 
     def test_contact_type(self):
         # Al -- p-Si
@@ -107,6 +108,40 @@ class TestFermiDiracIntegral(unittest.TestCase):
                        309.9448732700438
                        ])
         self.assertEqual(0.0, np.max(np.abs(ys - fd1(xs))))
+
+
+class TestPNJunction(unittest.TestCase):
+    def setUp(self):
+        self.pn = PNJunction(Si, 5e16, None, 1e16, None)
+        self.pn_fd = PNJunctionFullDepletion(Si, 5e16, None, 1e16, None)
+        self.pn_fd2 = PNJunctionFullDepletion(Si, 1e16, None, 1e16, None)
+
+    def test_delta_phi(self):
+        self.assertAlmostEqual(self.pn.delta_phi() / volt, 0.81, delta=0.05)
+
+    def test_delta_phi_n(self):
+        self.assertAlmostEqual(self.pn_fd.delta_phi_n() / volt, 0.71, delta=0.05)
+
+    def test_delta_phi_p(self):
+        self.assertAlmostEqual(self.pn_fd.delta_phi_p() / volt, 0.14, delta=0.05)
+
+    def test_delta_w(self):
+        self.assertAlmostEqual(self.pn_fd.w(), 3.5e-5, delta=1e-6)
+        self.assertAlmostEqual(self.pn_fd2.w(), 4.4e-5, delta=1e-6)
+
+    def test_delta_w_n(self):
+        self.assertAlmostEqual(self.pn_fd.w_n(), 2.9e-5, delta=1e-6)
+        self.assertAlmostEqual(self.pn_fd2.w_n(), 2.2e-5, delta=1e-6)
+
+    def test_delta_w_p(self):
+        self.assertAlmostEqual(self.pn_fd.w_p(), 5.9e-6, delta=1e-7)
+        self.assertAlmostEqual(self.pn_fd2.w_p(), 2.2e-5, delta=1e-6)
+
+    def test_neutrality(self):
+        self.assertEqual(self.pn_fd.w_p() * self.pn_fd.p_mat.n_acceptor_concentration() -
+                         self.pn_fd.w_n() * self.pn_fd.n_mat.p_donor_concentration(), 0.0)
+        self.assertEqual(self.pn_fd2.w_p() * self.pn_fd2.p_mat.n_acceptor_concentration() -
+                         self.pn_fd2.w_n() * self.pn_fd2.n_mat.p_donor_concentration(), 0.0)
 
 
 if __name__ == '__main__':

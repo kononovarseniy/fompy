@@ -55,7 +55,7 @@ class Semiconductor:
         Tell the conductivity type.
     """
 
-    def __init__(self, me_eff, mh_eff, Eg, chi):
+    def __init__(self, me_eff, mh_eff, Eg, chi, eps):
         """
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -69,11 +69,14 @@ class Semiconductor:
             The energy gap.
         chi : float
             The electron affinity.
+        eps : float
+            The dielectric constant.
         """
         self.me = me_eff
         self.mh = mh_eff
         self.Eg = Eg
         self.chi = chi
+        self.eps = eps
 
     @staticmethod
     def effective_state_density(m_eff, T):
@@ -228,7 +231,7 @@ class DopedSemiconductor(Semiconductor):
         Ed : float
             The donor level.
         """
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi)
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
@@ -323,13 +326,13 @@ class MetalSemiconductorContact:
         self.sc = sc
 
     def delta_phi(self, T=300):
-        """Returns difference of exit potential of semiconductor and metal (in units of voltage)"""
-        return (self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+        """Returns difference of exit potential of metal and semiconductor (in units of voltage)"""
+        return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
 
     def contact_type(self, T=300):
         ct = self.sc.conductivity_type(T=T)
         Ef = self.sc.fermi_level(T)
-        dEf = self.delta_phi(T) * e
+        dEf = -self.delta_phi(T) * e
         if ct == 'i':
             raise NotImplementedError('I do not know which cases are possible')
         else:
@@ -340,3 +343,70 @@ class MetalSemiconductorContact:
                     return ContactType.AUGMENTATION if dEf < 0 else ContactType.DEPLETION
                 if ct == 'n':
                     return ContactType.DEPLETION if dEf < 0 else ContactType.AUGMENTATION
+
+
+class PNJunction:
+
+    def __init__(self, mat, Na, Ea, Nd, Ed):
+        if Ea is None:
+            Ea = 0
+        if Ed is None:
+            Ed = mat.Eg
+        self.mat = mat
+        self.p_mat = DopedSemiconductor(mat, Na, Ea, 0, Ed)
+        self.n_mat = DopedSemiconductor(mat, 0, Ea, Nd, Ed)
+
+    def delta_phi(self, T=300):
+        return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e
+
+
+class PNJunctionFullDepletion(PNJunction):
+
+    def __init__(self, mat, Na, Ea, Nd, Ed):
+        super().__init__(mat, Na, Ea, Nd, Ed)
+
+    def _df_Na_Nd(self, T):
+        return self.delta_phi(T), \
+               self.p_mat.n_acceptor_concentration(T=T), \
+               self.n_mat.p_donor_concentration(T=T)
+
+    def _w_tmp(self, T):
+        df, a, d = self._df_Na_Nd(T)
+        return self.p_mat.eps / (2 * pi * e) * df, a, d
+
+    def delta_phi_n(self, T=300):
+        df, a, d = self._df_Na_Nd(T)
+        return df * a / (a + d)
+
+    def delta_phi_p(self, T=300):
+        df, a, d = self._df_Na_Nd(T)
+        return df * d / (a + d)
+
+    def w(self, T=300):
+        r"""
+        Compute the full depletion width.
+
+        .. math::
+            w = \sqrt{ \frac{\epsilon}{2*\pi*e} * \Delta\phi * \frac{{N_a}^+ + {N_d}^-}{{N_a}^+ {N_d}^-}} }
+
+        Parameters
+        ----------
+        T=300 : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The full depletion width.
+
+        """
+        tmp, a, d = self._w_tmp(T)
+        return sqrt(tmp * (a + d) / (a * d))
+
+    def w_n(self, T=300):
+        tmp, a, d = self._w_tmp(T)
+        return sqrt(tmp * a / d / (a + d))
+
+    def w_p(self, T=300):
+        tmp, a, d = self._w_tmp(T)
+        return sqrt(tmp * d / a / (a + d))
