@@ -39,7 +39,7 @@
 $ pip install pydoc3
 ```
 
-Генерация файлов осуществляется коммандой:
+Генерация файлов документации осуществляется коммандой:
 ```
-$ pdoc --html -o docs fompy
+$ pdoc --force --html --template-dir=docs/templates -o docs fompy
 ```
