@@ -387,7 +387,7 @@ class PNJunctionFullDepletion(PNJunction):
         Compute the full depletion width.
 
         .. math::
-            w = \sqrt{ \frac{\epsilon}{2*\pi*e} * \Delta\phi * \frac{{N_a}^+ + {N_d}^-}{{N_a}^+ {N_d}^-}} }
+            w = \sqrt{ { \epsilon \over 2 \pi e} \Delta\phi { N_a^- + N_d^+  \over  N_a^-  N_d^+ } }
 
         Parameters
         ----------

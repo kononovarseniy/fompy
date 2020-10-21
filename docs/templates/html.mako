@@ -408,7 +408,7 @@
   % endif
 
   % if latex_math:
-    <script async src="https://unpkg.com/mathjax@2.7.7/latest.js" crossorigin></script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@2.7.8/MathJax.js?config=TeX-MML-AM_CHTML"></script>
   % endif
 
   % if syntax_highlighting:
