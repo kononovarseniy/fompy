@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>fompy.util.fermi_dirac API documentation</title>
-<meta name="description" content="This module contains functions for calculating Fermi-Dirac integral.
-The original code is taken from https://github.com/scott-maddox/fdint
-The code is …" />
+<meta name="description" content="This module contains functions for calculating the Fermi-Dirac integral.
+The original code was taken from https://github.com/scott-maddox/fdint and …" />
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/sanitize.css" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/typography.css" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.3.1/build/styles/github.min.css" crossorigin>
@@ -25,18 +24,16 @@ The code is …" />
 <h1 class="title">Module <code>fompy.util.fermi_dirac</code></h1>
 </header>
 <section id="section-intro">
-<p>This module contains functions for calculating Fermi-Dirac integral.
-The original code is taken from <a href="https://github.com/scott-maddox/fdint">https://github.com/scott-maddox/fdint</a>
-The code is translated from cython to python.
+<p>This module contains functions for calculating the Fermi-Dirac integral.
+The original code was taken from <a href="https://github.com/scott-maddox/fdint">https://github.com/scott-maddox/fdint</a> and translated from cython to python.
 Unfortunately, the changes made the code about 35 times slower.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
-This module contains functions for calculating Fermi-Dirac integral.
-The original code is taken from https://github.com/scott-maddox/fdint
-The code is translated from cython to python.
+This module contains functions for calculating the Fermi-Dirac integral.
+The original code was taken from https://github.com/scott-maddox/fdint and translated from cython to python.
 Unfortunately, the changes made the code about 35 times slower.
 &#34;&#34;&#34;
 
@@ -70,6 +67,18 @@ import numpy as np
 
 @np.vectorize
 def fd1(phi):
+    &#34;&#34;&#34;
+    Calculate the Fermi-Dirac integral.
+
+    Parameters
+    ----------
+    phi : float
+
+    Returns
+    -------
+    float
+        The Fermi-Dirac integral of `phi`.
+    &#34;&#34;&#34;
     if phi &lt; -2e0:
         return _fd1h_lt_m2(phi)
     if phi &lt; 0e0:

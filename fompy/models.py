@@ -21,18 +21,18 @@ def conductivity(n, n_mob, p, p_mob):
     Calculate the conductivity of a material.
 
     .. math::
-        \sigma = e (n n_{mob} + p p_{mob})
+        \sigma = e (n_n \mu_n + n_p \mu_p)
 
     Parameters
     ----------
     n : float
-        The overall concentration of electrons.
+        The concentration of electrons.
     n_mob : float
-        The concentration of mobile electrons.
+        The electron mobility.
     p : float
-        The overall concentration of holes.
+        The concentration of holes.
     p_mob : float
-        The concentration of mobile holes.
+        The hole mobility.
 
     Returns
     -------
@@ -156,8 +156,11 @@ class Semiconductor:
         return 2 * (2 * pi * m_eff * k * T / (2 * pi * h_bar) ** 2) ** (3 / 2)
 
     def Nc(self, T=300):
-        """
+        r"""
         Calculate the effective density of states for electrons in the conduction band.
+
+        .. math::
+            N_c = 2 \left( \frac{2 \pi m_e k T }{ (2 \pi \hbar)^2 } \right)^{3/2}
 
         Parameters
         ----------
@@ -172,8 +175,11 @@ class Semiconductor:
         return Semiconductor.effective_state_density(self.me, T)
 
     def Nv(self, T=300):
-        """
+        r"""
         Calculate the effective density of states for holes in the valence band.
+
+        .. math::
+            N_c = 2 \left( \frac{2 \pi m_h k T }{ (2 \pi \hbar)^2 } \right)^{3/2}
 
         Parameters
         ----------
@@ -192,8 +198,7 @@ class Semiconductor:
         Calculate the electron concentration.
 
         .. math::
-            n_n = N_c(T) \I_{FD}\left( \frac{ E_f - E_g }{ k T } \right),
-        where I_{FD}(x) is the Fermi-Dirac integral.
+            n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
 
         Parameters
         ----------
@@ -216,8 +221,7 @@ class Semiconductor:
         Calculate the hole concentration.
 
         .. math::
-            n_p = N_v(T) I_{FD}\left( \frac{ - E_f }{ k T } \right),
-        where I_{FD}(x) is the Fermi-Dirac integral.
+            n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
 
         Parameters
         ----------
@@ -265,7 +269,7 @@ class Semiconductor:
         Returns
         -------
         str
-            'i' -- means 'intrinsic'.
+            `'i'` -- the intrinsic type.
         """
         return 'i'
 
@@ -361,7 +365,7 @@ class DopedSemiconductor(Semiconductor):
 
     def conductivity_type(self, *, T=None, Ef=None):
         """
-        Tell the conductivity type (overrides `Semiconductor`).
+        Tell the conductivity type (overrides `Semiconductor.conductivity_type`).
 
         Parameters
         ----------
@@ -373,7 +377,7 @@ class DopedSemiconductor(Semiconductor):
         Returns
         -------
         str
-            'p' -- when positive type, 'n' -- when negative type.
+            `'p'` -- the positive type; `'n'` -- the negative type.
 
         Raises
         ------
@@ -663,7 +667,7 @@ class PNJunctionFullDepletion(PNJunction):
         Calculate the width of the negative depletion layer.
 
         .. math::
-            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^- }{ N_a^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
 
         Parameters
         ----------

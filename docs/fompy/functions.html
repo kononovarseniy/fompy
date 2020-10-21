@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>fompy.functions API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module contains useful functions." />
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/sanitize.css" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/typography.css" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.3.1/build/styles/github.min.css" crossorigin>
@@ -23,17 +23,42 @@
 <h1 class="title">Module <code>fompy.functions</code></h1>
 </header>
 <section id="section-intro">
+<p>This module contains useful functions.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from math import exp
+<pre><code class="python">&#34;&#34;&#34;
+This module contains useful functions.
+&#34;&#34;&#34;
+
+from math import exp
 
 from fompy.constants import k
 from fompy.util.fermi_dirac import fd1  # noqa
 
 
 def fermi(E, Ef, T):
+    r&#34;&#34;&#34;
+    Calculate the Fermi-Dirac distribution.
+
+    .. math::
+        f(E) = \frac{ 1 }{ 1 + \exp\left( \frac{ E - E_f }{ k T } \right) }
+
+    Parameters
+    ----------
+    E : float
+        The energy level.
+    Ef : float
+        The Fermi level.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Fermi-Dirac distribution of `E`.
+    &#34;&#34;&#34;
     return 1 / (1 + exp((E - Ef) / (k * T)))</code></pre>
 </details>
 </section>
@@ -48,12 +73,48 @@ def fermi(E, Ef, T):
 <span>def <span class="ident">fermi</span></span>(<span>E, Ef, T)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Calculate the Fermi-Dirac distribution.</p>
+<p><span><span class="MathJax_Preview"> f(E) = \frac{ 1 }{ 1 + \exp\left( \frac{ E - E_f }{ k T } \right) } </span><script type="math/tex; mode=display"> f(E) = \frac{ 1 }{ 1 + \exp\left( \frac{ E - E_f }{ k T } \right) } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>E</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy level.</dd>
+<dt><strong><code>Ef</code></strong> :&ensp;<code>float</code></dt>
+<dd>The Fermi level.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Fermi-Dirac distribution of <code>E</code>.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def fermi(E, Ef, T):
+    r&#34;&#34;&#34;
+    Calculate the Fermi-Dirac distribution.
+
+    .. math::
+        f(E) = \frac{ 1 }{ 1 + \exp\left( \frac{ E - E_f }{ k T } \right) }
+
+    Parameters
+    ----------
+    E : float
+        The energy level.
+    Ef : float
+        The Fermi level.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Fermi-Dirac distribution of `E`.
+    &#34;&#34;&#34;
     return 1 / (1 + exp((E - Ef) / (k * T)))</code></pre>
 </details>
 </dd>

@@ -1,7 +1,6 @@
 """
-This module contains functions for calculating Fermi-Dirac integral.
-The original code is taken from https://github.com/scott-maddox/fdint
-The code is translated from cython to python.
+This module contains functions for calculating the Fermi-Dirac integral.
+The original code was taken from https://github.com/scott-maddox/fdint and translated from cython to python.
 Unfortunately, the changes made the code about 35 times slower.
 """
 
@@ -35,6 +34,18 @@ import numpy as np
 
 @np.vectorize
 def fd1(phi):
+    """
+    Calculate the Fermi-Dirac integral.
+
+    Parameters
+    ----------
+    phi : float
+
+    Returns
+    -------
+    float
+        The Fermi-Dirac integral of `phi`.
+    """
     if phi < -2e0:
         return _fd1h_lt_m2(phi)
     if phi < 0e0:
