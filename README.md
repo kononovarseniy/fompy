@@ -1,7 +1,6 @@
 [![PyPI version](https://img.shields.io/pypi/v/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
 [![PyPI license](https://img.shields.io/pypi/l/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
-![GitHub contributors](https://img.shields.io/github/contributors/kononovarseniy/fompy)
-
+![GitHub contributors](https://img.shields.io/github/contributors/kononovarseniy/fompy)<br/>
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/fti-fompy?label=pypi%20downloads)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kononovarseniy/fompy)
 
@@ -49,7 +48,7 @@ $ pip install fti-fompy
     from math import *
     from fompy.constants import *
     from fompy.materials import *
-    from fompy.phys import *
+    from fompy.models import *
     from fompy.units import unit
     "
     
