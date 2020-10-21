@@ -1,15 +1,5 @@
 """
-This module contains classes useful for calculating properties of semiconducting materials.
-In addition, it includes instances of those classes for particular materials.
-
-Objects
--------
-Si : Semiconductor
-    Silicon at 300 K.
-Ge : Semiconductor
-    Germanium at 300 K.
-GaAs : Semiconductor
-    Gallium arsenide at 300 K in Gamma valley.
+This module contains instances of classes from `fompy.models` for particular materials.
 """
 
 from fompy.constants import me, eV

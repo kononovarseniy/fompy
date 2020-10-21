@@ -1,3 +1,11 @@
+"""
+This module contains classes useful for calculating properties of different materials.
+
+Notes
+-----
+All energies are counted from the valence band edge Ev.
+"""
+
 from enum import Enum
 from functools import partial
 from math import pi, sqrt
@@ -9,18 +17,78 @@ from fompy.functions import fermi, fd1
 
 
 def conductivity(n, n_mob, p, p_mob):
+    r"""
+    Calculate the conductivity of a material.
+
+    .. math::
+        \sigma = e (n n_{mob} + p p_{mob})
+
+    Parameters
+    ----------
+    n : float
+        The overall concentration of electrons.
+    n_mob : float
+        The concentration of mobile electrons.
+    p : float
+        The overall concentration of holes.
+    p_mob : float
+        The concentration of mobile holes.
+
+    Returns
+    -------
+    float
+        The conductivity.
+    """
     return e * (n * n_mob + p * p_mob)
 
 
 # w depletion area width
 def depletion_width(eps, n, d_phi):
-    """Ширина зоны между металлом и полупроводником"""
+    r"""
+    Calculate the width of the depletion region.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant.
+    n : float
+        The concentration of charge carriers.
+    d_phi : float
+        The difference of potentials.
+
+    Returns
+    -------
+    float
+        The width of the depletion region.
+    """
     return sqrt(eps * d_phi / (2 * pi * e * n))
 
 
 # L_D screening length
 def debye_length(eps, n, T):
-    """Длина Дебая"""
+    r"""
+    Calculate the Debye length.
+
+    .. math::
+        \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant.
+    n : float
+        The concentration of charge carriers.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Debye length.
+    """
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
 
 
@@ -38,21 +106,8 @@ class Semiconductor:
         The energy gap.
     chi : float
         The electron affinity.
-
-    Methods
-    -------
-    Nc(T=300)
-        Calculate the effective density of states for electrons in the conduction band.
-    Nv(T=300)
-        Calculate the effective density of states for holes in the valence band.
-    n_intrinsic(Ef=None, T=300)
-        Calculate the intrinsic electron concentration.
-    p_intrinsic(Ef=None, T=300)
-        Calculate the intrinsic hole concentration.
-    fermi_level(T=300):
-        Determine the Fermi level from the condition of electroneutrality.
-    conductivity_type(*, T=None, Ef=None)
-        Tell the conductivity type.
+    eps : float
+        The dielectric constant.
     """
 
     def __init__(self, me_eff, mh_eff, Eg, chi, eps):
@@ -80,11 +135,23 @@ class Semiconductor:
 
     @staticmethod
     def effective_state_density(m_eff, T):
-        """
-        Used to calculate Nc and Nv
+        r"""
+        Calculate the effective density of states.
 
-        m_eff -- Effective mass of density of states
-        T -- Temperature
+        .. math::
+            N = 2 \left( \frac{2 \pi m_{eff} k T }{ (2 \pi \hbar)^2 } \right)^{3/2}
+
+        Parameters
+        ----------
+        m_eff : float
+            The effective mass.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The effective density of states.
         """
         return 2 * (2 * pi * m_eff * k * T / (2 * pi * h_bar) ** 2) ** (3 / 2)
 
@@ -94,7 +161,7 @@ class Semiconductor:
 
         Parameters
         ----------
-        T=300 : float
+        T : float
             The temperature.
 
         Returns
@@ -110,7 +177,7 @@ class Semiconductor:
 
         Parameters
         ----------
-        T=300 : float
+        T : float
             The temperature.
 
         Returns
@@ -121,14 +188,18 @@ class Semiconductor:
         return Semiconductor.effective_state_density(self.mh, T)
 
     def n_concentration(self, Ef=None, T=300):
-        """
+        r"""
         Calculate the electron concentration.
+
+        .. math::
+            n_n = N_c(T) \I_{FD}\left( \frac{ E_f - E_g }{ k T } \right),
+        where I_{FD}(x) is the Fermi-Dirac integral.
 
         Parameters
         ----------
-        Ef=None : float or None
-            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
-        T=300 : float
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float
             The temperature.
 
         Returns
@@ -141,14 +212,18 @@ class Semiconductor:
         return self.Nc(T) * fd1((Ef - self.Eg) / (k * T))
 
     def p_concentration(self, Ef=None, T=300):
-        """
+        r"""
         Calculate the hole concentration.
+
+        .. math::
+            n_p = N_v(T) I_{FD}\left( \frac{ - E_f }{ k T } \right),
+        where I_{FD}(x) is the Fermi-Dirac integral.
 
         Parameters
         ----------
-        Ef=None : float or None
-            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
-        T=300 : float
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float
             The temperature.
 
         Returns
@@ -167,25 +242,31 @@ class Semiconductor:
         """
         Determine the Fermi level from the condition of electroneutrality.
 
+        .. math::
+            n_p - n_n = 0
+
         Parameters
         ----------
-        T=300 : float
+        T : float
             The temperature.
 
         Returns
         -------
         float
             The Fermi level.
-
-        Notes
-        -----
-        All energies are counted from the valence band edge Ev.
         """
         # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
         return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
 
     def conductivity_type(self, *, T=None, Ef=None):
-        """Tell the conductivity type."""
+        """
+        Tell the conductivity type.
+
+        Returns
+        -------
+        str
+            'i' -- means 'intrinsic'.
+        """
         return 'i'
 
 
@@ -203,15 +284,6 @@ class DopedSemiconductor(Semiconductor):
         The donor concentration.
     Ed : float
         The donor level.
-
-    Methods
-    -------
-    p_donor_concentration(Ef=None, T=300)
-        Calculate the concentration of positive donor ions.
-    n_acceptor_concentration(Ef=None, T=300)
-        Calculate the concentration of negative acceptor ions.
-    conductivity_type(*, T=None, Ef=None)
-        Tell the conductivity type (overrides `Semiconductor`).
     """
 
     def __init__(self, mat, Na, Ea, Nd, Ed):
@@ -221,7 +293,7 @@ class DopedSemiconductor(Semiconductor):
         Parameters
         ----------
         mat : Semiconductor
-            The intrinsic (pure) semiconductor.
+            The base intrinsic (pure) semiconductor.
         Na : float
             The acceptor concentration.
         Ea : float
@@ -238,14 +310,17 @@ class DopedSemiconductor(Semiconductor):
         self.Ed = Ed
 
     def p_donor_concentration(self, Ef=None, T=300):
-        """
+        r"""
         Calculate the concentration of positive donor ions.
+
+        .. math::
+            N_d^+ = N_d \cdot (1 - f(E_d))
 
         Parameters
         ----------
-        Ef=None : float or None
-            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
-        T=300 : float
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float
             The temperature.
 
         Returns
@@ -258,14 +333,17 @@ class DopedSemiconductor(Semiconductor):
         return self.Nd * (1 - fermi(self.Ed, Ef, T))
 
     def n_acceptor_concentration(self, Ef=None, T=300):
-        """
+        r"""
         Calculate the concentration of negative acceptor ions.
+
+        .. math::
+            N_a^- = N_d f(E_a)
 
         Parameters
         ----------
-        Ef=None : float or None
-            The Fermi level. If None, `Ef` is found via the `fermi_level` method.
-        T=300 : float
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float
             The temperature.
 
         Returns
@@ -282,7 +360,26 @@ class DopedSemiconductor(Semiconductor):
                - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
 
     def conductivity_type(self, *, T=None, Ef=None):
-        """Tell the conductivity type (overrides `Semiconductor`)."""
+        """
+        Tell the conductivity type (overrides `Semiconductor`).
+
+        Parameters
+        ----------
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float or None
+            The temperature. If `None`, `T` is assigned 300 K.
+
+        Returns
+        -------
+        str
+            'p' -- when positive type, 'n' -- when negative type.
+
+        Raises
+        ------
+        ValueError
+            Both `T` and `Ef` are specified (neither is `None`).
+        """
         if Ef is not None and T is not None:
             raise ValueError('Both T and Ef are specified')
         if T is None:
@@ -315,21 +412,77 @@ class Metal:
 
 
 class ContactType(Enum):
+    """
+    An enumeration of contact types.
+    """
     AUGMENTATION = 0,
     DEPLETION = 1,
     INVERSION = 2
 
 
 class MetalSemiconductorContact:
+    """
+    A class to calculate properties of a contact between a metal and a semiconductor.
+
+    Attributes
+    ----------
+    metal : Metal
+        The metal.
+    sc : Semiconductor
+        The semiconductor.
+    """
     def __init__(self, metal, sc):
+        """
+        Construct the necessary attributes for the `MetalSemiconductorContact` object.
+
+        Parameters
+        ----------
+        metal : Metal
+            The metal.
+        sc : Semiconductor
+            The semiconductor.
+        """
         self.metal = metal
         self.sc = sc
 
     def delta_phi(self, T=300):
-        """Returns difference of exit potential of metal and semiconductor (in units of voltage)"""
+        r"""
+        Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
+
+        .. math::
+            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        """
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
 
     def contact_type(self, T=300):
+        """
+        Determine the type of the contact.
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        ContactType
+            The type of the contact.
+
+        Raises
+        ------
+        NotImplementedError
+            The semiconductor is of the intrinsic conductivity type.
+        """
         ct = self.sc.conductivity_type(T=T)
         Ef = self.sc.fermi_level(T)
         dEf = -self.delta_phi(T) * e
@@ -346,8 +499,36 @@ class MetalSemiconductorContact:
 
 
 class PNJunction:
+    """
+    A class to calculate properties of a p-n junction.
+
+    Attributes
+    ----------
+    mat : Semiconductor
+        The base intrinsic (pure) semiconductor.
+    n_mat : DopedSemiconductor
+        The n-type doped semiconductor.
+    p_mat : DopedSemiconductor
+        The p-type doped semiconductor.
+    """
 
     def __init__(self, mat, Na, Ea, Nd, Ed):
+        """
+        Construct the necessary attributes for the `PNJunction` object.
+
+        Parameters
+        ----------
+        mat : Semiconductor
+            The base intrinsic (pure) semiconductor.
+        Na : float
+            The acceptor concentration.
+        Ea : float
+            The acceptor level.
+        Nd : float
+            The donor concentration.
+        Ed : float
+            The donor level.
+        """
         if Ea is None:
             Ea = 0
         if Ed is None:
@@ -357,12 +538,35 @@ class PNJunction:
         self.n_mat = DopedSemiconductor(mat, 0, Ea, Nd, Ed)
 
     def delta_phi(self, T=300):
+        r"""
+        Calculate the difference between the donor and acceptor Fermi potentials.
+
+        .. math::
+            \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        """
         return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e
 
 
 class PNJunctionFullDepletion(PNJunction):
+    """
+    A class to calculate properties of a p-n junction exhibiting full depletion (extends `PNJunction`).
+    """
 
     def __init__(self, mat, Na, Ea, Nd, Ed):
+        """
+        Construct the necessary attributes for the `PNJunctionFullDepletion` object
+        (calls the `PNJunction` constructor).
+        """
         super().__init__(mat, Na, Ea, Nd, Ed)
 
     def _df_Na_Nd(self, T):
@@ -375,38 +579,101 @@ class PNJunctionFullDepletion(PNJunction):
         return self.p_mat.eps / (2 * pi * e) * df, a, d
 
     def delta_phi_n(self, T=300):
+        r"""
+        Calculate the difference of potentials for the negative depletion layer.
+
+        .. math::
+            \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        """
         df, a, d = self._df_Na_Nd(T)
         return df * a / (a + d)
 
     def delta_phi_p(self, T=300):
+        r"""
+        Calculate the difference of potentials for the positive depletion layer.
+
+        .. math::
+            \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        """
         df, a, d = self._df_Na_Nd(T)
         return df * d / (a + d)
 
     def w(self, T=300):
         r"""
-        Compute the full depletion width.
+        Calculate the full depletion width.
 
         .. math::
-            w = \sqrt{ { \epsilon \over 2 \pi e} \Delta\phi { N_a^- + N_d^+  \over  N_a^-  N_d^+ } }
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-  N_d^+ } }
 
         Parameters
         ----------
-        T=300 : float
+        T : float
             The temperature.
 
         Returns
         -------
         float
             The full depletion width.
-
         """
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * (a + d) / (a * d))
 
     def w_n(self, T=300):
+        r"""
+        Calculate the width of the negative depletion layer.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the negative depletion layer.
+        """
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * a / d / (a + d))
 
     def w_p(self, T=300):
+        r"""
+        Calculate the width of the negative depletion layer.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^- }{ N_a^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the negative depletion layer.
+        """
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))
