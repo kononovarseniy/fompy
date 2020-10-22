@@ -7,7 +7,7 @@ All energies are counted from the valence band edge Ev.
 """
 
 from enum import Enum
-from functools import partial, cached_property
+from functools import partial
 from math import pi, sqrt
 
 from scipy.optimize import bisect
@@ -129,7 +129,7 @@ class CrystalLattice:
     def N(self):
         return self._N
 
-    @cached_property
+    @property
     def packing_density(self):
         r"""
         .. math::
@@ -137,7 +137,7 @@ class CrystalLattice:
         """
         return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3
 
-    @cached_property
+    @property
     def concentration(self):
         r"""
         .. math::
@@ -145,7 +145,7 @@ class CrystalLattice:
         """
         return self._N / self._a ** 3
 
-    @cached_property
+    @property
     def density(self):
         r"""
         .. math::
