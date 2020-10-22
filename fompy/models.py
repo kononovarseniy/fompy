@@ -220,7 +220,7 @@ class Semiconductor:
         The dielectric constant.
     """
 
-    def __init__(self, me_eff, mh_eff, Eg, chi, eps):
+    def __init__(self, lattice, me_eff, mh_eff, Eg, chi, eps):
         """
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -237,6 +237,7 @@ class Semiconductor:
         eps : float
             The dielectric constant.
         """
+        self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
         self.Eg = Eg
@@ -417,7 +418,7 @@ class DopedSemiconductor(Semiconductor):
         Ed : float
             The donor level.
         """
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
+        super(DopedSemiconductor, self).__init__(mat.lattice, mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
