@@ -218,9 +218,11 @@ class Semiconductor:
         The electron affinity.
     eps : float
         The dielectric constant.
+    lattice : CrystalLattice
+        The crystal lattice.
     """
 
-    def __init__(self, lattice, me_eff, mh_eff, Eg, chi, eps):
+    def __init__(self, me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None):
         """
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -236,6 +238,8 @@ class Semiconductor:
             The electron affinity.
         eps : float
             The dielectric constant.
+        lattice : CrystalLattice
+            The crystal lattice.
         """
         self.lattice = lattice
         self.me = me_eff
@@ -418,7 +422,7 @@ class DopedSemiconductor(Semiconductor):
         Ed : float
             The donor level.
         """
-        super(DopedSemiconductor, self).__init__(mat.lattice, mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
