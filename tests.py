@@ -1,13 +1,55 @@
 import unittest
+from math import sqrt, pi
 
 import numpy as np
 
-from fompy.constants import eV, volt
+from fompy.constants import eV, volt, angstrom, amu
 from fompy.functions import fd1
 from fompy.materials import Si
 from fompy.models import MetalSemiconductorContact, ContactType, DopedSemiconductor, Metal, PNJunction, \
-    PNJunctionFullDepletion
+    PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
+    BodyCenteredCubicLattice
 from fompy.units import unit, parse_unit
+
+
+class TestCrystalLattice(unittest.TestCase):
+    def test_getters(self):
+        lat = PrimitiveCubicLattice(5.43 * angstrom, 28 * amu)
+        self.assertEqual(lat.a, 5.43 * angstrom)
+        self.assertEqual(lat.m, 28 * amu)
+
+    def test_primitive(self):
+        lat = PrimitiveCubicLattice(angstrom, amu)
+        self.assertEqual(lat.r, angstrom / 2)
+        self.assertEqual(lat.N, 1)
+
+    def test_face_centered(self):
+        lat = FaceCenteredCubicLattice(angstrom, amu)
+        self.assertEqual(lat.r, angstrom * sqrt(2) / 4)
+        self.assertEqual(lat.N, 4)
+
+    def test_body_centered(self):
+        lat = BodyCenteredCubicLattice(angstrom, amu)
+        self.assertEqual(lat.r, angstrom * sqrt(3) / 4)
+        self.assertEqual(lat.N, 2)
+
+    def test_diamond_like(self):
+        lat = DiamondLikeLattice(5.43 * angstrom, 28 * amu)
+        self.assertEqual(lat.r, 5.43 * angstrom * sqrt(3) / 8)
+        self.assertEqual(lat.N, 8)
+
+        self.assertAlmostEqual(lat.concentration, 4.997e22, delta=0.001e22)
+        self.assertAlmostEqual(lat.density, 2.324, delta=0.001)
+
+    def test_packing_density(self):
+        lp = PrimitiveCubicLattice(angstrom, amu)
+        lf = FaceCenteredCubicLattice(angstrom, amu)
+        lb = BodyCenteredCubicLattice(angstrom, amu)
+        ld = DiamondLikeLattice(angstrom, amu)
+        self.assertAlmostEqual(lp.packing_density, pi / 6)
+        self.assertAlmostEqual(lf.packing_density, pi * sqrt(2) / 6)
+        self.assertAlmostEqual(lb.packing_density, pi * sqrt(3) / 8)
+        self.assertAlmostEqual(ld.packing_density, pi * sqrt(3) / 16)
 
 
 class TestSemiconductor(unittest.TestCase):

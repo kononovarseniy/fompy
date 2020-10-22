@@ -7,7 +7,7 @@ All energies are counted from the valence band edge Ev.
 """
 
 from enum import Enum
-from functools import partial
+from functools import partial, cached_property
 from math import pi, sqrt
 
 from scipy.optimize import bisect
@@ -90,6 +90,116 @@ def debye_length(eps, n, T):
         The Debye length.
     """
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
+
+
+class CrystalLattice:
+
+    def __init__(self, a, m, r, N):
+        """
+
+        Parameters
+        ----------
+        a: float
+            Lattice parameter.
+        m: float
+            Mass of the atom (average mass in case of several types of atoms).
+        r: float
+            Maximum radius of non-intersecting spheres around atoms.
+        N: float
+            Number of atoms in cell
+        """
+        self._a = a
+        self._m = m
+        self._r = r
+        self._N = N
+
+    @property
+    def a(self):
+        return self._a
+
+    @property
+    def m(self):
+        return self._m
+
+    @property
+    def r(self):
+        return self._r
+
+    @property
+    def N(self):
+        return self._N
+
+    @cached_property
+    def packing_density(self):
+        r"""
+        .. math::
+            \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+        """
+        return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3
+
+    @cached_property
+    def concentration(self):
+        r"""
+        .. math::
+            n = \frac{N}{a^3}
+        """
+        return self._N / self._a ** 3
+
+    @cached_property
+    def density(self):
+        r"""
+        .. math::
+            \rho = n m = \frac{N}{a^3} m
+        """
+        return self.concentration * self._m
+
+
+class PrimitiveCubicLattice(CrystalLattice):
+    r"""
+    .. math::
+        r = \frac{a}{2}
+
+        N = 1
+    """
+
+    def __init__(self, a, m):
+        super().__init__(a, m, a / 2, 1)
+
+
+class FaceCenteredCubicLattice(CrystalLattice):
+    r"""
+    .. math::
+        r = \frac{a * \sqrt{2}}{4}
+
+        N = 4
+    """
+
+    def __init__(self, a, m):
+        super().__init__(a, m, a * sqrt(2) / 4, 4)
+
+
+class BodyCenteredCubicLattice(CrystalLattice):
+    r"""
+    .. math::
+        r = \frac{a * \sqrt{3}}{4}
+
+        N = 2
+    """
+
+    def __init__(self, a, m):
+        super().__init__(a, m, a * sqrt(3) / 4, 2)
+
+
+class DiamondLikeLattice(CrystalLattice):
+    r"""
+    .. math::
+        r = \frac{a * \sqrt{3}}{8}
+
+        N = 8
+    """
+
+    def __init__(self, a, m):
+        super().__init__(a, m, a * sqrt(3) / 8, 8)
 
 
 class Semiconductor:
@@ -435,6 +545,7 @@ class MetalSemiconductorContact:
     sc : Semiconductor
         The semiconductor.
     """
+
     def __init__(self, metal, sc):
         """
         Construct the necessary attributes for the `MetalSemiconductorContact` object.
