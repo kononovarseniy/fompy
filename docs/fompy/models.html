@@ -124,6 +124,182 @@ def debye_length(eps, n, T):
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
 
 
+class CrystalLattice:
+    &#34;&#34;&#34;
+    A class to calculate properties of a crystal lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m, r, N):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `CrystalLattice` object.
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        r : float
+            The maximum radius of non-intersecting spheres around atoms.
+        N : float
+            The number of atoms in a cell.
+        &#34;&#34;&#34;
+        self._a = a
+        self._m = m
+        self._r = r
+        self._N = N
+
+    @property
+    def a(self):
+        &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+        return self._a
+
+    @property
+    def m(self):
+        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+        return self._m
+
+    @property
+    def r(self):
+        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+        return self._r
+
+    @property
+    def N(self):
+        &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+        return self._N
+
+    @property
+    def packing_density(self):
+        r&#34;&#34;&#34;
+        Get the packing density.
+
+        .. math::
+            \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+        &#34;&#34;&#34;
+        return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3
+
+    @property
+    def concentration(self):
+        r&#34;&#34;&#34;
+        Get the concentration.
+
+        .. math::
+            n = \frac{N}{a^3}
+        &#34;&#34;&#34;
+        return self._N / self._a ** 3
+
+    @property
+    def density(self):
+        r&#34;&#34;&#34;
+        Get the density.
+
+        .. math::
+            \rho = n m = \frac{N}{a^3} m
+        &#34;&#34;&#34;
+        return self.concentration * self._m
+
+
+class PrimitiveCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a}{2}
+        .. math::
+            N = 1
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a / 2, 1)
+
+
+class FaceCenteredCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a face-centered cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `FaceCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{2}}{4}
+        .. math::
+            N = 4
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(2) / 4, 4)
+
+
+class BodyCenteredCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{4}
+        .. math::
+            N = 2
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 4, 2)
+
+
+class DiamondLikeLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a diamond-like lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{8}
+        .. math::
+            N = 8
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 8, 8)
+
+
 class Semiconductor:
     &#34;&#34;&#34;
     A class to calculate properties of an intrinsic (pure) semiconductor.
@@ -136,13 +312,15 @@ class Semiconductor:
         The effective mass of a hole.
     Eg : float
         The energy gap.
-    chi : float
+    chi : float or None
         The electron affinity.
-    eps : float
+    eps : float or None
         The dielectric constant.
+    lattice : CrystalLattice or None
+        The crystal lattice.
     &#34;&#34;&#34;
 
-    def __init__(self, me_eff, mh_eff, Eg, chi, eps):
+    def __init__(self, me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None):
         &#34;&#34;&#34;
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -154,11 +332,14 @@ class Semiconductor:
             The effective mass of a hole.
         Eg : float
             The energy gap.
-        chi : float
+        chi : float or None
             The electron affinity.
-        eps : float
+        eps : float or None
             The dielectric constant.
+        lattice : CrystalLattice or None
+            The crystal lattice.
         &#34;&#34;&#34;
+        self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
         self.Eg = Eg
@@ -339,7 +520,7 @@ class DopedSemiconductor(Semiconductor):
         Ed : float
             The donor level.
         &#34;&#34;&#34;
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
@@ -467,6 +648,7 @@ class MetalSemiconductorContact:
     sc : Semiconductor
         The semiconductor.
     &#34;&#34;&#34;
+
     def __init__(self, metal, sc):
         &#34;&#34;&#34;
         Construct the necessary attributes for the `MetalSemiconductorContact` object.
@@ -878,6 +1060,71 @@ Parameters</p>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="fompy.models.BodyCenteredCubicLattice"><code class="flex name class">
+<span>class <span class="ident">BodyCenteredCubicLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a body-centered cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{4} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{4} </script></span>
+<span><span class="MathJax_Preview"> N = 2 </span><script type="math/tex; mode=display"> N = 2 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BodyCenteredCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{4}
+        .. math::
+            N = 2
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 4, 2)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="fompy.models.ContactType"><code class="flex name class">
 <span>class <span class="ident">ContactType</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
@@ -915,6 +1162,288 @@ Parameters</p>
 <div class="desc"></div>
 </dd>
 </dl>
+</dd>
+<dt id="fompy.models.CrystalLattice"><code class="flex name class">
+<span>class <span class="ident">CrystalLattice</span></span>
+<span>(</span><span>a, m, r, N)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a crystal lattice.</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+<dt><strong><code>r</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum radius of non-intersecting spheres around atoms.</dd>
+<dt><strong><code>N</code></strong> :&ensp;<code>float</code></dt>
+<dd>The number of atoms in a cell.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CrystalLattice:
+    &#34;&#34;&#34;
+    A class to calculate properties of a crystal lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m, r, N):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `CrystalLattice` object.
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        r : float
+            The maximum radius of non-intersecting spheres around atoms.
+        N : float
+            The number of atoms in a cell.
+        &#34;&#34;&#34;
+        self._a = a
+        self._m = m
+        self._r = r
+        self._N = N
+
+    @property
+    def a(self):
+        &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+        return self._a
+
+    @property
+    def m(self):
+        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+        return self._m
+
+    @property
+    def r(self):
+        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+        return self._r
+
+    @property
+    def N(self):
+        &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+        return self._N
+
+    @property
+    def packing_density(self):
+        r&#34;&#34;&#34;
+        Get the packing density.
+
+        .. math::
+            \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+        &#34;&#34;&#34;
+        return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3
+
+    @property
+    def concentration(self):
+        r&#34;&#34;&#34;
+        Get the concentration.
+
+        .. math::
+            n = \frac{N}{a^3}
+        &#34;&#34;&#34;
+        return self._N / self._a ** 3
+
+    @property
+    def density(self):
+        r&#34;&#34;&#34;
+        Get the density.
+
+        .. math::
+            \rho = n m = \frac{N}{a^3} m
+        &#34;&#34;&#34;
+        return self.concentration * self._m</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></li>
+<li><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></li>
+<li><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></li>
+<li><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fompy.models.CrystalLattice.N"><code class="name">var <span class="ident">N</span></code></dt>
+<dd>
+<div class="desc"><p>Get the number of atoms in a cell.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def N(self):
+    &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+    return self._N</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.a"><code class="name">var <span class="ident">a</span></code></dt>
+<dd>
+<div class="desc"><p>Get the lattice parameter.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def a(self):
+    &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+    return self._a</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.concentration"><code class="name">var <span class="ident">concentration</span></code></dt>
+<dd>
+<div class="desc"><p>Get the concentration.</p>
+<p><span><span class="MathJax_Preview"> n = \frac{N}{a^3} </span><script type="math/tex; mode=display"> n = \frac{N}{a^3} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def concentration(self):
+    r&#34;&#34;&#34;
+    Get the concentration.
+
+    .. math::
+        n = \frac{N}{a^3}
+    &#34;&#34;&#34;
+    return self._N / self._a ** 3</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.density"><code class="name">var <span class="ident">density</span></code></dt>
+<dd>
+<div class="desc"><p>Get the density.</p>
+<p><span><span class="MathJax_Preview"> \rho = n m = \frac{N}{a^3} m </span><script type="math/tex; mode=display"> \rho = n m = \frac{N}{a^3} m </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def density(self):
+    r&#34;&#34;&#34;
+    Get the density.
+
+    .. math::
+        \rho = n m = \frac{N}{a^3} m
+    &#34;&#34;&#34;
+    return self.concentration * self._m</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.m"><code class="name">var <span class="ident">m</span></code></dt>
+<dd>
+<div class="desc"><p>Get the mass of an atom (the average mass in case of there being several types of atoms).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def m(self):
+    &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+    return self._m</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.packing_density"><code class="name">var <span class="ident">packing_density</span></code></dt>
+<dd>
+<div class="desc"><p>Get the packing density.</p>
+<p><span><span class="MathJax_Preview"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </span><script type="math/tex; mode=display"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def packing_density(self):
+    r&#34;&#34;&#34;
+    Get the packing density.
+
+    .. math::
+        \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+    &#34;&#34;&#34;
+    return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.r"><code class="name">var <span class="ident">r</span></code></dt>
+<dd>
+<div class="desc"><p>Get the maximum radius of non-intersecting spheres around atoms.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def r(self):
+    &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+    return self._r</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.DiamondLikeLattice"><code class="flex name class">
+<span>class <span class="ident">DiamondLikeLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a diamond-like lattice.</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{8} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{8} </script></span>
+<span><span class="MathJax_Preview"> N = 8 </span><script type="math/tex; mode=display"> N = 8 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiamondLikeLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a diamond-like lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{8}
+        .. math::
+            N = 8
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 8, 8)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="fompy.models.DopedSemiconductor"><code class="flex name class">
 <span>class <span class="ident">DopedSemiconductor</span></span>
@@ -984,7 +1513,7 @@ Parameters</p>
         Ed : float
             The donor level.
         &#34;&#34;&#34;
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
@@ -1240,6 +1769,71 @@ Parameters</p>
 </li>
 </ul>
 </dd>
+<dt id="fompy.models.FaceCenteredCubicLattice"><code class="flex name class">
+<span>class <span class="ident">FaceCenteredCubicLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a face-centered cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{2}}{4} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{2}}{4} </script></span>
+<span><span class="MathJax_Preview"> N = 4 </span><script type="math/tex; mode=display"> N = 4 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FaceCenteredCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a face-centered cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `FaceCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{2}}{4}
+        .. math::
+            N = 4
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(2) / 4, 4)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="fompy.models.Metal"><code class="flex name class">
 <span>class <span class="ident">Metal</span></span>
 <span>(</span><span>work_function)</span>
@@ -1319,6 +1913,7 @@ Parameters</p>
     sc : Semiconductor
         The semiconductor.
     &#34;&#34;&#34;
+
     def __init__(self, metal, sc):
         &#34;&#34;&#34;
         Construct the necessary attributes for the `MetalSemiconductorContact` object.
@@ -1993,9 +2588,74 @@ Parameters</p>
 </li>
 </ul>
 </dd>
+<dt id="fompy.models.PrimitiveCubicLattice"><code class="flex name class">
+<span>class <span class="ident">PrimitiveCubicLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a primitive cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a}{2} </span><script type="math/tex; mode=display"> r = \frac{a}{2} </script></span>
+<span><span class="MathJax_Preview"> N = 1 </span><script type="math/tex; mode=display"> N = 1 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PrimitiveCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a}{2}
+        .. math::
+            N = 1
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a / 2, 1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="fompy.models.Semiconductor"><code class="flex name class">
 <span>class <span class="ident">Semiconductor</span></span>
-<span>(</span><span>me_eff, mh_eff, Eg, chi, eps)</span>
+<span>(</span><span>me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A class to calculate properties of an intrinsic (pure) semiconductor.</p>
@@ -2007,10 +2667,12 @@ Parameters</p>
 <dd>The effective mass of a hole.</dd>
 <dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
 <dd>The energy gap.</dd>
-<dt><strong><code>chi</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>chi</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The electron affinity.</dd>
-<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The dielectric constant.</dd>
+<dt><strong><code>lattice</code></strong> :&ensp;<code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> or <code>None</code></dt>
+<dd>The crystal lattice.</dd>
 </dl>
 <p>Construct the necessary attributes for the <code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code> object.</p>
 <h2 id="parameters">Parameters</h2>
@@ -2021,10 +2683,12 @@ Parameters</p>
 <dd>The effective mass of a hole.</dd>
 <dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
 <dd>The energy gap.</dd>
-<dt><strong><code>chi</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>chi</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The electron affinity.</dd>
-<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The dielectric constant.</dd>
+<dt><strong><code>lattice</code></strong> :&ensp;<code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> or <code>None</code></dt>
+<dd>The crystal lattice.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2042,13 +2706,15 @@ Parameters</p>
         The effective mass of a hole.
     Eg : float
         The energy gap.
-    chi : float
+    chi : float or None
         The electron affinity.
-    eps : float
+    eps : float or None
         The dielectric constant.
+    lattice : CrystalLattice or None
+        The crystal lattice.
     &#34;&#34;&#34;
 
-    def __init__(self, me_eff, mh_eff, Eg, chi, eps):
+    def __init__(self, me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None):
         &#34;&#34;&#34;
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -2060,11 +2726,14 @@ Parameters</p>
             The effective mass of a hole.
         Eg : float
             The energy gap.
-        chi : float
+        chi : float or None
             The electron affinity.
-        eps : float
+        eps : float or None
             The dielectric constant.
+        lattice : CrystalLattice or None
+            The crystal lattice.
         &#34;&#34;&#34;
+        self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
         self.Eg = Eg
@@ -2538,6 +3207,9 @@ Parameters</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></code></h4>
+</li>
+<li>
 <h4><code><a title="fompy.models.ContactType" href="#fompy.models.ContactType">ContactType</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.models.ContactType.AUGMENTATION" href="#fompy.models.ContactType.AUGMENTATION">AUGMENTATION</a></code></li>
@@ -2546,12 +3218,30 @@ Parameters</p>
 </ul>
 </li>
 <li>
+<h4><code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code></h4>
+</li>
+<li>
 <h4><code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.models.DopedSemiconductor.conductivity_type" href="#fompy.models.DopedSemiconductor.conductivity_type">conductivity_type</a></code></li>
 <li><code><a title="fompy.models.DopedSemiconductor.n_acceptor_concentration" href="#fompy.models.DopedSemiconductor.n_acceptor_concentration">n_acceptor_concentration</a></code></li>
 <li><code><a title="fompy.models.DopedSemiconductor.p_donor_concentration" href="#fompy.models.DopedSemiconductor.p_donor_concentration">p_donor_concentration</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></code></h4>
 </li>
 <li>
 <h4><code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></h4>
@@ -2578,6 +3268,9 @@ Parameters</p>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w_n" href="#fompy.models.PNJunctionFullDepletion.w_n">w_n</a></code></li>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w_p" href="#fompy.models.PNJunctionFullDepletion.w_p">w_p</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code></h4>
 </li>
 <li>
 <h4><code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></h4>

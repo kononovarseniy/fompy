@@ -93,20 +93,24 @@ def debye_length(eps, n, T):
 
 
 class CrystalLattice:
+    """
+    A class to calculate properties of a crystal lattice.
+    """
 
     def __init__(self, a, m, r, N):
         """
+        Construct the necessary attributes for the `CrystalLattice` object.
 
         Parameters
         ----------
-        a: float
-            Lattice parameter.
-        m: float
-            Mass of the atom (average mass in case of several types of atoms).
-        r: float
-            Maximum radius of non-intersecting spheres around atoms.
-        N: float
-            Number of atoms in cell
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        r : float
+            The maximum radius of non-intersecting spheres around atoms.
+        N : float
+            The number of atoms in a cell.
         """
         self._a = a
         self._m = m
@@ -115,23 +119,29 @@ class CrystalLattice:
 
     @property
     def a(self):
+        """Get the lattice parameter."""
         return self._a
 
     @property
     def m(self):
+        """Get the mass of an atom (the average mass in case of there being several types of atoms)."""
         return self._m
 
     @property
     def r(self):
+        """Get the maximum radius of non-intersecting spheres around atoms."""
         return self._r
 
     @property
     def N(self):
+        """Get the number of atoms in a cell."""
         return self._N
 
     @property
     def packing_density(self):
         r"""
+        Get the packing density.
+
         .. math::
             \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
         """
@@ -140,6 +150,8 @@ class CrystalLattice:
     @property
     def concentration(self):
         r"""
+        Get the concentration.
+
         .. math::
             n = \frac{N}{a^3}
         """
@@ -148,6 +160,8 @@ class CrystalLattice:
     @property
     def density(self):
         r"""
+        Get the density.
+
         .. math::
             \rho = n m = \frac{N}{a^3} m
         """
@@ -155,50 +169,102 @@ class CrystalLattice:
 
 
 class PrimitiveCubicLattice(CrystalLattice):
-    r"""
-    .. math::
-        r = \frac{a}{2}
-
-        N = 1
+    """
+    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
     """
 
     def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a}{2}
+        .. math::
+            N = 1
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
         super().__init__(a, m, a / 2, 1)
 
 
 class FaceCenteredCubicLattice(CrystalLattice):
-    r"""
-    .. math::
-        r = \frac{a * \sqrt{2}}{4}
-
-        N = 4
+    """
+    A class to calculate properties of a face-centered cubic lattice (extends `CrystalLattice`).
     """
 
     def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `FaceCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{2}}{4}
+        .. math::
+            N = 4
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
         super().__init__(a, m, a * sqrt(2) / 4, 4)
 
 
 class BodyCenteredCubicLattice(CrystalLattice):
-    r"""
-    .. math::
-        r = \frac{a * \sqrt{3}}{4}
-
-        N = 2
+    """
+    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
     """
 
     def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{4}
+        .. math::
+            N = 2
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
         super().__init__(a, m, a * sqrt(3) / 4, 2)
 
 
 class DiamondLikeLattice(CrystalLattice):
-    r"""
-    .. math::
-        r = \frac{a * \sqrt{3}}{8}
-
-        N = 8
+    """
+    A class to calculate properties of a diamond-like lattice.
     """
 
     def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{8}
+        .. math::
+            N = 8
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
         super().__init__(a, m, a * sqrt(3) / 8, 8)
 
 
@@ -214,11 +280,11 @@ class Semiconductor:
         The effective mass of a hole.
     Eg : float
         The energy gap.
-    chi : float
+    chi : float or None
         The electron affinity.
-    eps : float
+    eps : float or None
         The dielectric constant.
-    lattice : CrystalLattice
+    lattice : CrystalLattice or None
         The crystal lattice.
     """
 
@@ -234,11 +300,11 @@ class Semiconductor:
             The effective mass of a hole.
         Eg : float
             The energy gap.
-        chi : float
+        chi : float or None
             The electron affinity.
-        eps : float
+        eps : float or None
             The dielectric constant.
-        lattice : CrystalLattice
+        lattice : CrystalLattice or None
             The crystal lattice.
         """
         self.lattice = lattice
