@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>fompy.util.parser API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module contains classes for lexical analysis of text." />
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/sanitize.css" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/typography.css" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.3.1/build/styles/github.min.css" crossorigin>
@@ -23,19 +23,52 @@
 <h1 class="title">Module <code>fompy.util.parser</code></h1>
 </header>
 <section id="section-intro">
+<p>This module contains classes for lexical analysis of text.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import re
+<pre><code class="python">&#34;&#34;&#34;
+This module contains classes for lexical analysis of text.
+&#34;&#34;&#34;
+
+import re
 
 
 class Tokenizer:
+    &#34;&#34;&#34;
+    A class to parse text.
+    &#34;&#34;&#34;
+
     def __init__(self, rules):
+        &#34;&#34;&#34;
+        Initialize the parser.
+
+        Parameters
+        ----------
+        rules : dict(str &#39;token_type&#39; : str &#39;regex&#39;)
+            A set of parsing rules establishing the correspondence between token types and regular expressions.
+        &#34;&#34;&#34;
         # Using re as lexical analyzer is described here https://stackoverflow.com/a/2359619
         self._re = re.compile(&#39;|&#39;.join(f&#39;(?P&lt;{k}&gt;{v})&#39; for k, v in rules.items()), re.VERBOSE)
 
     def tokenize(self, text):
+        &#34;&#34;&#34;
+        Parse `text` and generate tokens.
+
+        Parameters
+        ----------
+        text : str
+
+        Returns
+        -------
+        str &#39;token&#39;, str &#39;value&#39;
+            The current token.
+        Raises
+        ------
+        SyntaxError
+            The parser has failed to recognize a token.
+        &#34;&#34;&#34;
         pos = 0
         while pos &lt; len(text):
             m = self._re.match(text, pos)
@@ -48,12 +81,17 @@ class Tokenizer:
 
 
 class TokenList(list):
+    &#34;&#34;&#34;
+    A class functioning as a list of tokens (extends `list`).
+    &#34;&#34;&#34;
+
     def __init__(self, tokens):
         super().__init__(tokens)
         self._pos = 0
 
     @property
     def position(self):
+        &#34;&#34;&#34;Get or set the current position.&#34;&#34;&#34;
         return self._pos
 
     @position.setter
@@ -61,12 +99,27 @@ class TokenList(list):
         self._pos = pos
 
     def get(self, offset=0):
+        &#34;&#34;&#34;
+        Get a token.
+
+        Parameters
+        ----------
+        offset : int
+            An offset from the current `position`.
+
+        Returns
+        -------
+        `self[ position + offset ]`
+        None, None
+            When `position + offset` is past the end of the token list.
+        &#34;&#34;&#34;
         if self._pos + offset &gt;= len(self):
             return None, None
         return self[self._pos + offset]
 
     @property
     def eof(self):
+        &#34;&#34;&#34;Get a boolean that is `True` if `position` is past the end of the token list, `False` otherwise.&#34;&#34;&#34;
         return self._pos &gt;= len(self)</code></pre>
 </details>
 </section>
@@ -84,20 +137,23 @@ class TokenList(list):
 <span>(</span><span>tokens)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Built-in mutable sequence.</p>
-<p>If no argument is given, the constructor creates a new empty list.
-The argument must be an iterable if specified.</p></div>
+<div class="desc"><p>A class functioning as a list of tokens (extends <code>list</code>).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class TokenList(list):
+    &#34;&#34;&#34;
+    A class functioning as a list of tokens (extends `list`).
+    &#34;&#34;&#34;
+
     def __init__(self, tokens):
         super().__init__(tokens)
         self._pos = 0
 
     @property
     def position(self):
+        &#34;&#34;&#34;Get or set the current position.&#34;&#34;&#34;
         return self._pos
 
     @position.setter
@@ -105,12 +161,27 @@ The argument must be an iterable if specified.</p></div>
         self._pos = pos
 
     def get(self, offset=0):
+        &#34;&#34;&#34;
+        Get a token.
+
+        Parameters
+        ----------
+        offset : int
+            An offset from the current `position`.
+
+        Returns
+        -------
+        `self[ position + offset ]`
+        None, None
+            When `position + offset` is past the end of the token list.
+        &#34;&#34;&#34;
         if self._pos + offset &gt;= len(self):
             return None, None
         return self[self._pos + offset]
 
     @property
     def eof(self):
+        &#34;&#34;&#34;Get a boolean that is `True` if `position` is past the end of the token list, `False` otherwise.&#34;&#34;&#34;
         return self._pos &gt;= len(self)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -121,25 +192,27 @@ The argument must be an iterable if specified.</p></div>
 <dl>
 <dt id="fompy.util.parser.TokenList.eof"><code class="name">var <span class="ident">eof</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get a boolean that is <code>True</code> if <code>position</code> is past the end of the token list, <code>False</code> otherwise.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def eof(self):
+    &#34;&#34;&#34;Get a boolean that is `True` if `position` is past the end of the token list, `False` otherwise.&#34;&#34;&#34;
     return self._pos &gt;= len(self)</code></pre>
 </details>
 </dd>
 <dt id="fompy.util.parser.TokenList.position"><code class="name">var <span class="ident">position</span></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get or set the current position.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def position(self):
+    &#34;&#34;&#34;Get or set the current position.&#34;&#34;&#34;
     return self._pos</code></pre>
 </details>
 </dd>
@@ -150,12 +223,37 @@ def position(self):
 <span>def <span class="ident">get</span></span>(<span>self, offset=0)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get a token.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>offset</code></strong> :&ensp;<code>int</code></dt>
+<dd>An offset from the current <code>position</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>self[ position + offset ]</code></dt>
+<dt><code>None, None</code></dt>
+<dd>When <code>position + offset</code> is past the end of the token list.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get(self, offset=0):
+    &#34;&#34;&#34;
+    Get a token.
+
+    Parameters
+    ----------
+    offset : int
+        An offset from the current `position`.
+
+    Returns
+    -------
+    `self[ position + offset ]`
+    None, None
+        When `position + offset` is past the end of the token list.
+    &#34;&#34;&#34;
     if self._pos + offset &gt;= len(self):
         return None, None
     return self[self._pos + offset]</code></pre>
@@ -168,17 +266,51 @@ def position(self):
 <span>(</span><span>rules)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A class to parse text.</p>
+<p>Initialize the parser.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>rules</code></strong> :&ensp;<code>dict(str 'token_type' : str 'regex')</code></dt>
+<dd>A set of parsing rules establishing the correspondence between token types and regular expressions.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Tokenizer:
+    &#34;&#34;&#34;
+    A class to parse text.
+    &#34;&#34;&#34;
+
     def __init__(self, rules):
+        &#34;&#34;&#34;
+        Initialize the parser.
+
+        Parameters
+        ----------
+        rules : dict(str &#39;token_type&#39; : str &#39;regex&#39;)
+            A set of parsing rules establishing the correspondence between token types and regular expressions.
+        &#34;&#34;&#34;
         # Using re as lexical analyzer is described here https://stackoverflow.com/a/2359619
         self._re = re.compile(&#39;|&#39;.join(f&#39;(?P&lt;{k}&gt;{v})&#39; for k, v in rules.items()), re.VERBOSE)
 
     def tokenize(self, text):
+        &#34;&#34;&#34;
+        Parse `text` and generate tokens.
+
+        Parameters
+        ----------
+        text : str
+
+        Returns
+        -------
+        str &#39;token&#39;, str &#39;value&#39;
+            The current token.
+        Raises
+        ------
+        SyntaxError
+            The parser has failed to recognize a token.
+        &#34;&#34;&#34;
         pos = 0
         while pos &lt; len(text):
             m = self._re.match(text, pos)
@@ -195,12 +327,43 @@ def position(self):
 <span>def <span class="ident">tokenize</span></span>(<span>self, text)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Parse <code>text</code> and generate tokens.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str 'token', str 'value'</code></dt>
+<dd>The current token.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>SyntaxError</code></dt>
+<dd>The parser has failed to recognize a token.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def tokenize(self, text):
+    &#34;&#34;&#34;
+    Parse `text` and generate tokens.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    str &#39;token&#39;, str &#39;value&#39;
+        The current token.
+    Raises
+    ------
+    SyntaxError
+        The parser has failed to recognize a token.
+    &#34;&#34;&#34;
     pos = 0
     while pos &lt; len(text):
         m = self._re.match(text, pos)

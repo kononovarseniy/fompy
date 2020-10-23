@@ -1,3 +1,7 @@
+"""
+This module contains classes for parsing units of measurement.
+"""
+
 from fractions import Fraction
 
 from fompy import constants
@@ -12,7 +16,29 @@ TOKENIZER = Tokenizer({
 
 
 class SimpleUnit:
+    """
+    A class to convert a simple unit of measurement into cgs.
+
+    Attributes
+    ----------
+    name : str
+    prefix : str or None
+    multiplier : float
+        The multiplier associated with the prefix.
+    value : float
+        The value of the unit in cgs.
+    power : int
+    """
+
     def __init__(self, name, power):
+        """
+        Construct the necessary attributes for the `SimpleUnit` object.
+
+        Parameters
+        ----------
+        name : str
+        power : int
+        """
         prefix = None
         multiplier = 1
         for p, n in PREFIXES.items():
@@ -28,6 +54,13 @@ class SimpleUnit:
         self.power = power
 
     def get_number(self):
+        """
+        Get the value of the unit expressed in cgs.
+
+        Returns
+        -------
+        float
+        """
         return (self.multiplier * self.value) ** self.power
 
     def __str__(self):
@@ -38,11 +71,29 @@ class SimpleUnit:
 
 
 class CompositeUnit:
+    """
+    A class to convert a composite unit of measurement into cgs.
+
+    Attributes
+    ----------
+    nom : iterable(CompositeUnit, SimpleUnit)
+        The numerator.
+    denom : iterable(CompositeUnit, SimpleUnit)
+        The denominator.
+    """
+
     def __init__(self, nom, denom):
         self.nom = nom
         self.denom = denom
 
     def get_number(self):
+        """
+        Get the value of the unit expressed in cgs.
+
+        Returns
+        -------
+        float
+        """
         res = 1
         for u in self.nom:
             res *= u.get_number()
@@ -61,6 +112,22 @@ class CompositeUnit:
 
 
 def parse_unit(text):
+    """
+    Extract a unit of measurement out of `text`.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    CompositeUnit
+
+    Raises
+    ------
+    SyntaxError
+        The parser has encountered an unexpected token.
+    """
     ts = TokenList(filter(lambda t: t[0] != 'optional', TOKENIZER.tokenize(text)))
     nom_list = []
     denom_list = []
@@ -96,6 +163,18 @@ def parse_unit(text):
 
 
 def unit(text):
+    """
+    Get the value of a unit of measurement in `text`.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    float
+        The value of the unit of measurement expressed in cgs.
+    """
     return parse_unit(text).get_number()
 
 
