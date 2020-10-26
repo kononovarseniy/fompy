@@ -42,6 +42,14 @@ def conductivity(n, n_mob, p, p_mob):
     return e * (n * n_mob + p * p_mob)
 
 
+def concentration(resistivity, mobility):
+    r"""
+    .. math::
+        n = \frac{1}{\rho * \mu * e}
+    """
+    return 1 / (resistivity * mobility * e)
+
+
 # L_D screening length
 def debye_length(eps, n, T):
     r"""

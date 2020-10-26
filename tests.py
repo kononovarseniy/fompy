@@ -8,7 +8,7 @@ from fompy.functions import fd1
 from fompy.materials import Si
 from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
-    BodyCenteredCubicLattice
+    BodyCenteredCubicLattice, conductivity, concentration
 from fompy.units import unit, parse_unit
 
 
@@ -194,6 +194,19 @@ class TestPNJunction(unittest.TestCase):
                          self.pn_fd.w_n() * self.pn_fd.n_mat.p_donor_concentration(), 0.0)
         self.assertEqual(self.pn_fd2.w_p() * self.pn_fd2.p_mat.n_acceptor_concentration() -
                          self.pn_fd2.w_n() * self.pn_fd2.n_mat.p_donor_concentration(), 0.0)
+
+
+class TestFormulae(unittest.TestCase):
+    def setUp(self):
+        self.mobility = 500 * unit('cm2 / V s')
+
+    def test_conductivity(self):
+        resistivity = 1 / conductivity(0, 0, 1e18, self.mobility)
+        self.assertAlmostEqual(resistivity / unit('Ohm cm'), 0.012, delta=0.001)
+
+    def test_concentration(self):
+        self.assertAlmostEqual(concentration(0.01 * unit('Ohm cm'), self.mobility), 1.2e18, delta=1e17)
+        self.assertAlmostEqual(concentration(10000 * unit('Ohm cm'), self.mobility), 1.2e12, delta=1e11)
 
 
 if __name__ == '__main__':
