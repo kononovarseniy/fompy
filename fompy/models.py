@@ -50,10 +50,30 @@ def concentration(resistivity, mobility):
     return 1 / (resistivity * mobility * e)
 
 
-# L_D screening length
+def depletion_width(eps, n, d_phi):
+    r"""
+    Calculate the width of the depletion region, using the approximation of full depletion..
+    .. math::
+        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant.
+    n : float
+        The concentration of charge carriers.
+    d_phi : float
+        The difference of potentials.
+    Returns
+    -------
+    float
+        The width of the depletion region.
+    """
+    return sqrt(eps * d_phi / (2 * pi * e * n))
+
+
 def debye_length(eps, n, T):
     r"""
-    Calculate the Debye length.
+    Calculate the Debye length (screening length).
 
     .. math::
         \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
@@ -690,7 +710,10 @@ class MSJunction:
         float
             The width of the depletion region.
         """
-        return sqrt(self.sc.eps * self.delta_phi(T) / (2 * pi * e * self.sc.n_concentration(T=T)))
+        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
+
+    def debye_length(self, T=300):
+        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)
 
 
 class PNJunction:

@@ -146,6 +146,10 @@ class TestMSJunction(unittest.TestCase):
         self.assertAlmostEqual(c.delta_phi() / volt, 0.5, delta=0.001)
         self.assertAlmostEqual(c.full_depletion_width() / unit('nm'), 81, delta=1)
 
+    def test_debye_length(self):
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        self.assertAlmostEqual(c.debye_length() / unit('nm'), 4.4, delta=0.1)
+
 
 class TestFermiDiracIntegral(unittest.TestCase):
     def test_fd1(self):
