@@ -94,6 +94,9 @@ class TestDopedSemiconductor(unittest.TestCase):
         self.assertAlmostEqual(self.mat_d.fermi_level(T=200), Si.Eg - 0.035 * eV, delta=0.001 * eV)
 
     def test_conductivity_type(self):
+        with self.assertRaises(ValueError):
+            self.mat_a.conductivity_type(T=300, Ef=1 * eV)
+
         self.assertEqual(self.mat_a.conductivity_type(), 'p')
         self.assertEqual(self.mat_d.conductivity_type(), 'n')
 
@@ -116,6 +119,16 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(str(parse_unit('kg^2 m^3/2 / A^-6/7 V^100')), 'kg^2 m^3/2 / A^-6/7 V^100')
         self.assertEqual(str(parse_unit('1 / s')), '1 / s')
 
+    def test_error(self):
+        with self.assertRaises(SyntaxError):
+            parse_unit('kg^2 2')
+
+        with self.assertRaises(SyntaxError):
+            parse_unit('kg^2 / cm /')
+
+        with self.assertRaises(SyntaxError):
+            parse_unit('kg^2 / cm [')
+
 
 class TestMSJunction(unittest.TestCase):
     def test_delta_phi(self):
@@ -123,6 +136,9 @@ class TestMSJunction(unittest.TestCase):
         self.assertAlmostEqual(c.delta_phi(300), -0.98 * volt, delta=0.1 * volt)
 
     def test_contact_type(self):
+        with self.assertRaises(NotImplementedError):
+            c = MSJunction(Metal(4.1 * eV), Si)
+            c.contact_type()
         # Al -- p-Si
         c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.INVERSION)
