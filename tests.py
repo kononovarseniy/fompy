@@ -6,7 +6,7 @@ import numpy as np
 from fompy.constants import eV, volt, angstrom, amu
 from fompy.functions import fd1
 from fompy.materials import Si
-from fompy.models import MetalSemiconductorContact, ContactType, DopedSemiconductor, Metal, PNJunction, \
+from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
     BodyCenteredCubicLattice
 from fompy.units import unit, parse_unit
@@ -117,24 +117,34 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(str(parse_unit('1 / s')), '1 / s')
 
 
-class TestMetalSemiconductorContact(unittest.TestCase):
+class TestMSJunction(unittest.TestCase):
     def test_delta_phi(self):
-        c = MetalSemiconductorContact(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
         self.assertAlmostEqual(c.delta_phi(300), -0.98 * volt, delta=0.1 * volt)
 
     def test_contact_type(self):
         # Al -- p-Si
-        c = MetalSemiconductorContact(Metal(4.1 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.INVERSION)
         # Pt -- n-Si
-        c = MetalSemiconductorContact(Metal(5.2 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        c = MSJunction(Metal(5.2 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.INVERSION)
         # Cs -- n-Si
-        c = MetalSemiconductorContact(Metal(2.14 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        c = MSJunction(Metal(2.14 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.AUGMENTATION)
         # Imaginary -- p-Si
-        c = MetalSemiconductorContact(Metal(4.8 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
+        c = MSJunction(Metal(4.8 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.DEPLETION)
+
+    def test_schottky_barrier(self):
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
+        self.assertAlmostEqual(c.schottky_barrier() / volt, 0.05, delta=0.001)
+
+    def test_full_depletion_width(self):
+        # The parameters are selected to comply with the condition delta_phi = 0.5 volt
+        c = MSJunction(Metal(4.65 * eV), DopedSemiconductor(Si, 0, 0, 1e17, Si.Eg))
+        self.assertAlmostEqual(c.delta_phi() / volt, 0.5, delta=0.001)
+        self.assertAlmostEqual(c.full_depletion_width() / unit('nm'), 81, delta=1)
 
 
 class TestFermiDiracIntegral(unittest.TestCase):

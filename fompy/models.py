@@ -42,31 +42,6 @@ def conductivity(n, n_mob, p, p_mob):
     return e * (n * n_mob + p * p_mob)
 
 
-# w depletion area width
-def depletion_width(eps, n, d_phi):
-    r"""
-    Calculate the width of the depletion region.
-
-    .. math::
-        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
-
-    Parameters
-    ----------
-    eps : float
-        The dielectric constant.
-    n : float
-        The concentration of charge carriers.
-    d_phi : float
-        The difference of potentials.
-
-    Returns
-    -------
-    float
-        The width of the depletion region.
-    """
-    return sqrt(eps * d_phi / (2 * pi * e * n))
-
-
 # L_D screening length
 def debye_length(eps, n, T):
     r"""
@@ -605,7 +580,7 @@ class ContactType(Enum):
     INVERSION = 2
 
 
-class MetalSemiconductorContact:
+class MSJunction:
     """
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -619,7 +594,7 @@ class MetalSemiconductorContact:
 
     def __init__(self, metal, sc):
         """
-        Construct the necessary attributes for the `MetalSemiconductorContact` object.
+        Construct the necessary attributes for the `MSJunction` object.
 
         Parameters
         ----------
@@ -649,6 +624,13 @@ class MetalSemiconductorContact:
             The difference of potentials.
         """
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+
+    def schottky_barrier(self):
+        r"""
+        .. math::
+            \Phi_B = \Phi_M - \chi
+        """
+        return (self.metal.work_function - self.sc.chi) / e
 
     def contact_type(self, T=300):
         """
@@ -682,6 +664,25 @@ class MetalSemiconductorContact:
                     return ContactType.AUGMENTATION if dEf < 0 else ContactType.DEPLETION
                 if ct == 'n':
                     return ContactType.DEPLETION if dEf < 0 else ContactType.AUGMENTATION
+
+    def full_depletion_width(self, T=300):
+        r"""
+        Calculate the width of the depletion region, using the approximation of full depletion.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the depletion region.
+        """
+        return sqrt(self.sc.eps * self.delta_phi(T) / (2 * pi * e * self.sc.n_concentration(T=T)))
 
 
 class PNJunction:
