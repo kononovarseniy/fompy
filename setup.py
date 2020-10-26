@@ -1,11 +1,12 @@
 import setuptools
+import fompy
 
 with open("README.md", "r") as f:
     long_description = f.read()
 
 setuptools.setup(
     name="fti-fompy",
-    version="0.1.0",
+    version=fompy.VERSION,
     author="Arseniy Kononov",
     author_email="a.kononov1@g.nsu.ru",
     description="Routines for the course \"Physical Fundamentals of Microelectronics\"",
