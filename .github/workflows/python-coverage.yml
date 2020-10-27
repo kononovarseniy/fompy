@@ -1,11 +1,8 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
-
-name: Python package
+name: Test coverage
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, coverage-badge ]
   pull_request:
     branches: [ main ]
 
@@ -15,30 +12,28 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8]
+        python-version: [ 3.8 ]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install coverage
-        pip install -e .
-    - name: Calculate coverage
-      run: |
-        coverage run --source=fompy tests.py
-        echo "COVERAGE=$(coverage report | grep -oP 'TOTAL\s+\d+\s+\d+\s+\K(\d+%)')" >> $GITHUB_ENV
-    - name: Create the Badge
-      uses: schneegans/dynamic-badges-action@v1.0.0
-      with:
-        auth: ${{ secrets.GIST_SECRET }}
-        gistID: 9e5ba719e43ce7d459b38bb7e5c7c588
-        filename: fompy-coverage.json
-        label: coverage
-        message: ${{ env.COVERAGE }}
-        color: green
-
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage
+          pip install -e .
+      - name: Calculate coverage
+        run: |
+          coverage run --source=fompy tests.py
+          echo "COVERAGE=$(coverage report | grep -oP 'TOTAL\s+\d+\s+\d+\s+\K(\d+%)')" >> $GITHUB_ENV
+      - name: Create the Badge
+        run: |
+          files='{"coverage.json":{"content":"{\"subject\":\"coverage\",\"status\":\"${{ env.COVERAGE }}\",\"color\":\"green\"}"}}'
+          curl -X PATCH https://api.github.com/gists/44e4ca5d46404d5c37ab1b8661bd6675 \
+            -H 'Accept: application/vnd.github.v3+json' \
+            -H 'Authorization: token ${{ secrets.GIST_TOKEN }}' \
+            -H 'Content-Type: application/json' \
+            -d '{"description":"description", "files":'$files'}'
