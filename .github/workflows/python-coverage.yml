@@ -31,7 +31,7 @@ jobs:
           echo "COVERAGE=$(coverage report | grep -oP 'TOTAL\s+\d+\s+\d+\s+\K(\d+%)')" >> $GITHUB_ENV
       - name: Create the Badge
         run: |
-          files='{"coverage.json":{"content":"{\"subject\":\"coverage\",\"status\":\"${{ env.COVERAGE }}\",\"color\":\"green\"}"}}'
+          files='{"coverage.json":{"content":"{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${{ env.COVERAGE }}\",\"color\":\"green\"}"}}'
           curl -X PATCH https://api.github.com/gists/44e4ca5d46404d5c37ab1b8661bd6675 \
             -H 'Accept: application/vnd.github.v3+json' \
             -H 'Authorization: token ${{ secrets.GIST_TOKEN }}' \
