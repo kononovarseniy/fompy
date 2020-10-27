@@ -59,14 +59,22 @@ class TestSemiconductor(unittest.TestCase):
     def test_Nv(self):
         self.assertAlmostEqual(Si.Nv(), 1.8e19, delta=0.1e19)
 
-    def test_ni_eq_pi(self):
+    def test_intrinsic_concentrations(self):
+        mat = DopedSemiconductor(Si, 1e15, 0, 1e17, Si.Eg)  # random parameters
         self.assertAlmostEqual(Si.n_concentration(), Si.p_concentration(), delta=1e7)
+        self.assertAlmostEqual(Si.n_concentration(), Si.i_concentration(), delta=1e7)
+        self.assertAlmostEqual(mat.i_concentration(), Si.i_concentration(), delta=1e7)
 
     def test_ni(self):
         self.assertAlmostEqual(Si.n_concentration(), 3.5e9, delta=1e8)
 
     def test_fermi_level(self):
         self.assertAlmostEqual(Si.fermi_level(), 0.57 * eV, delta=0.01 * eV)
+
+    def test_intrinsic_fermi_level(self):
+        mat = DopedSemiconductor(Si, 1e15, 0, 1e17, Si.Eg)  # random parameters
+        self.assertAlmostEqual(mat.intrinsic_fermi_level(), 0.57 * eV, delta=0.01 * eV)
+        self.assertEqual(mat.intrinsic_fermi_level(), Si.fermi_level())
 
     def test_conductivity_type(self):
         self.assertEqual(Si.conductivity_type(), 'i')
