@@ -74,14 +74,19 @@ def conductivity(n, n_mob, p, p_mob):
     return e * (n * n_mob + p * p_mob)
 
 
-# w depletion area width
+def concentration(resistivity, mobility):
+    r&#34;&#34;&#34;
+    .. math::
+        n = \frac{1}{\rho * \mu * e}
+    &#34;&#34;&#34;
+    return 1 / (resistivity * mobility * e)
+
+
 def depletion_width(eps, n, d_phi):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion region.
-
+    Calculate the width of the depletion region, using the approximation of full depletion..
     .. math::
         w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
-
     Parameters
     ----------
     eps : float
@@ -90,7 +95,6 @@ def depletion_width(eps, n, d_phi):
         The concentration of charge carriers.
     d_phi : float
         The difference of potentials.
-
     Returns
     -------
     float
@@ -99,10 +103,9 @@ def depletion_width(eps, n, d_phi):
     return sqrt(eps * d_phi / (2 * pi * e * n))
 
 
-# L_D screening length
 def debye_length(eps, n, T):
     r&#34;&#34;&#34;
-    Calculate the Debye length.
+    Calculate the Debye length (screening length).
 
     .. math::
         \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
@@ -637,7 +640,7 @@ class ContactType(Enum):
     INVERSION = 2
 
 
-class MetalSemiconductorContact:
+class MSJunction:
     &#34;&#34;&#34;
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -651,7 +654,7 @@ class MetalSemiconductorContact:
 
     def __init__(self, metal, sc):
         &#34;&#34;&#34;
-        Construct the necessary attributes for the `MetalSemiconductorContact` object.
+        Construct the necessary attributes for the `MSJunction` object.
 
         Parameters
         ----------
@@ -681,6 +684,13 @@ class MetalSemiconductorContact:
             The difference of potentials.
         &#34;&#34;&#34;
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+
+    def schottky_barrier(self):
+        r&#34;&#34;&#34;
+        .. math::
+            \Phi_B = \Phi_M - \chi
+        &#34;&#34;&#34;
+        return (self.metal.work_function - self.sc.chi) / e
 
     def contact_type(self, T=300):
         &#34;&#34;&#34;
@@ -714,6 +724,28 @@ class MetalSemiconductorContact:
                     return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
                 if ct == &#39;n&#39;:
                     return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION
+
+    def full_depletion_width(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the width of the depletion region, using the approximation of full depletion.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the depletion region.
+        &#34;&#34;&#34;
+        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
+
+    def debye_length(self, T=300):
+        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)
 
 
 class PNJunction:
@@ -904,6 +936,23 @@ class PNJunctionFullDepletion(PNJunction):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="fompy.models.concentration"><code class="name flex">
+<span>def <span class="ident">concentration</span></span>(<span>resistivity, mobility)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> n = \frac{1}{\rho * \mu * e} </span><script type="math/tex; mode=display"> n = \frac{1}{\rho * \mu * e} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def concentration(resistivity, mobility):
+    r&#34;&#34;&#34;
+    .. math::
+        n = \frac{1}{\rho * \mu * e}
+    &#34;&#34;&#34;
+    return 1 / (resistivity * mobility * e)</code></pre>
+</details>
+</dd>
 <dt id="fompy.models.conductivity"><code class="name flex">
 <span>def <span class="ident">conductivity</span></span>(<span>n, n_mob, p, p_mob)</span>
 </code></dt>
@@ -961,7 +1010,7 @@ Parameters</p>
 <span>def <span class="ident">debye_length</span></span>(<span>eps, n, T)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the Debye length.</p>
+<div class="desc"><p>Calculate the Debye length (screening length).</p>
 <p><span><span class="MathJax_Preview"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } } </span><script type="math/tex; mode=display"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } } </script></span>
 Parameters</p>
 <hr>
@@ -984,7 +1033,7 @@ Parameters</p>
 </summary>
 <pre><code class="python">def debye_length(eps, n, T):
     r&#34;&#34;&#34;
-    Calculate the Debye length.
+    Calculate the Debye length (screening length).
 
     .. math::
         \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
@@ -1010,8 +1059,8 @@ Parameters</p>
 <span>def <span class="ident">depletion_width</span></span>(<span>eps, n, d_phi)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the width of the depletion region.</p>
-<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
+<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion..
+<span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -1033,11 +1082,9 @@ Parameters</p>
 </summary>
 <pre><code class="python">def depletion_width(eps, n, d_phi):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion region.
-
+    Calculate the width of the depletion region, using the approximation of full depletion..
     .. math::
         w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
-
     Parameters
     ----------
     eps : float
@@ -1046,7 +1093,6 @@ Parameters</p>
         The concentration of charge carriers.
     d_phi : float
         The difference of potentials.
-
     Returns
     -------
     float
@@ -1834,51 +1880,8 @@ Parameters</p>
 </li>
 </ul>
 </dd>
-<dt id="fompy.models.Metal"><code class="flex name class">
-<span>class <span class="ident">Metal</span></span>
-<span>(</span><span>work_function)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a metal.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
-<dd>The work function.</dd>
-</dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code> object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
-<dd>The work function.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Metal:
-    &#34;&#34;&#34;
-    A class to calculate properties of a metal.
-
-    Attributes
-    ----------
-    work_function : float
-        The work function.
-    &#34;&#34;&#34;
-
-    def __init__(self, work_function):
-        &#34;&#34;&#34;
-        Construct the necessary attributes for the `Metal` object.
-
-        Parameters
-        ----------
-        work_function : float
-            The work function.
-        &#34;&#34;&#34;
-        self.work_function = work_function</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.MetalSemiconductorContact"><code class="flex name class">
-<span>class <span class="ident">MetalSemiconductorContact</span></span>
+<dt id="fompy.models.MSJunction"><code class="flex name class">
+<span>class <span class="ident">MSJunction</span></span>
 <span>(</span><span>metal, sc)</span>
 </code></dt>
 <dd>
@@ -1890,7 +1893,7 @@ Parameters</p>
 <dt><strong><code>sc</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
 <dd>The semiconductor.</dd>
 </dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.MetalSemiconductorContact" href="#fompy.models.MetalSemiconductorContact">MetalSemiconductorContact</a></code> object.</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.MSJunction" href="#fompy.models.MSJunction">MSJunction</a></code> object.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>metal</code></strong> :&ensp;<code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></dt>
@@ -1902,7 +1905,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class MetalSemiconductorContact:
+<pre><code class="python">class MSJunction:
     &#34;&#34;&#34;
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -1916,7 +1919,7 @@ Parameters</p>
 
     def __init__(self, metal, sc):
         &#34;&#34;&#34;
-        Construct the necessary attributes for the `MetalSemiconductorContact` object.
+        Construct the necessary attributes for the `MSJunction` object.
 
         Parameters
         ----------
@@ -1946,6 +1949,13 @@ Parameters</p>
             The difference of potentials.
         &#34;&#34;&#34;
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+
+    def schottky_barrier(self):
+        r&#34;&#34;&#34;
+        .. math::
+            \Phi_B = \Phi_M - \chi
+        &#34;&#34;&#34;
+        return (self.metal.work_function - self.sc.chi) / e
 
     def contact_type(self, T=300):
         &#34;&#34;&#34;
@@ -1978,11 +1988,33 @@ Parameters</p>
                 if ct == &#39;p&#39;:
                     return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
                 if ct == &#39;n&#39;:
-                    return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION</code></pre>
+                    return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION
+
+    def full_depletion_width(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the width of the depletion region, using the approximation of full depletion.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the depletion region.
+        &#34;&#34;&#34;
+        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
+
+    def debye_length(self, T=300):
+        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="fompy.models.MetalSemiconductorContact.contact_type"><code class="name flex">
+<dt id="fompy.models.MSJunction.contact_type"><code class="name flex">
 <span>def <span class="ident">contact_type</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
@@ -2040,7 +2072,20 @@ Parameters</p>
                 return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION</code></pre>
 </details>
 </dd>
-<dt id="fompy.models.MetalSemiconductorContact.delta_phi"><code class="name flex">
+<dt id="fompy.models.MSJunction.debye_length"><code class="name flex">
+<span>def <span class="ident">debye_length</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def debye_length(self, T=300):
+    return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.delta_phi"><code class="name flex">
 <span>def <span class="ident">delta_phi</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
@@ -2081,7 +2126,108 @@ Parameters</p>
     return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e</code></pre>
 </details>
 </dd>
+<dt id="fompy.models.MSJunction.full_depletion_width"><code class="name flex">
+<span>def <span class="ident">full_depletion_width</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The width of the depletion region.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def full_depletion_width(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the width of the depletion region, using the approximation of full depletion.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The width of the depletion region.
+    &#34;&#34;&#34;
+    return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.schottky_barrier"><code class="name flex">
+<span>def <span class="ident">schottky_barrier</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> \Phi_B = \Phi_M - \chi </span><script type="math/tex; mode=display"> \Phi_B = \Phi_M - \chi </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def schottky_barrier(self):
+    r&#34;&#34;&#34;
+    .. math::
+        \Phi_B = \Phi_M - \chi
+    &#34;&#34;&#34;
+    return (self.metal.work_function - self.sc.chi) / e</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.Metal"><code class="flex name class">
+<span>class <span class="ident">Metal</span></span>
+<span>(</span><span>work_function)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a metal.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Metal:
+    &#34;&#34;&#34;
+    A class to calculate properties of a metal.
+
+    Attributes
+    ----------
+    work_function : float
+        The work function.
+    &#34;&#34;&#34;
+
+    def __init__(self, work_function):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `Metal` object.
+
+        Parameters
+        ----------
+        work_function : float
+            The work function.
+        &#34;&#34;&#34;
+        self.work_function = work_function</code></pre>
+</details>
 </dd>
 <dt id="fompy.models.PNJunction"><code class="flex name class">
 <span>class <span class="ident">PNJunction</span></span>
@@ -3199,6 +3345,7 @@ Parameters</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="fompy.models.concentration" href="#fompy.models.concentration">concentration</a></code></li>
 <li><code><a title="fompy.models.conductivity" href="#fompy.models.conductivity">conductivity</a></code></li>
 <li><code><a title="fompy.models.debye_length" href="#fompy.models.debye_length">debye_length</a></code></li>
 <li><code><a title="fompy.models.depletion_width" href="#fompy.models.depletion_width">depletion_width</a></code></li>
@@ -3244,14 +3391,17 @@ Parameters</p>
 <h4><code><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></code></h4>
 </li>
 <li>
-<h4><code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></h4>
+<h4><code><a title="fompy.models.MSJunction" href="#fompy.models.MSJunction">MSJunction</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.models.MSJunction.contact_type" href="#fompy.models.MSJunction.contact_type">contact_type</a></code></li>
+<li><code><a title="fompy.models.MSJunction.debye_length" href="#fompy.models.MSJunction.debye_length">debye_length</a></code></li>
+<li><code><a title="fompy.models.MSJunction.delta_phi" href="#fompy.models.MSJunction.delta_phi">delta_phi</a></code></li>
+<li><code><a title="fompy.models.MSJunction.full_depletion_width" href="#fompy.models.MSJunction.full_depletion_width">full_depletion_width</a></code></li>
+<li><code><a title="fompy.models.MSJunction.schottky_barrier" href="#fompy.models.MSJunction.schottky_barrier">schottky_barrier</a></code></li>
+</ul>
 </li>
 <li>
-<h4><code><a title="fompy.models.MetalSemiconductorContact" href="#fompy.models.MetalSemiconductorContact">MetalSemiconductorContact</a></code></h4>
-<ul class="">
-<li><code><a title="fompy.models.MetalSemiconductorContact.contact_type" href="#fompy.models.MetalSemiconductorContact.contact_type">contact_type</a></code></li>
-<li><code><a title="fompy.models.MetalSemiconductorContact.delta_phi" href="#fompy.models.MetalSemiconductorContact.delta_phi">delta_phi</a></code></li>
-</ul>
+<h4><code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></h4>
 </li>
 <li>
 <h4><code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code></h4>
