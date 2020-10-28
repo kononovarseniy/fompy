@@ -3,7 +3,7 @@ This module contains classes useful for calculating properties of different mate
 
 Notes
 -----
-All energies are counted from the valence band edge Ev.
+All energies are counted from the valence band edge E<sub>v</sub> &equiv; 0.
 """
 
 from enum import Enum
@@ -398,7 +398,7 @@ class Semiconductor:
         Calculate the electron concentration.
 
         .. math::
-            n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
+            n_e = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
 
         Parameters
         ----------
@@ -421,7 +421,7 @@ class Semiconductor:
         Calculate the hole concentration.
 
         .. math::
-            n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
+            n_h = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
 
         Parameters
         ----------
@@ -447,7 +447,7 @@ class Semiconductor:
         Determine the Fermi level from the condition of electroneutrality.
 
         .. math::
-            n_p - n_n = 0
+            n_h - n_e = 0
 
         Parameters
         ----------
@@ -740,7 +740,7 @@ class MSJunction:
         Calculate the Debye length (screening length).
 
         .. math::
-            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
+            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
 
         Parameters
         ----------
