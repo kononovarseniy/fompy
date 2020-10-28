@@ -53,7 +53,7 @@ def conductivity(n, n_mob, p, p_mob):
     Calculate the conductivity of a material.
 
     .. math::
-        \sigma = e (n_n \mu_n + n_p \mu_p)
+        \sigma = e (n_e \mu_e + n_h \mu_h)
 
     Parameters
     ----------
@@ -76,23 +76,39 @@ def conductivity(n, n_mob, p, p_mob):
 
 def concentration(resistivity, mobility):
     r&#34;&#34;&#34;
+    Calculate the concentration of charge carriers.
+
     .. math::
-        n = \frac{1}{\rho * \mu * e}
+        n = \frac{1}{\rho \mu e}
+
+    Parameters
+    ----------
+    resistivity : float
+        The resistivity of the material.
+    mobility : float
+        The carrier mobility.
+
+    Returns
+    -------
+    float
+        The carrier concentration.
     &#34;&#34;&#34;
     return 1 / (resistivity * mobility * e)
 
 
 def depletion_width(eps, n, d_phi):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion region, using the approximation of full depletion..
+    Calculate the width of the depletion region, using the approximation of full depletion.
+
     .. math::
         w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
     Parameters
     ----------
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     d_phi : float
         The difference of potentials.
     Returns
@@ -115,7 +131,7 @@ def debye_length(eps, n, T):
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     T : float
         The temperature.
 
@@ -671,7 +687,7 @@ class MSJunction:
         Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
 
         .. math::
-            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
 
         Parameters
         ----------
@@ -687,8 +703,15 @@ class MSJunction:
 
     def schottky_barrier(self):
         r&#34;&#34;&#34;
+        Calculate the height of the Schottky barrier.
+
         .. math::
-            \Phi_B = \Phi_M - \chi
+            \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+        Returns
+        -------
+        float
+            The height of the Schottky barrier.
         &#34;&#34;&#34;
         return (self.metal.work_function - self.sc.chi) / e
 
@@ -745,6 +768,22 @@ class MSJunction:
         return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
 
     def debye_length(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the Debye length (screening length).
+
+        .. math::
+            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Debye length.
+        &#34;&#34;&#34;
         return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)
 
 
@@ -940,15 +979,43 @@ class PNJunctionFullDepletion(PNJunction):
 <span>def <span class="ident">concentration</span></span>(<span>resistivity, mobility)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> n = \frac{1}{\rho * \mu * e} </span><script type="math/tex; mode=display"> n = \frac{1}{\rho * \mu * e} </script></span></p></div>
+<div class="desc"><p>Calculate the concentration of charge carriers.</p>
+<p><span><span class="MathJax_Preview"> n = \frac{1}{\rho \mu e} </span><script type="math/tex; mode=display"> n = \frac{1}{\rho \mu e} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>resistivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The resistivity of the material.</dd>
+<dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
+<dd>The carrier mobility.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The carrier concentration.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def concentration(resistivity, mobility):
     r&#34;&#34;&#34;
+    Calculate the concentration of charge carriers.
+
     .. math::
-        n = \frac{1}{\rho * \mu * e}
+        n = \frac{1}{\rho \mu e}
+
+    Parameters
+    ----------
+    resistivity : float
+        The resistivity of the material.
+    mobility : float
+        The carrier mobility.
+
+    Returns
+    -------
+    float
+        The carrier concentration.
     &#34;&#34;&#34;
     return 1 / (resistivity * mobility * e)</code></pre>
 </details>
@@ -958,7 +1025,7 @@ class PNJunctionFullDepletion(PNJunction):
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the conductivity of a material.</p>
-<p><span><span class="MathJax_Preview"> \sigma = e (n_n \mu_n + n_p \mu_p) </span><script type="math/tex; mode=display"> \sigma = e (n_n \mu_n + n_p \mu_p) </script></span>
+<p><span><span class="MathJax_Preview"> \sigma = e (n_e \mu_e + n_h \mu_h) </span><script type="math/tex; mode=display"> \sigma = e (n_e \mu_e + n_h \mu_h) </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -985,7 +1052,7 @@ Parameters</p>
     Calculate the conductivity of a material.
 
     .. math::
-        \sigma = e (n_n \mu_n + n_p \mu_p)
+        \sigma = e (n_e \mu_e + n_h \mu_h)
 
     Parameters
     ----------
@@ -1018,7 +1085,7 @@ Parameters</p>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
 <dd>The dielectric constant.</dd>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The concentration of charge carriers.</dd>
+<dd>The carrier concentration.</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
 <dd>The temperature.</dd>
 </dl>
@@ -1043,7 +1110,7 @@ Parameters</p>
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     T : float
         The temperature.
 
@@ -1059,15 +1126,15 @@ Parameters</p>
 <span>def <span class="ident">depletion_width</span></span>(<span>eps, n, d_phi)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion..
-<span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
+<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
 Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
 <dd>The dielectric constant.</dd>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The concentration of charge carriers.</dd>
+<dd>The carrier concentration.</dd>
 <dt><strong><code>d_phi</code></strong> :&ensp;<code>float</code></dt>
 <dd>The difference of potentials.</dd>
 </dl>
@@ -1082,15 +1149,17 @@ Parameters</p>
 </summary>
 <pre><code class="python">def depletion_width(eps, n, d_phi):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion region, using the approximation of full depletion..
+    Calculate the width of the depletion region, using the approximation of full depletion.
+
     .. math::
         w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
     Parameters
     ----------
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     d_phi : float
         The difference of potentials.
     Returns
@@ -1936,7 +2005,7 @@ Parameters</p>
         Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
 
         .. math::
-            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
 
         Parameters
         ----------
@@ -1952,8 +2021,15 @@ Parameters</p>
 
     def schottky_barrier(self):
         r&#34;&#34;&#34;
+        Calculate the height of the Schottky barrier.
+
         .. math::
-            \Phi_B = \Phi_M - \chi
+            \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+        Returns
+        -------
+        float
+            The height of the Schottky barrier.
         &#34;&#34;&#34;
         return (self.metal.work_function - self.sc.chi) / e
 
@@ -2010,6 +2086,22 @@ Parameters</p>
         return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
 
     def debye_length(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the Debye length (screening length).
+
+        .. math::
+            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Debye length.
+        &#34;&#34;&#34;
         return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
 </details>
 <h3>Methods</h3>
@@ -2076,12 +2168,40 @@ Parameters</p>
 <span>def <span class="ident">debye_length</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Calculate the Debye length (screening length).</p>
+<p><span><span class="MathJax_Preview"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } } </span><script type="math/tex; mode=display"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Debye length.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def debye_length(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the Debye length (screening length).
+
+    .. math::
+        \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Debye length.
+    &#34;&#34;&#34;
     return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
 </details>
 </dd>
@@ -2090,7 +2210,7 @@ Parameters</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).</p>
-<p><span><span class="MathJax_Preview"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e } </script></span>
+<p><span><span class="MathJax_Preview"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -2111,7 +2231,7 @@ Parameters</p>
     Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
 
     .. math::
-        \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+        \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
 
     Parameters
     ----------
@@ -2171,15 +2291,29 @@ Parameters</p>
 <span>def <span class="ident">schottky_barrier</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> \Phi_B = \Phi_M - \chi </span><script type="math/tex; mode=display"> \Phi_B = \Phi_M - \chi </script></span></p></div>
+<div class="desc"><p>Calculate the height of the Schottky barrier.</p>
+<p><span><span class="MathJax_Preview"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </span><script type="math/tex; mode=display"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </script></span>
+Returns</p>
+<hr>
+<dl>
+<dt><code>float</code></dt>
+<dd>The height of the Schottky barrier.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def schottky_barrier(self):
     r&#34;&#34;&#34;
+    Calculate the height of the Schottky barrier.
+
     .. math::
-        \Phi_B = \Phi_M - \chi
+        \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+    Returns
+    -------
+    float
+        The height of the Schottky barrier.
     &#34;&#34;&#34;
     return (self.metal.work_function - self.sc.chi) / e</code></pre>
 </details>
