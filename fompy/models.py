@@ -393,6 +393,9 @@ class Semiconductor:
         """
         return Semiconductor.effective_state_density(self.mh, T)
 
+    def i_concentration(self, T=300):
+        return self.n_concentration(self.intrinsic_fermi_level(), T)
+
     def n_concentration(self, Ef=None, T=300):
         r"""
         Calculate the electron concentration.
@@ -439,10 +442,16 @@ class Semiconductor:
             Ef = self.fermi_level(T)
         return self.Nv(T) * fd1(-Ef / (k * T))
 
+    def _intrinsic_charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
     def _charge_imbalance(self, Ef, T):
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def fermi_level(self, T=300):
+    def intrinsic_fermi_level(self, T=300) -> float:
+        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+
+    def fermi_level(self, T=300) -> float:
         """
         Determine the Fermi level from the condition of electroneutrality.
 
@@ -460,7 +469,7 @@ class Semiconductor:
             The Fermi level.
         """
         # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
     def conductivity_type(self, *, T=None, Ef=None):
         """
