@@ -1,9 +1,10 @@
 [![PyPI version](https://img.shields.io/pypi/v/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
 [![PyPI license](https://img.shields.io/pypi/l/fti-fompy.svg)](https://pypi.python.org/pypi/fti-fompy/)
-![GitHub contributors](https://img.shields.io/github/contributors/kononovarseniy/fompy)
-![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fkononovarseniy%2F44e4ca5d46404d5c37ab1b8661bd6675%2Fraw%2Fcoverage.json) <br/>
-![PyPI - Downloads](https://img.shields.io/pypi/dm/fti-fompy?label=pypi%20downloads)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/fti-fompy?label=pypi%20downloads) <br/>
+[![GitHub contributors](https://img.shields.io/github/contributors/kononovarseniy/fompy)](https://github.com/kononovarseniy/fompy/graphs/contributors)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kononovarseniy/fompy)
+![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fkononovarseniy%2F44e4ca5d46404d5c37ab1b8661bd6675%2Fraw%2Fcoverage.json) <br/>
+[![GitHub milestone](https://img.shields.io/github/milestones/progress/kononovarseniy/fompy/1)](https://github.com/kononovarseniy/fompy/milestone/1)
 
 # FOMpy
 
