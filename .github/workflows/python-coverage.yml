@@ -36,4 +36,4 @@ jobs:
             -H 'Accept: application/vnd.github.v3+json' \
             -H 'Authorization: token ${{ secrets.GIST_TOKEN }}' \
             -H 'Content-Type: application/json' \
-            -d '{"description":"description", "files":'$files'}'
+            -d '{"files":'$files'}'
