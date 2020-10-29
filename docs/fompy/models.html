@@ -425,6 +425,9 @@ class Semiconductor:
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.mh, T)
 
+    def i_concentration(self, T=300):
+        return self.n_concentration(self.intrinsic_fermi_level(), T)
+
     def n_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
         Calculate the electron concentration.
@@ -471,10 +474,16 @@ class Semiconductor:
             Ef = self.fermi_level(T)
         return self.Nv(T) * fd1(-Ef / (k * T))
 
+    def _intrinsic_charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
     def _charge_imbalance(self, Ef, T):
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def fermi_level(self, T=300):
+    def intrinsic_fermi_level(self, T=300) -&gt; float:
+        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+
+    def fermi_level(self, T=300) -&gt; float:
         &#34;&#34;&#34;
         Determine the Fermi level from the condition of electroneutrality.
 
@@ -492,7 +501,7 @@ class Semiconductor:
             The Fermi level.
         &#34;&#34;&#34;
         # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
     def conductivity_type(self, *, T=None, Ef=None):
         &#34;&#34;&#34;
@@ -3080,6 +3089,9 @@ Parameters</p>
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.mh, T)
 
+    def i_concentration(self, T=300):
+        return self.n_concentration(self.intrinsic_fermi_level(), T)
+
     def n_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
         Calculate the electron concentration.
@@ -3126,10 +3138,16 @@ Parameters</p>
             Ef = self.fermi_level(T)
         return self.Nv(T) * fd1(-Ef / (k * T))
 
+    def _intrinsic_charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
     def _charge_imbalance(self, Ef, T):
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def fermi_level(self, T=300):
+    def intrinsic_fermi_level(self, T=300) -&gt; float:
+        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+
+    def fermi_level(self, T=300) -&gt; float:
         &#34;&#34;&#34;
         Determine the Fermi level from the condition of electroneutrality.
 
@@ -3147,7 +3165,7 @@ Parameters</p>
             The Fermi level.
         &#34;&#34;&#34;
         # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
     def conductivity_type(self, *, T=None, Ef=None):
         &#34;&#34;&#34;
@@ -3324,7 +3342,7 @@ Parameters</p>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.fermi_level"><code class="name flex">
-<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300)</span>
+<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Determine the Fermi level from the condition of electroneutrality.</p>
@@ -3344,7 +3362,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fermi_level(self, T=300):
+<pre><code class="python">def fermi_level(self, T=300) -&gt; float:
     &#34;&#34;&#34;
     Determine the Fermi level from the condition of electroneutrality.
 
@@ -3362,7 +3380,33 @@ Parameters</p>
         The Fermi level.
     &#34;&#34;&#34;
     # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-    return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)</code></pre>
+    return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.Semiconductor.i_concentration"><code class="name flex">
+<span>def <span class="ident">i_concentration</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def i_concentration(self, T=300):
+    return self.n_concentration(self.intrinsic_fermi_level(), T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.Semiconductor.intrinsic_fermi_level"><code class="name flex">
+<span>def <span class="ident">intrinsic_fermi_level</span></span>(<span>self, T=300) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def intrinsic_fermi_level(self, T=300) -&gt; float:
+    return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.n_concentration"><code class="name flex">
@@ -3564,6 +3608,8 @@ Parameters</p>
 <li><code><a title="fompy.models.Semiconductor.conductivity_type" href="#fompy.models.Semiconductor.conductivity_type">conductivity_type</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.effective_state_density" href="#fompy.models.Semiconductor.effective_state_density">effective_state_density</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.fermi_level" href="#fompy.models.Semiconductor.fermi_level">fermi_level</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.i_concentration" href="#fompy.models.Semiconductor.i_concentration">i_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.intrinsic_fermi_level" href="#fompy.models.Semiconductor.intrinsic_fermi_level">intrinsic_fermi_level</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.n_concentration" href="#fompy.models.Semiconductor.n_concentration">n_concentration</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.p_concentration" href="#fompy.models.Semiconductor.p_concentration">p_concentration</a></code></li>
 </ul>

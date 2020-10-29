@@ -29,10 +29,7 @@ Unfortunately, the changes made the code about 35 times slower.
 
 from math import exp, sqrt
 
-import numpy as np
 
-
-@np.vectorize
 def fd1(phi):
     """
     Calculate the Fermi-Dirac integral.

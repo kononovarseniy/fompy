@@ -4,8 +4,12 @@ This module contains useful functions.
 
 from math import exp
 
+import numpy as np
+
 from fompy.constants import k
-from fompy.util.fermi_dirac import fd1  # noqa
+from fompy.util import fermi_dirac
+
+fd1 = np.vectorize(fermi_dirac.fd1)
 
 
 def fermi(E, Ef, T):
