@@ -1,0 +1,39 @@
+name: Test coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.8 ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install coverage
+          pip install -e .
+      - name: Calculate coverage
+        run: |
+          coverage run --source=fompy tests.py
+          echo "COVERAGE=$(coverage report | grep -oP 'TOTAL\s+\d+\s+\d+\s+\K(\d+%)')" >> $GITHUB_ENV
+      - name: Create the Badge
+        run: |
+          files='{"coverage.json":{"content":"{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${{ env.COVERAGE }}\",\"color\":\"green\"}"}}'
+          curl -X PATCH https://api.github.com/gists/44e4ca5d46404d5c37ab1b8661bd6675 \
+            -H 'Accept: application/vnd.github.v3+json' \
+            -H 'Authorization: token ${{ secrets.GIST_TOKEN }}' \
+            -H 'Content-Type: application/json' \
+            -d '{"files":'$files'}'

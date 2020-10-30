@@ -62,10 +62,7 @@ Unfortunately, the changes made the code about 35 times slower.
 
 from math import exp, sqrt
 
-import numpy as np
 
-
-@np.vectorize
 def fd1(phi):
     &#34;&#34;&#34;
     Calculate the Fermi-Dirac integral.
@@ -256,6 +253,58 @@ def _fd1h_gt_40(phi):
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="fompy.util.fermi_dirac.fd1"><code class="name flex">
+<span>def <span class="ident">fd1</span></span>(<span>phi)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the Fermi-Dirac integral.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>phi</code></strong> :&ensp;<code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Fermi-Dirac integral of <code>phi</code>.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fd1(phi):
+    &#34;&#34;&#34;
+    Calculate the Fermi-Dirac integral.
+
+    Parameters
+    ----------
+    phi : float
+
+    Returns
+    -------
+    float
+        The Fermi-Dirac integral of `phi`.
+    &#34;&#34;&#34;
+    if phi &lt; -2e0:
+        return _fd1h_lt_m2(phi)
+    if phi &lt; 0e0:
+        return _fd1h_m2_to_0(phi)
+    if phi &lt; 2e0:
+        return _fd1h_0_to_2(phi)
+    if phi &lt; 5e0:
+        return _fd1h_2_to_5(phi)
+    if phi &lt; 10e0:
+        return _fd1h_5_to_10(phi)
+    if phi &lt; 20e0:
+        return _fd1h_10_to_20(phi)
+    if phi &lt; 40e0:
+        return _fd1h_20_to_40(phi)
+    return _fd1h_gt_40(phi)</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -269,6 +318,11 @@ def _fd1h_gt_40(phi):
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="fompy.util" href="index.html">fompy.util</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fompy.util.fermi_dirac.fd1" href="#fompy.util.fermi_dirac.fd1">fd1</a></code></li>
 </ul>
 </li>
 </ul>

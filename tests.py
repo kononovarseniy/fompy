@@ -1,14 +1,55 @@
 import unittest
+from math import sqrt, pi
 
 import numpy as np
 
 from fompy import functions
-from fompy.constants import eV, volt
-from fompy.functions import fd1
+from fompy.constants import eV, volt, angstrom, amu
 from fompy.materials import Si
-from fompy.models import MetalSemiconductorContact, ContactType, DopedSemiconductor, Metal, PNJunction, \
-    PNJunctionFullDepletion
+from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
+    PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
+    BodyCenteredCubicLattice, conductivity, concentration
 from fompy.units import unit, parse_unit
+
+
+class TestCrystalLattice(unittest.TestCase):
+    def test_getters(self):
+        lat = PrimitiveCubicLattice(5.43 * angstrom, 28 * amu)
+        self.assertEqual(lat.a, 5.43 * angstrom)
+        self.assertEqual(lat.m, 28 * amu)
+
+    def test_primitive(self):
+        lat = PrimitiveCubicLattice(angstrom, amu)
+        self.assertEqual(lat.r, angstrom / 2)
+        self.assertEqual(lat.N, 1)
+
+    def test_face_centered(self):
+        lat = FaceCenteredCubicLattice(angstrom, amu)
+        self.assertEqual(lat.r, angstrom * sqrt(2) / 4)
+        self.assertEqual(lat.N, 4)
+
+    def test_body_centered(self):
+        lat = BodyCenteredCubicLattice(angstrom, amu)
+        self.assertEqual(lat.r, angstrom * sqrt(3) / 4)
+        self.assertEqual(lat.N, 2)
+
+    def test_diamond_like(self):
+        lat = DiamondLikeLattice(5.43 * angstrom, 28 * amu)
+        self.assertEqual(lat.r, 5.43 * angstrom * sqrt(3) / 8)
+        self.assertEqual(lat.N, 8)
+
+        self.assertAlmostEqual(lat.concentration, 4.997e22, delta=0.001e22)
+        self.assertAlmostEqual(lat.density, 2.324, delta=0.001)
+
+    def test_packing_density(self):
+        lp = PrimitiveCubicLattice(angstrom, amu)
+        lf = FaceCenteredCubicLattice(angstrom, amu)
+        lb = BodyCenteredCubicLattice(angstrom, amu)
+        ld = DiamondLikeLattice(angstrom, amu)
+        self.assertAlmostEqual(lp.packing_density, pi / 6)
+        self.assertAlmostEqual(lf.packing_density, pi * sqrt(2) / 6)
+        self.assertAlmostEqual(lb.packing_density, pi * sqrt(3) / 8)
+        self.assertAlmostEqual(ld.packing_density, pi * sqrt(3) / 16)
 
 
 class TestSemiconductor(unittest.TestCase):
@@ -18,14 +59,22 @@ class TestSemiconductor(unittest.TestCase):
     def test_Nv(self):
         self.assertAlmostEqual(Si.Nv(), 1.8e19, delta=0.1e19)
 
-    def test_ni_eq_pi(self):
+    def test_intrinsic_concentrations(self):
+        mat = DopedSemiconductor(Si, 1e15, 0, 1e17, Si.Eg)  # random parameters
         self.assertAlmostEqual(Si.n_concentration(), Si.p_concentration(), delta=1e7)
+        self.assertAlmostEqual(Si.n_concentration(), Si.i_concentration(), delta=1e7)
+        self.assertAlmostEqual(mat.i_concentration(), Si.i_concentration(), delta=1e7)
 
     def test_ni(self):
         self.assertAlmostEqual(Si.n_concentration(), 3.5e9, delta=1e8)
 
     def test_fermi_level(self):
         self.assertAlmostEqual(Si.fermi_level(), 0.57 * eV, delta=0.01 * eV)
+
+    def test_intrinsic_fermi_level(self):
+        mat = DopedSemiconductor(Si, 1e15, 0, 1e17, Si.Eg)  # random parameters
+        self.assertAlmostEqual(mat.intrinsic_fermi_level(), 0.57 * eV, delta=0.01 * eV)
+        self.assertEqual(mat.intrinsic_fermi_level(), Si.fermi_level())
 
     def test_conductivity_type(self):
         self.assertEqual(Si.conductivity_type(), 'i')
@@ -53,6 +102,9 @@ class TestDopedSemiconductor(unittest.TestCase):
         self.assertAlmostEqual(self.mat_d.fermi_level(T=200), Si.Eg - 0.035 * eV, delta=0.001 * eV)
 
     def test_conductivity_type(self):
+        with self.assertRaises(ValueError):
+            self.mat_a.conductivity_type(T=300, Ef=1 * eV)
+
         self.assertEqual(self.mat_a.conductivity_type(), 'p')
         self.assertEqual(self.mat_d.conductivity_type(), 'n')
 
@@ -75,25 +127,52 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(str(parse_unit('kg^2 m^3/2 / A^-6/7 V^100')), 'kg^2 m^3/2 / A^-6/7 V^100')
         self.assertEqual(str(parse_unit('1 / s')), '1 / s')
 
+    def test_error(self):
+        with self.assertRaises(SyntaxError):
+            parse_unit('kg^2 2')
 
-class TestMetalSemiconductorContact(unittest.TestCase):
+        with self.assertRaises(SyntaxError):
+            parse_unit('kg^2 / cm /')
+
+        with self.assertRaises(SyntaxError):
+            parse_unit('kg^2 / cm [')
+
+
+class TestMSJunction(unittest.TestCase):
     def test_delta_phi(self):
-        c = MetalSemiconductorContact(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
         self.assertAlmostEqual(c.delta_phi(300), -0.98 * volt, delta=0.1 * volt)
 
     def test_contact_type(self):
+        with self.assertRaises(NotImplementedError):
+            c = MSJunction(Metal(4.1 * eV), Si)
+            c.contact_type()
         # Al -- p-Si
-        c = MetalSemiconductorContact(Metal(4.1 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.INVERSION)
         # Pt -- n-Si
-        c = MetalSemiconductorContact(Metal(5.2 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        c = MSJunction(Metal(5.2 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.INVERSION)
         # Cs -- n-Si
-        c = MetalSemiconductorContact(Metal(2.14 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        c = MSJunction(Metal(2.14 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.AUGMENTATION)
         # Imaginary -- p-Si
-        c = MetalSemiconductorContact(Metal(4.8 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
+        c = MSJunction(Metal(4.8 * eV), DopedSemiconductor(Si, 1e17, 0.045 * eV, 0, Si.Eg))
         self.assertEqual(c.contact_type(), ContactType.DEPLETION)
+
+    def test_schottky_barrier(self):
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 1e18, 0.045 * eV, 0, Si.Eg))
+        self.assertAlmostEqual(c.schottky_barrier() / volt, 0.05, delta=0.001)
+
+    def test_full_depletion_width(self):
+        # The parameters are selected to comply with the condition delta_phi = 0.5 volt
+        c = MSJunction(Metal(4.65 * eV), DopedSemiconductor(Si, 0, 0, 1e17, Si.Eg))
+        self.assertAlmostEqual(c.delta_phi() / volt, 0.5, delta=0.001)
+        self.assertAlmostEqual(c.full_depletion_width() / unit('nm'), 81, delta=1)
+
+    def test_debye_length(self):
+        c = MSJunction(Metal(4.1 * eV), DopedSemiconductor(Si, 0, 0, 1e18, Si.Eg))
+        self.assertAlmostEqual(c.debye_length() / unit('nm'), 4.4, delta=0.1)
 
 
 class TestFermiDiracIntegral(unittest.TestCase):
@@ -108,7 +187,7 @@ class TestFermiDiracIntegral(unittest.TestCase):
                        109.69481833726653,
                        309.9448732700438
                        ])
-        self.assertEqual(0.0, np.max(np.abs(ys - fd1(xs))))
+        self.assertEqual(0.0, np.max(np.abs(ys - functions.fd1(xs))))
 
 
 class TestFunctions(unittest.TestCase):
@@ -152,6 +231,19 @@ class TestPNJunction(unittest.TestCase):
                          self.pn_fd.w_n() * self.pn_fd.n_mat.p_donor_concentration(), 0.0)
         self.assertEqual(self.pn_fd2.w_p() * self.pn_fd2.p_mat.n_acceptor_concentration() -
                          self.pn_fd2.w_n() * self.pn_fd2.n_mat.p_donor_concentration(), 0.0)
+
+
+class TestFormulae(unittest.TestCase):
+    def setUp(self):
+        self.mobility = 500 * unit('cm2 / V s')
+
+    def test_conductivity(self):
+        resistivity = 1 / conductivity(0, 0, 1e18, self.mobility)
+        self.assertAlmostEqual(resistivity / unit('Ohm cm'), 0.012, delta=0.001)
+
+    def test_concentration(self):
+        self.assertAlmostEqual(concentration(0.01 * unit('Ohm cm'), self.mobility), 1.2e18, delta=1e17)
+        self.assertAlmostEqual(concentration(10000 * unit('Ohm cm'), self.mobility), 1.2e12, delta=1e11)
 
 
 if __name__ == '__main__':

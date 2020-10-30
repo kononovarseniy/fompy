@@ -25,7 +25,7 @@
 <section id="section-intro">
 <p>This module contains classes useful for calculating properties of different materials.</p>
 <h2 id="notes">Notes</h2>
-<p>All energies are counted from the valence band edge Ev.</p>
+<p>All energies are counted from the valence band edge E<sub>v</sub> &equiv; 0.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -35,7 +35,7 @@ This module contains classes useful for calculating properties of different mate
 
 Notes
 -----
-All energies are counted from the valence band edge Ev.
+All energies are counted from the valence band edge E&lt;sub&gt;v&lt;/sub&gt; &amp;equiv; 0.
 &#34;&#34;&#34;
 
 from enum import Enum
@@ -53,7 +53,7 @@ def conductivity(n, n_mob, p, p_mob):
     Calculate the conductivity of a material.
 
     .. math::
-        \sigma = e (n_n \mu_n + n_p \mu_p)
+        \sigma = e (n_e \mu_e + n_h \mu_h)
 
     Parameters
     ----------
@@ -74,10 +74,31 @@ def conductivity(n, n_mob, p, p_mob):
     return e * (n * n_mob + p * p_mob)
 
 
-# w depletion area width
+def concentration(resistivity, mobility):
+    r&#34;&#34;&#34;
+    Calculate the concentration of charge carriers.
+
+    .. math::
+        n = \frac{1}{\rho \mu e}
+
+    Parameters
+    ----------
+    resistivity : float
+        The resistivity of the material.
+    mobility : float
+        The carrier mobility.
+
+    Returns
+    -------
+    float
+        The carrier concentration.
+    &#34;&#34;&#34;
+    return 1 / (resistivity * mobility * e)
+
+
 def depletion_width(eps, n, d_phi):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion region.
+    Calculate the width of the depletion region, using the approximation of full depletion.
 
     .. math::
         w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
@@ -87,10 +108,9 @@ def depletion_width(eps, n, d_phi):
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     d_phi : float
         The difference of potentials.
-
     Returns
     -------
     float
@@ -99,10 +119,9 @@ def depletion_width(eps, n, d_phi):
     return sqrt(eps * d_phi / (2 * pi * e * n))
 
 
-# L_D screening length
 def debye_length(eps, n, T):
     r&#34;&#34;&#34;
-    Calculate the Debye length.
+    Calculate the Debye length (screening length).
 
     .. math::
         \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
@@ -112,7 +131,7 @@ def debye_length(eps, n, T):
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     T : float
         The temperature.
 
@@ -122,6 +141,182 @@ def debye_length(eps, n, T):
         The Debye length.
     &#34;&#34;&#34;
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
+
+
+class CrystalLattice:
+    &#34;&#34;&#34;
+    A class to calculate properties of a crystal lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m, r, N):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `CrystalLattice` object.
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        r : float
+            The maximum radius of non-intersecting spheres around atoms.
+        N : float
+            The number of atoms in a cell.
+        &#34;&#34;&#34;
+        self._a = a
+        self._m = m
+        self._r = r
+        self._N = N
+
+    @property
+    def a(self):
+        &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+        return self._a
+
+    @property
+    def m(self):
+        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+        return self._m
+
+    @property
+    def r(self):
+        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+        return self._r
+
+    @property
+    def N(self):
+        &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+        return self._N
+
+    @property
+    def packing_density(self):
+        r&#34;&#34;&#34;
+        Get the packing density.
+
+        .. math::
+            \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+        &#34;&#34;&#34;
+        return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3
+
+    @property
+    def concentration(self):
+        r&#34;&#34;&#34;
+        Get the concentration.
+
+        .. math::
+            n = \frac{N}{a^3}
+        &#34;&#34;&#34;
+        return self._N / self._a ** 3
+
+    @property
+    def density(self):
+        r&#34;&#34;&#34;
+        Get the density.
+
+        .. math::
+            \rho = n m = \frac{N}{a^3} m
+        &#34;&#34;&#34;
+        return self.concentration * self._m
+
+
+class PrimitiveCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a}{2}
+        .. math::
+            N = 1
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a / 2, 1)
+
+
+class FaceCenteredCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a face-centered cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `FaceCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{2}}{4}
+        .. math::
+            N = 4
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(2) / 4, 4)
+
+
+class BodyCenteredCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{4}
+        .. math::
+            N = 2
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 4, 2)
+
+
+class DiamondLikeLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a diamond-like lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{8}
+        .. math::
+            N = 8
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 8, 8)
 
 
 class Semiconductor:
@@ -136,13 +331,15 @@ class Semiconductor:
         The effective mass of a hole.
     Eg : float
         The energy gap.
-    chi : float
+    chi : float or None
         The electron affinity.
-    eps : float
+    eps : float or None
         The dielectric constant.
+    lattice : CrystalLattice or None
+        The crystal lattice.
     &#34;&#34;&#34;
 
-    def __init__(self, me_eff, mh_eff, Eg, chi, eps):
+    def __init__(self, me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None):
         &#34;&#34;&#34;
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -154,11 +351,14 @@ class Semiconductor:
             The effective mass of a hole.
         Eg : float
             The energy gap.
-        chi : float
+        chi : float or None
             The electron affinity.
-        eps : float
+        eps : float or None
             The dielectric constant.
+        lattice : CrystalLattice or None
+            The crystal lattice.
         &#34;&#34;&#34;
+        self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
         self.Eg = Eg
@@ -225,12 +425,15 @@ class Semiconductor:
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.mh, T)
 
+    def i_concentration(self, T=300):
+        return self.n_concentration(self.intrinsic_fermi_level(), T)
+
     def n_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
         Calculate the electron concentration.
 
         .. math::
-            n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
+            n_e = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
 
         Parameters
         ----------
@@ -253,7 +456,7 @@ class Semiconductor:
         Calculate the hole concentration.
 
         .. math::
-            n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
+            n_h = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
 
         Parameters
         ----------
@@ -271,15 +474,21 @@ class Semiconductor:
             Ef = self.fermi_level(T)
         return self.Nv(T) * fd1(-Ef / (k * T))
 
+    def _intrinsic_charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
     def _charge_imbalance(self, Ef, T):
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def fermi_level(self, T=300):
+    def intrinsic_fermi_level(self, T=300) -&gt; float:
+        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+
+    def fermi_level(self, T=300) -&gt; float:
         &#34;&#34;&#34;
         Determine the Fermi level from the condition of electroneutrality.
 
         .. math::
-            n_p - n_n = 0
+            n_h - n_e = 0
 
         Parameters
         ----------
@@ -292,7 +501,7 @@ class Semiconductor:
             The Fermi level.
         &#34;&#34;&#34;
         # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
     def conductivity_type(self, *, T=None, Ef=None):
         &#34;&#34;&#34;
@@ -339,7 +548,7 @@ class DopedSemiconductor(Semiconductor):
         Ed : float
             The donor level.
         &#34;&#34;&#34;
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
@@ -456,7 +665,7 @@ class ContactType(Enum):
     INVERSION = 2
 
 
-class MetalSemiconductorContact:
+class MSJunction:
     &#34;&#34;&#34;
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -467,9 +676,10 @@ class MetalSemiconductorContact:
     sc : Semiconductor
         The semiconductor.
     &#34;&#34;&#34;
+
     def __init__(self, metal, sc):
         &#34;&#34;&#34;
-        Construct the necessary attributes for the `MetalSemiconductorContact` object.
+        Construct the necessary attributes for the `MSJunction` object.
 
         Parameters
         ----------
@@ -486,7 +696,7 @@ class MetalSemiconductorContact:
         Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
 
         .. math::
-            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
 
         Parameters
         ----------
@@ -499,6 +709,20 @@ class MetalSemiconductorContact:
             The difference of potentials.
         &#34;&#34;&#34;
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+
+    def schottky_barrier(self):
+        r&#34;&#34;&#34;
+        Calculate the height of the Schottky barrier.
+
+        .. math::
+            \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+        Returns
+        -------
+        float
+            The height of the Schottky barrier.
+        &#34;&#34;&#34;
+        return (self.metal.work_function - self.sc.chi) / e
 
     def contact_type(self, T=300):
         &#34;&#34;&#34;
@@ -532,6 +756,44 @@ class MetalSemiconductorContact:
                     return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
                 if ct == &#39;n&#39;:
                     return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION
+
+    def full_depletion_width(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the width of the depletion region, using the approximation of full depletion.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the depletion region.
+        &#34;&#34;&#34;
+        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
+
+    def debye_length(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the Debye length (screening length).
+
+        .. math::
+            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Debye length.
+        &#34;&#34;&#34;
+        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)
 
 
 class PNJunction:
@@ -722,12 +984,57 @@ class PNJunctionFullDepletion(PNJunction):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="fompy.models.concentration"><code class="name flex">
+<span>def <span class="ident">concentration</span></span>(<span>resistivity, mobility)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the concentration of charge carriers.</p>
+<p><span><span class="MathJax_Preview"> n = \frac{1}{\rho \mu e} </span><script type="math/tex; mode=display"> n = \frac{1}{\rho \mu e} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>resistivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The resistivity of the material.</dd>
+<dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
+<dd>The carrier mobility.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The carrier concentration.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def concentration(resistivity, mobility):
+    r&#34;&#34;&#34;
+    Calculate the concentration of charge carriers.
+
+    .. math::
+        n = \frac{1}{\rho \mu e}
+
+    Parameters
+    ----------
+    resistivity : float
+        The resistivity of the material.
+    mobility : float
+        The carrier mobility.
+
+    Returns
+    -------
+    float
+        The carrier concentration.
+    &#34;&#34;&#34;
+    return 1 / (resistivity * mobility * e)</code></pre>
+</details>
+</dd>
 <dt id="fompy.models.conductivity"><code class="name flex">
 <span>def <span class="ident">conductivity</span></span>(<span>n, n_mob, p, p_mob)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the conductivity of a material.</p>
-<p><span><span class="MathJax_Preview"> \sigma = e (n_n \mu_n + n_p \mu_p) </span><script type="math/tex; mode=display"> \sigma = e (n_n \mu_n + n_p \mu_p) </script></span>
+<p><span><span class="MathJax_Preview"> \sigma = e (n_e \mu_e + n_h \mu_h) </span><script type="math/tex; mode=display"> \sigma = e (n_e \mu_e + n_h \mu_h) </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -754,7 +1061,7 @@ Parameters</p>
     Calculate the conductivity of a material.
 
     .. math::
-        \sigma = e (n_n \mu_n + n_p \mu_p)
+        \sigma = e (n_e \mu_e + n_h \mu_h)
 
     Parameters
     ----------
@@ -779,7 +1086,7 @@ Parameters</p>
 <span>def <span class="ident">debye_length</span></span>(<span>eps, n, T)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the Debye length.</p>
+<div class="desc"><p>Calculate the Debye length (screening length).</p>
 <p><span><span class="MathJax_Preview"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } } </span><script type="math/tex; mode=display"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } } </script></span>
 Parameters</p>
 <hr>
@@ -787,7 +1094,7 @@ Parameters</p>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
 <dd>The dielectric constant.</dd>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The concentration of charge carriers.</dd>
+<dd>The carrier concentration.</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
 <dd>The temperature.</dd>
 </dl>
@@ -802,7 +1109,7 @@ Parameters</p>
 </summary>
 <pre><code class="python">def debye_length(eps, n, T):
     r&#34;&#34;&#34;
-    Calculate the Debye length.
+    Calculate the Debye length (screening length).
 
     .. math::
         \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
@@ -812,7 +1119,7 @@ Parameters</p>
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     T : float
         The temperature.
 
@@ -828,7 +1135,7 @@ Parameters</p>
 <span>def <span class="ident">depletion_width</span></span>(<span>eps, n, d_phi)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the width of the depletion region.</p>
+<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
 <p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
 Parameters</p>
 <hr>
@@ -836,7 +1143,7 @@ Parameters</p>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
 <dd>The dielectric constant.</dd>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The concentration of charge carriers.</dd>
+<dd>The carrier concentration.</dd>
 <dt><strong><code>d_phi</code></strong> :&ensp;<code>float</code></dt>
 <dd>The difference of potentials.</dd>
 </dl>
@@ -851,7 +1158,7 @@ Parameters</p>
 </summary>
 <pre><code class="python">def depletion_width(eps, n, d_phi):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion region.
+    Calculate the width of the depletion region, using the approximation of full depletion.
 
     .. math::
         w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
@@ -861,10 +1168,9 @@ Parameters</p>
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     d_phi : float
         The difference of potentials.
-
     Returns
     -------
     float
@@ -878,6 +1184,71 @@ Parameters</p>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="fompy.models.BodyCenteredCubicLattice"><code class="flex name class">
+<span>class <span class="ident">BodyCenteredCubicLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a body-centered cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{4} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{4} </script></span>
+<span><span class="MathJax_Preview"> N = 2 </span><script type="math/tex; mode=display"> N = 2 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BodyCenteredCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{4}
+        .. math::
+            N = 2
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 4, 2)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="fompy.models.ContactType"><code class="flex name class">
 <span>class <span class="ident">ContactType</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
@@ -915,6 +1286,288 @@ Parameters</p>
 <div class="desc"></div>
 </dd>
 </dl>
+</dd>
+<dt id="fompy.models.CrystalLattice"><code class="flex name class">
+<span>class <span class="ident">CrystalLattice</span></span>
+<span>(</span><span>a, m, r, N)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a crystal lattice.</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+<dt><strong><code>r</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum radius of non-intersecting spheres around atoms.</dd>
+<dt><strong><code>N</code></strong> :&ensp;<code>float</code></dt>
+<dd>The number of atoms in a cell.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CrystalLattice:
+    &#34;&#34;&#34;
+    A class to calculate properties of a crystal lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m, r, N):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `CrystalLattice` object.
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        r : float
+            The maximum radius of non-intersecting spheres around atoms.
+        N : float
+            The number of atoms in a cell.
+        &#34;&#34;&#34;
+        self._a = a
+        self._m = m
+        self._r = r
+        self._N = N
+
+    @property
+    def a(self):
+        &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+        return self._a
+
+    @property
+    def m(self):
+        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+        return self._m
+
+    @property
+    def r(self):
+        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+        return self._r
+
+    @property
+    def N(self):
+        &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+        return self._N
+
+    @property
+    def packing_density(self):
+        r&#34;&#34;&#34;
+        Get the packing density.
+
+        .. math::
+            \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+        &#34;&#34;&#34;
+        return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3
+
+    @property
+    def concentration(self):
+        r&#34;&#34;&#34;
+        Get the concentration.
+
+        .. math::
+            n = \frac{N}{a^3}
+        &#34;&#34;&#34;
+        return self._N / self._a ** 3
+
+    @property
+    def density(self):
+        r&#34;&#34;&#34;
+        Get the density.
+
+        .. math::
+            \rho = n m = \frac{N}{a^3} m
+        &#34;&#34;&#34;
+        return self.concentration * self._m</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></li>
+<li><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></li>
+<li><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></li>
+<li><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fompy.models.CrystalLattice.N"><code class="name">var <span class="ident">N</span></code></dt>
+<dd>
+<div class="desc"><p>Get the number of atoms in a cell.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def N(self):
+    &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+    return self._N</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.a"><code class="name">var <span class="ident">a</span></code></dt>
+<dd>
+<div class="desc"><p>Get the lattice parameter.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def a(self):
+    &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+    return self._a</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.concentration"><code class="name">var <span class="ident">concentration</span></code></dt>
+<dd>
+<div class="desc"><p>Get the concentration.</p>
+<p><span><span class="MathJax_Preview"> n = \frac{N}{a^3} </span><script type="math/tex; mode=display"> n = \frac{N}{a^3} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def concentration(self):
+    r&#34;&#34;&#34;
+    Get the concentration.
+
+    .. math::
+        n = \frac{N}{a^3}
+    &#34;&#34;&#34;
+    return self._N / self._a ** 3</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.density"><code class="name">var <span class="ident">density</span></code></dt>
+<dd>
+<div class="desc"><p>Get the density.</p>
+<p><span><span class="MathJax_Preview"> \rho = n m = \frac{N}{a^3} m </span><script type="math/tex; mode=display"> \rho = n m = \frac{N}{a^3} m </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def density(self):
+    r&#34;&#34;&#34;
+    Get the density.
+
+    .. math::
+        \rho = n m = \frac{N}{a^3} m
+    &#34;&#34;&#34;
+    return self.concentration * self._m</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.m"><code class="name">var <span class="ident">m</span></code></dt>
+<dd>
+<div class="desc"><p>Get the mass of an atom (the average mass in case of there being several types of atoms).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def m(self):
+    &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+    return self._m</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.packing_density"><code class="name">var <span class="ident">packing_density</span></code></dt>
+<dd>
+<div class="desc"><p>Get the packing density.</p>
+<p><span><span class="MathJax_Preview"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </span><script type="math/tex; mode=display"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def packing_density(self):
+    r&#34;&#34;&#34;
+    Get the packing density.
+
+    .. math::
+        \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+    &#34;&#34;&#34;
+    return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.r"><code class="name">var <span class="ident">r</span></code></dt>
+<dd>
+<div class="desc"><p>Get the maximum radius of non-intersecting spheres around atoms.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def r(self):
+    &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+    return self._r</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.DiamondLikeLattice"><code class="flex name class">
+<span>class <span class="ident">DiamondLikeLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a diamond-like lattice.</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{8} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{8} </script></span>
+<span><span class="MathJax_Preview"> N = 8 </span><script type="math/tex; mode=display"> N = 8 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiamondLikeLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a diamond-like lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{8}
+        .. math::
+            N = 8
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 8, 8)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="fompy.models.DopedSemiconductor"><code class="flex name class">
 <span>class <span class="ident">DopedSemiconductor</span></span>
@@ -984,7 +1637,7 @@ Parameters</p>
         Ed : float
             The donor level.
         &#34;&#34;&#34;
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
@@ -1240,51 +1893,73 @@ Parameters</p>
 </li>
 </ul>
 </dd>
-<dt id="fompy.models.Metal"><code class="flex name class">
-<span>class <span class="ident">Metal</span></span>
-<span>(</span><span>work_function)</span>
+<dt id="fompy.models.FaceCenteredCubicLattice"><code class="flex name class">
+<span>class <span class="ident">FaceCenteredCubicLattice</span></span>
+<span>(</span><span>a, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A class to calculate properties of a metal.</p>
-<h2 id="attributes">Attributes</h2>
+<div class="desc"><p>A class to calculate properties of a face-centered cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{2}}{4} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{2}}{4} </script></span>
+<span><span class="MathJax_Preview"> N = 4 </span><script type="math/tex; mode=display"> N = 4 </script></span>
+Parameters</p>
+<hr>
 <dl>
-<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
-<dd>The work function.</dd>
-</dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code> object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
-<dd>The work function.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Metal:
+<pre><code class="python">class FaceCenteredCubicLattice(CrystalLattice):
     &#34;&#34;&#34;
-    A class to calculate properties of a metal.
-
-    Attributes
-    ----------
-    work_function : float
-        The work function.
+    A class to calculate properties of a face-centered cubic lattice (extends `CrystalLattice`).
     &#34;&#34;&#34;
 
-    def __init__(self, work_function):
-        &#34;&#34;&#34;
-        Construct the necessary attributes for the `Metal` object.
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `FaceCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{2}}{4}
+        .. math::
+            N = 4
 
         Parameters
         ----------
-        work_function : float
-            The work function.
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
         &#34;&#34;&#34;
-        self.work_function = work_function</code></pre>
+        super().__init__(a, m, a * sqrt(2) / 4, 4)</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
-<dt id="fompy.models.MetalSemiconductorContact"><code class="flex name class">
-<span>class <span class="ident">MetalSemiconductorContact</span></span>
+<dt id="fompy.models.MSJunction"><code class="flex name class">
+<span>class <span class="ident">MSJunction</span></span>
 <span>(</span><span>metal, sc)</span>
 </code></dt>
 <dd>
@@ -1296,7 +1971,7 @@ Parameters</p>
 <dt><strong><code>sc</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
 <dd>The semiconductor.</dd>
 </dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.MetalSemiconductorContact" href="#fompy.models.MetalSemiconductorContact">MetalSemiconductorContact</a></code> object.</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.MSJunction" href="#fompy.models.MSJunction">MSJunction</a></code> object.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>metal</code></strong> :&ensp;<code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></dt>
@@ -1308,7 +1983,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class MetalSemiconductorContact:
+<pre><code class="python">class MSJunction:
     &#34;&#34;&#34;
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -1319,9 +1994,10 @@ Parameters</p>
     sc : Semiconductor
         The semiconductor.
     &#34;&#34;&#34;
+
     def __init__(self, metal, sc):
         &#34;&#34;&#34;
-        Construct the necessary attributes for the `MetalSemiconductorContact` object.
+        Construct the necessary attributes for the `MSJunction` object.
 
         Parameters
         ----------
@@ -1338,7 +2014,7 @@ Parameters</p>
         Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
 
         .. math::
-            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
 
         Parameters
         ----------
@@ -1351,6 +2027,20 @@ Parameters</p>
             The difference of potentials.
         &#34;&#34;&#34;
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+
+    def schottky_barrier(self):
+        r&#34;&#34;&#34;
+        Calculate the height of the Schottky barrier.
+
+        .. math::
+            \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+        Returns
+        -------
+        float
+            The height of the Schottky barrier.
+        &#34;&#34;&#34;
+        return (self.metal.work_function - self.sc.chi) / e
 
     def contact_type(self, T=300):
         &#34;&#34;&#34;
@@ -1383,11 +2073,49 @@ Parameters</p>
                 if ct == &#39;p&#39;:
                     return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
                 if ct == &#39;n&#39;:
-                    return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION</code></pre>
+                    return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION
+
+    def full_depletion_width(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the width of the depletion region, using the approximation of full depletion.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the depletion region.
+        &#34;&#34;&#34;
+        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
+
+    def debye_length(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the Debye length (screening length).
+
+        .. math::
+            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Debye length.
+        &#34;&#34;&#34;
+        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="fompy.models.MetalSemiconductorContact.contact_type"><code class="name flex">
+<dt id="fompy.models.MSJunction.contact_type"><code class="name flex">
 <span>def <span class="ident">contact_type</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
@@ -1445,12 +2173,53 @@ Parameters</p>
                 return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION</code></pre>
 </details>
 </dd>
-<dt id="fompy.models.MetalSemiconductorContact.delta_phi"><code class="name flex">
+<dt id="fompy.models.MSJunction.debye_length"><code class="name flex">
+<span>def <span class="ident">debye_length</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the Debye length (screening length).</p>
+<p><span><span class="MathJax_Preview"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } } </span><script type="math/tex; mode=display"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Debye length.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def debye_length(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the Debye length (screening length).
+
+    .. math::
+        \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Debye length.
+    &#34;&#34;&#34;
+    return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.delta_phi"><code class="name flex">
 <span>def <span class="ident">delta_phi</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).</p>
-<p><span><span class="MathJax_Preview"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e } </script></span>
+<p><span><span class="MathJax_Preview"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -1471,7 +2240,7 @@ Parameters</p>
     Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
 
     .. math::
-        \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+        \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
 
     Parameters
     ----------
@@ -1486,7 +2255,122 @@ Parameters</p>
     return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e</code></pre>
 </details>
 </dd>
+<dt id="fompy.models.MSJunction.full_depletion_width"><code class="name flex">
+<span>def <span class="ident">full_depletion_width</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The width of the depletion region.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def full_depletion_width(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the width of the depletion region, using the approximation of full depletion.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The width of the depletion region.
+    &#34;&#34;&#34;
+    return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.schottky_barrier"><code class="name flex">
+<span>def <span class="ident">schottky_barrier</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the height of the Schottky barrier.</p>
+<p><span><span class="MathJax_Preview"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </span><script type="math/tex; mode=display"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </script></span>
+Returns</p>
+<hr>
+<dl>
+<dt><code>float</code></dt>
+<dd>The height of the Schottky barrier.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def schottky_barrier(self):
+    r&#34;&#34;&#34;
+    Calculate the height of the Schottky barrier.
+
+    .. math::
+        \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+    Returns
+    -------
+    float
+        The height of the Schottky barrier.
+    &#34;&#34;&#34;
+    return (self.metal.work_function - self.sc.chi) / e</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.Metal"><code class="flex name class">
+<span>class <span class="ident">Metal</span></span>
+<span>(</span><span>work_function)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a metal.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Metal:
+    &#34;&#34;&#34;
+    A class to calculate properties of a metal.
+
+    Attributes
+    ----------
+    work_function : float
+        The work function.
+    &#34;&#34;&#34;
+
+    def __init__(self, work_function):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `Metal` object.
+
+        Parameters
+        ----------
+        work_function : float
+            The work function.
+        &#34;&#34;&#34;
+        self.work_function = work_function</code></pre>
+</details>
 </dd>
 <dt id="fompy.models.PNJunction"><code class="flex name class">
 <span>class <span class="ident">PNJunction</span></span>
@@ -1993,9 +2877,74 @@ Parameters</p>
 </li>
 </ul>
 </dd>
+<dt id="fompy.models.PrimitiveCubicLattice"><code class="flex name class">
+<span>class <span class="ident">PrimitiveCubicLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a primitive cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a}{2} </span><script type="math/tex; mode=display"> r = \frac{a}{2} </script></span>
+<span><span class="MathJax_Preview"> N = 1 </span><script type="math/tex; mode=display"> N = 1 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PrimitiveCubicLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a}{2}
+        .. math::
+            N = 1
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a / 2, 1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="fompy.models.Semiconductor"><code class="flex name class">
 <span>class <span class="ident">Semiconductor</span></span>
-<span>(</span><span>me_eff, mh_eff, Eg, chi, eps)</span>
+<span>(</span><span>me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A class to calculate properties of an intrinsic (pure) semiconductor.</p>
@@ -2007,10 +2956,12 @@ Parameters</p>
 <dd>The effective mass of a hole.</dd>
 <dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
 <dd>The energy gap.</dd>
-<dt><strong><code>chi</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>chi</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The electron affinity.</dd>
-<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The dielectric constant.</dd>
+<dt><strong><code>lattice</code></strong> :&ensp;<code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> or <code>None</code></dt>
+<dd>The crystal lattice.</dd>
 </dl>
 <p>Construct the necessary attributes for the <code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code> object.</p>
 <h2 id="parameters">Parameters</h2>
@@ -2021,10 +2972,12 @@ Parameters</p>
 <dd>The effective mass of a hole.</dd>
 <dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
 <dd>The energy gap.</dd>
-<dt><strong><code>chi</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>chi</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The electron affinity.</dd>
-<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
 <dd>The dielectric constant.</dd>
+<dt><strong><code>lattice</code></strong> :&ensp;<code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> or <code>None</code></dt>
+<dd>The crystal lattice.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2042,13 +2995,15 @@ Parameters</p>
         The effective mass of a hole.
     Eg : float
         The energy gap.
-    chi : float
+    chi : float or None
         The electron affinity.
-    eps : float
+    eps : float or None
         The dielectric constant.
+    lattice : CrystalLattice or None
+        The crystal lattice.
     &#34;&#34;&#34;
 
-    def __init__(self, me_eff, mh_eff, Eg, chi, eps):
+    def __init__(self, me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None):
         &#34;&#34;&#34;
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -2060,11 +3015,14 @@ Parameters</p>
             The effective mass of a hole.
         Eg : float
             The energy gap.
-        chi : float
+        chi : float or None
             The electron affinity.
-        eps : float
+        eps : float or None
             The dielectric constant.
+        lattice : CrystalLattice or None
+            The crystal lattice.
         &#34;&#34;&#34;
+        self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
         self.Eg = Eg
@@ -2131,12 +3089,15 @@ Parameters</p>
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.mh, T)
 
+    def i_concentration(self, T=300):
+        return self.n_concentration(self.intrinsic_fermi_level(), T)
+
     def n_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
         Calculate the electron concentration.
 
         .. math::
-            n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
+            n_e = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
 
         Parameters
         ----------
@@ -2159,7 +3120,7 @@ Parameters</p>
         Calculate the hole concentration.
 
         .. math::
-            n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
+            n_h = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
 
         Parameters
         ----------
@@ -2177,15 +3138,21 @@ Parameters</p>
             Ef = self.fermi_level(T)
         return self.Nv(T) * fd1(-Ef / (k * T))
 
+    def _intrinsic_charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
     def _charge_imbalance(self, Ef, T):
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def fermi_level(self, T=300):
+    def intrinsic_fermi_level(self, T=300) -&gt; float:
+        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+
+    def fermi_level(self, T=300) -&gt; float:
         &#34;&#34;&#34;
         Determine the Fermi level from the condition of electroneutrality.
 
         .. math::
-            n_p - n_n = 0
+            n_h - n_e = 0
 
         Parameters
         ----------
@@ -2198,7 +3165,7 @@ Parameters</p>
             The Fermi level.
         &#34;&#34;&#34;
         # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
     def conductivity_type(self, *, T=None, Ef=None):
         &#34;&#34;&#34;
@@ -2375,11 +3342,11 @@ Parameters</p>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.fermi_level"><code class="name flex">
-<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300)</span>
+<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Determine the Fermi level from the condition of electroneutrality.</p>
-<p><span><span class="MathJax_Preview"> n_p - n_n = 0 </span><script type="math/tex; mode=display"> n_p - n_n = 0 </script></span>
+<p><span><span class="MathJax_Preview"> n_h - n_e = 0 </span><script type="math/tex; mode=display"> n_h - n_e = 0 </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -2395,12 +3362,12 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fermi_level(self, T=300):
+<pre><code class="python">def fermi_level(self, T=300) -&gt; float:
     &#34;&#34;&#34;
     Determine the Fermi level from the condition of electroneutrality.
 
     .. math::
-        n_p - n_n = 0
+        n_h - n_e = 0
 
     Parameters
     ----------
@@ -2413,7 +3380,33 @@ Parameters</p>
         The Fermi level.
     &#34;&#34;&#34;
     # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-    return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)</code></pre>
+    return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.Semiconductor.i_concentration"><code class="name flex">
+<span>def <span class="ident">i_concentration</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def i_concentration(self, T=300):
+    return self.n_concentration(self.intrinsic_fermi_level(), T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.Semiconductor.intrinsic_fermi_level"><code class="name flex">
+<span>def <span class="ident">intrinsic_fermi_level</span></span>(<span>self, T=300) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def intrinsic_fermi_level(self, T=300) -&gt; float:
+    return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.n_concentration"><code class="name flex">
@@ -2421,7 +3414,7 @@ Parameters</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the electron concentration.</p>
-<p><span><span class="MathJax_Preview"> n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right) </span><script type="math/tex; mode=display"> n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right) </script></span>
+<p><span><span class="MathJax_Preview"> n_e = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right) </span><script type="math/tex; mode=display"> n_e = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right) </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -2444,7 +3437,7 @@ Parameters</p>
     Calculate the electron concentration.
 
     .. math::
-        n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
+        n_e = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
 
     Parameters
     ----------
@@ -2468,7 +3461,7 @@ Parameters</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the hole concentration.</p>
-<p><span><span class="MathJax_Preview"> n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right) </span><script type="math/tex; mode=display"> n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right) </script></span>
+<p><span><span class="MathJax_Preview"> n_h = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right) </span><script type="math/tex; mode=display"> n_h = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right) </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -2491,7 +3484,7 @@ Parameters</p>
     Calculate the hole concentration.
 
     .. math::
-        n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
+        n_h = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
 
     Parameters
     ----------
@@ -2530,6 +3523,7 @@ Parameters</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="fompy.models.concentration" href="#fompy.models.concentration">concentration</a></code></li>
 <li><code><a title="fompy.models.conductivity" href="#fompy.models.conductivity">conductivity</a></code></li>
 <li><code><a title="fompy.models.debye_length" href="#fompy.models.debye_length">debye_length</a></code></li>
 <li><code><a title="fompy.models.depletion_width" href="#fompy.models.depletion_width">depletion_width</a></code></li>
@@ -2538,12 +3532,30 @@ Parameters</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></code></h4>
+</li>
+<li>
 <h4><code><a title="fompy.models.ContactType" href="#fompy.models.ContactType">ContactType</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.models.ContactType.AUGMENTATION" href="#fompy.models.ContactType.AUGMENTATION">AUGMENTATION</a></code></li>
 <li><code><a title="fompy.models.ContactType.DEPLETION" href="#fompy.models.ContactType.DEPLETION">DEPLETION</a></code></li>
 <li><code><a title="fompy.models.ContactType.INVERSION" href="#fompy.models.ContactType.INVERSION">INVERSION</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code></h4>
 </li>
 <li>
 <h4><code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></h4>
@@ -2554,14 +3566,20 @@ Parameters</p>
 </ul>
 </li>
 <li>
-<h4><code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></h4>
+<h4><code><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></code></h4>
 </li>
 <li>
-<h4><code><a title="fompy.models.MetalSemiconductorContact" href="#fompy.models.MetalSemiconductorContact">MetalSemiconductorContact</a></code></h4>
+<h4><code><a title="fompy.models.MSJunction" href="#fompy.models.MSJunction">MSJunction</a></code></h4>
 <ul class="">
-<li><code><a title="fompy.models.MetalSemiconductorContact.contact_type" href="#fompy.models.MetalSemiconductorContact.contact_type">contact_type</a></code></li>
-<li><code><a title="fompy.models.MetalSemiconductorContact.delta_phi" href="#fompy.models.MetalSemiconductorContact.delta_phi">delta_phi</a></code></li>
+<li><code><a title="fompy.models.MSJunction.contact_type" href="#fompy.models.MSJunction.contact_type">contact_type</a></code></li>
+<li><code><a title="fompy.models.MSJunction.debye_length" href="#fompy.models.MSJunction.debye_length">debye_length</a></code></li>
+<li><code><a title="fompy.models.MSJunction.delta_phi" href="#fompy.models.MSJunction.delta_phi">delta_phi</a></code></li>
+<li><code><a title="fompy.models.MSJunction.full_depletion_width" href="#fompy.models.MSJunction.full_depletion_width">full_depletion_width</a></code></li>
+<li><code><a title="fompy.models.MSJunction.schottky_barrier" href="#fompy.models.MSJunction.schottky_barrier">schottky_barrier</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></h4>
 </li>
 <li>
 <h4><code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code></h4>
@@ -2580,6 +3598,9 @@ Parameters</p>
 </ul>
 </li>
 <li>
+<h4><code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code></h4>
+</li>
+<li>
 <h4><code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.models.Semiconductor.Nc" href="#fompy.models.Semiconductor.Nc">Nc</a></code></li>
@@ -2587,6 +3608,8 @@ Parameters</p>
 <li><code><a title="fompy.models.Semiconductor.conductivity_type" href="#fompy.models.Semiconductor.conductivity_type">conductivity_type</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.effective_state_density" href="#fompy.models.Semiconductor.effective_state_density">effective_state_density</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.fermi_level" href="#fompy.models.Semiconductor.fermi_level">fermi_level</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.i_concentration" href="#fompy.models.Semiconductor.i_concentration">i_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.intrinsic_fermi_level" href="#fompy.models.Semiconductor.intrinsic_fermi_level">intrinsic_fermi_level</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.n_concentration" href="#fompy.models.Semiconductor.n_concentration">n_concentration</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.p_concentration" href="#fompy.models.Semiconductor.p_concentration">p_concentration</a></code></li>
 </ul>

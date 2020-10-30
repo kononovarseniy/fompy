@@ -4,6 +4,7 @@ __pycache__/
 /build/
 /dist/
 /fti_fompy.egg-info/
+/.coverage
 
 .idea/**/workspace.xml
 .idea/**/tasks.xml

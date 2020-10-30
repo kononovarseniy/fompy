@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>fompy.units API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module contains classes for parsing units of measurement." />
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/sanitize.css" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/typography.css" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.3.1/build/styles/github.min.css" crossorigin>
@@ -23,11 +23,16 @@
 <h1 class="title">Module <code>fompy.units</code></h1>
 </header>
 <section id="section-intro">
+<p>This module contains classes for parsing units of measurement.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from fractions import Fraction
+<pre><code class="python">&#34;&#34;&#34;
+This module contains classes for parsing units of measurement.
+&#34;&#34;&#34;
+
+from fractions import Fraction
 
 from fompy import constants
 from fompy.util.parser import Tokenizer, TokenList
@@ -41,7 +46,29 @@ TOKENIZER = Tokenizer({
 
 
 class SimpleUnit:
+    &#34;&#34;&#34;
+    A class to convert a simple unit of measurement into cgs.
+
+    Attributes
+    ----------
+    name : str
+    prefix : str or None
+    multiplier : float
+        The multiplier associated with the prefix.
+    value : float
+        The value of the unit in cgs.
+    power : int
+    &#34;&#34;&#34;
+
     def __init__(self, name, power):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `SimpleUnit` object.
+
+        Parameters
+        ----------
+        name : str
+        power : int
+        &#34;&#34;&#34;
         prefix = None
         multiplier = 1
         for p, n in PREFIXES.items():
@@ -57,6 +84,13 @@ class SimpleUnit:
         self.power = power
 
     def get_number(self):
+        &#34;&#34;&#34;
+        Get the value of the unit expressed in cgs.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
         return (self.multiplier * self.value) ** self.power
 
     def __str__(self):
@@ -67,11 +101,29 @@ class SimpleUnit:
 
 
 class CompositeUnit:
+    &#34;&#34;&#34;
+    A class to convert a composite unit of measurement into cgs.
+
+    Attributes
+    ----------
+    nom : iterable(CompositeUnit, SimpleUnit)
+        The numerator.
+    denom : iterable(CompositeUnit, SimpleUnit)
+        The denominator.
+    &#34;&#34;&#34;
+
     def __init__(self, nom, denom):
         self.nom = nom
         self.denom = denom
 
     def get_number(self):
+        &#34;&#34;&#34;
+        Get the value of the unit expressed in cgs.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
         res = 1
         for u in self.nom:
             res *= u.get_number()
@@ -90,6 +142,22 @@ class CompositeUnit:
 
 
 def parse_unit(text):
+    &#34;&#34;&#34;
+    Extract a unit of measurement out of `text`.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    CompositeUnit
+
+    Raises
+    ------
+    SyntaxError
+        The parser has encountered an unexpected token.
+    &#34;&#34;&#34;
     ts = TokenList(filter(lambda t: t[0] != &#39;optional&#39;, TOKENIZER.tokenize(text)))
     nom_list = []
     denom_list = []
@@ -125,6 +193,18 @@ def parse_unit(text):
 
 
 def unit(text):
+    &#34;&#34;&#34;
+    Get the value of a unit of measurement in `text`.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    float
+        The value of the unit of measurement expressed in cgs.
+    &#34;&#34;&#34;
     return parse_unit(text).get_number()
 
 
@@ -192,12 +272,43 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>def <span class="ident">parse_unit</span></span>(<span>text)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Extract a unit of measurement out of <code>text</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a></code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>SyntaxError</code></dt>
+<dd>The parser has encountered an unexpected token.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def parse_unit(text):
+    &#34;&#34;&#34;
+    Extract a unit of measurement out of `text`.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    CompositeUnit
+
+    Raises
+    ------
+    SyntaxError
+        The parser has encountered an unexpected token.
+    &#34;&#34;&#34;
     ts = TokenList(filter(lambda t: t[0] != &#39;optional&#39;, TOKENIZER.tokenize(text)))
     nom_list = []
     denom_list = []
@@ -236,12 +347,34 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>def <span class="ident">unit</span></span>(<span>text)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get the value of a unit of measurement in <code>text</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>text</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The value of the unit of measurement expressed in cgs.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def unit(text):
+    &#34;&#34;&#34;
+    Get the value of a unit of measurement in `text`.
+
+    Parameters
+    ----------
+    text : str
+
+    Returns
+    -------
+    float
+        The value of the unit of measurement expressed in cgs.
+    &#34;&#34;&#34;
     return parse_unit(text).get_number()</code></pre>
 </details>
 </dd>
@@ -255,17 +388,42 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>(</span><span>nom, denom)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A class to convert a composite unit of measurement into cgs.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>nom</code></strong> :&ensp;<code>iterable(<a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a>, <a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a>)</code></dt>
+<dd>The numerator.</dd>
+<dt><strong><code>denom</code></strong> :&ensp;<code>iterable(<a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a>, <a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a>)</code></dt>
+<dd>The denominator.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CompositeUnit:
+    &#34;&#34;&#34;
+    A class to convert a composite unit of measurement into cgs.
+
+    Attributes
+    ----------
+    nom : iterable(CompositeUnit, SimpleUnit)
+        The numerator.
+    denom : iterable(CompositeUnit, SimpleUnit)
+        The denominator.
+    &#34;&#34;&#34;
+
     def __init__(self, nom, denom):
         self.nom = nom
         self.denom = denom
 
     def get_number(self):
+        &#34;&#34;&#34;
+        Get the value of the unit expressed in cgs.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
         res = 1
         for u in self.nom:
             res *= u.get_number()
@@ -288,12 +446,24 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>def <span class="ident">get_number</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get the value of the unit expressed in cgs.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_number(self):
+    &#34;&#34;&#34;
+    Get the value of the unit expressed in cgs.
+
+    Returns
+    -------
+    float
+    &#34;&#34;&#34;
     res = 1
     for u in self.nom:
         res *= u.get_number()
@@ -309,13 +479,56 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>(</span><span>name, power)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A class to convert a simple unit of measurement into cgs.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>prefix</code></strong> :&ensp;<code>str</code> or <code>None</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>multiplier</code></strong> :&ensp;<code>float</code></dt>
+<dd>The multiplier associated with the prefix.</dd>
+<dt><strong><code>value</code></strong> :&ensp;<code>float</code></dt>
+<dd>The value of the unit in cgs.</dd>
+<dt><strong><code>power</code></strong> :&ensp;<code>int</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>power</code></strong> :&ensp;<code>int</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class SimpleUnit:
+    &#34;&#34;&#34;
+    A class to convert a simple unit of measurement into cgs.
+
+    Attributes
+    ----------
+    name : str
+    prefix : str or None
+    multiplier : float
+        The multiplier associated with the prefix.
+    value : float
+        The value of the unit in cgs.
+    power : int
+    &#34;&#34;&#34;
+
     def __init__(self, name, power):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `SimpleUnit` object.
+
+        Parameters
+        ----------
+        name : str
+        power : int
+        &#34;&#34;&#34;
         prefix = None
         multiplier = 1
         for p, n in PREFIXES.items():
@@ -331,6 +544,13 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
         self.power = power
 
     def get_number(self):
+        &#34;&#34;&#34;
+        Get the value of the unit expressed in cgs.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
         return (self.multiplier * self.value) ** self.power
 
     def __str__(self):
@@ -345,12 +565,24 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>def <span class="ident">get_number</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get the value of the unit expressed in cgs.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_number(self):
+    &#34;&#34;&#34;
+    Get the value of the unit expressed in cgs.
+
+    Returns
+    -------
+    float
+    &#34;&#34;&#34;
     return (self.multiplier * self.value) ** self.power</code></pre>
 </details>
 </dd>

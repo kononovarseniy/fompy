@@ -3,7 +3,7 @@ This module contains classes useful for calculating properties of different mate
 
 Notes
 -----
-All energies are counted from the valence band edge Ev.
+All energies are counted from the valence band edge E<sub>v</sub> &equiv; 0.
 """
 
 from enum import Enum
@@ -21,7 +21,7 @@ def conductivity(n, n_mob, p, p_mob):
     Calculate the conductivity of a material.
 
     .. math::
-        \sigma = e (n_n \mu_n + n_p \mu_p)
+        \sigma = e (n_e \mu_e + n_h \mu_h)
 
     Parameters
     ----------
@@ -42,10 +42,31 @@ def conductivity(n, n_mob, p, p_mob):
     return e * (n * n_mob + p * p_mob)
 
 
-# w depletion area width
+def concentration(resistivity, mobility):
+    r"""
+    Calculate the concentration of charge carriers.
+
+    .. math::
+        n = \frac{1}{\rho \mu e}
+
+    Parameters
+    ----------
+    resistivity : float
+        The resistivity of the material.
+    mobility : float
+        The carrier mobility.
+
+    Returns
+    -------
+    float
+        The carrier concentration.
+    """
+    return 1 / (resistivity * mobility * e)
+
+
 def depletion_width(eps, n, d_phi):
     r"""
-    Calculate the width of the depletion region.
+    Calculate the width of the depletion region, using the approximation of full depletion.
 
     .. math::
         w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
@@ -55,10 +76,9 @@ def depletion_width(eps, n, d_phi):
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     d_phi : float
         The difference of potentials.
-
     Returns
     -------
     float
@@ -67,10 +87,9 @@ def depletion_width(eps, n, d_phi):
     return sqrt(eps * d_phi / (2 * pi * e * n))
 
 
-# L_D screening length
 def debye_length(eps, n, T):
     r"""
-    Calculate the Debye length.
+    Calculate the Debye length (screening length).
 
     .. math::
         \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n } }
@@ -80,7 +99,7 @@ def debye_length(eps, n, T):
     eps : float
         The dielectric constant.
     n : float
-        The concentration of charge carriers.
+        The carrier concentration.
     T : float
         The temperature.
 
@@ -90,6 +109,182 @@ def debye_length(eps, n, T):
         The Debye length.
     """
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
+
+
+class CrystalLattice:
+    """
+    A class to calculate properties of a crystal lattice.
+    """
+
+    def __init__(self, a, m, r, N):
+        """
+        Construct the necessary attributes for the `CrystalLattice` object.
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        r : float
+            The maximum radius of non-intersecting spheres around atoms.
+        N : float
+            The number of atoms in a cell.
+        """
+        self._a = a
+        self._m = m
+        self._r = r
+        self._N = N
+
+    @property
+    def a(self):
+        """Get the lattice parameter."""
+        return self._a
+
+    @property
+    def m(self):
+        """Get the mass of an atom (the average mass in case of there being several types of atoms)."""
+        return self._m
+
+    @property
+    def r(self):
+        """Get the maximum radius of non-intersecting spheres around atoms."""
+        return self._r
+
+    @property
+    def N(self):
+        """Get the number of atoms in a cell."""
+        return self._N
+
+    @property
+    def packing_density(self):
+        r"""
+        Get the packing density.
+
+        .. math::
+            \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+        """
+        return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3
+
+    @property
+    def concentration(self):
+        r"""
+        Get the concentration.
+
+        .. math::
+            n = \frac{N}{a^3}
+        """
+        return self._N / self._a ** 3
+
+    @property
+    def density(self):
+        r"""
+        Get the density.
+
+        .. math::
+            \rho = n m = \frac{N}{a^3} m
+        """
+        return self.concentration * self._m
+
+
+class PrimitiveCubicLattice(CrystalLattice):
+    """
+    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
+    """
+
+    def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a}{2}
+        .. math::
+            N = 1
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
+        super().__init__(a, m, a / 2, 1)
+
+
+class FaceCenteredCubicLattice(CrystalLattice):
+    """
+    A class to calculate properties of a face-centered cubic lattice (extends `CrystalLattice`).
+    """
+
+    def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `FaceCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{2}}{4}
+        .. math::
+            N = 4
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
+        super().__init__(a, m, a * sqrt(2) / 4, 4)
+
+
+class BodyCenteredCubicLattice(CrystalLattice):
+    """
+    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
+    """
+
+    def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{4}
+        .. math::
+            N = 2
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
+        super().__init__(a, m, a * sqrt(3) / 4, 2)
+
+
+class DiamondLikeLattice(CrystalLattice):
+    """
+    A class to calculate properties of a diamond-like lattice.
+    """
+
+    def __init__(self, a, m):
+        r"""
+        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{8}
+        .. math::
+            N = 8
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        """
+        super().__init__(a, m, a * sqrt(3) / 8, 8)
 
 
 class Semiconductor:
@@ -104,13 +299,15 @@ class Semiconductor:
         The effective mass of a hole.
     Eg : float
         The energy gap.
-    chi : float
+    chi : float or None
         The electron affinity.
-    eps : float
+    eps : float or None
         The dielectric constant.
+    lattice : CrystalLattice or None
+        The crystal lattice.
     """
 
-    def __init__(self, me_eff, mh_eff, Eg, chi, eps):
+    def __init__(self, me_eff, mh_eff, Eg, chi=None, eps=None, lattice=None):
         """
         Construct the necessary attributes for the `Semiconductor` object.
 
@@ -122,11 +319,14 @@ class Semiconductor:
             The effective mass of a hole.
         Eg : float
             The energy gap.
-        chi : float
+        chi : float or None
             The electron affinity.
-        eps : float
+        eps : float or None
             The dielectric constant.
+        lattice : CrystalLattice or None
+            The crystal lattice.
         """
+        self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
         self.Eg = Eg
@@ -193,12 +393,15 @@ class Semiconductor:
         """
         return Semiconductor.effective_state_density(self.mh, T)
 
+    def i_concentration(self, T=300):
+        return self.n_concentration(self.intrinsic_fermi_level(), T)
+
     def n_concentration(self, Ef=None, T=300):
         r"""
         Calculate the electron concentration.
 
         .. math::
-            n_n = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
+            n_e = N_c(T) \Phi_{1/2}\left( \frac{ E_f - E_g }{ k T } \right)
 
         Parameters
         ----------
@@ -221,7 +424,7 @@ class Semiconductor:
         Calculate the hole concentration.
 
         .. math::
-            n_p = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
+            n_h = N_v(T) \Phi_{1/2}\left( \frac{ - E_f }{ k T } \right)
 
         Parameters
         ----------
@@ -239,15 +442,21 @@ class Semiconductor:
             Ef = self.fermi_level(T)
         return self.Nv(T) * fd1(-Ef / (k * T))
 
+    def _intrinsic_charge_imbalance(self, Ef, T):
+        return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
+
     def _charge_imbalance(self, Ef, T):
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def fermi_level(self, T=300):
+    def intrinsic_fermi_level(self, T=300) -> float:
+        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+
+    def fermi_level(self, T=300) -> float:
         """
         Determine the Fermi level from the condition of electroneutrality.
 
         .. math::
-            n_p - n_n = 0
+            n_h - n_e = 0
 
         Parameters
         ----------
@@ -260,7 +469,7 @@ class Semiconductor:
             The Fermi level.
         """
         # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)
+        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
     def conductivity_type(self, *, T=None, Ef=None):
         """
@@ -307,7 +516,7 @@ class DopedSemiconductor(Semiconductor):
         Ed : float
             The donor level.
         """
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps)
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
         self.Ea = Ea
         self.Nd = Nd
@@ -424,7 +633,7 @@ class ContactType(Enum):
     INVERSION = 2
 
 
-class MetalSemiconductorContact:
+class MSJunction:
     """
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -435,9 +644,10 @@ class MetalSemiconductorContact:
     sc : Semiconductor
         The semiconductor.
     """
+
     def __init__(self, metal, sc):
         """
-        Construct the necessary attributes for the `MetalSemiconductorContact` object.
+        Construct the necessary attributes for the `MSJunction` object.
 
         Parameters
         ----------
@@ -454,7 +664,7 @@ class MetalSemiconductorContact:
         Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
 
         .. math::
-            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - W }{ e }
+            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
 
         Parameters
         ----------
@@ -467,6 +677,20 @@ class MetalSemiconductorContact:
             The difference of potentials.
         """
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+
+    def schottky_barrier(self):
+        r"""
+        Calculate the height of the Schottky barrier.
+
+        .. math::
+            \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+        Returns
+        -------
+        float
+            The height of the Schottky barrier.
+        """
+        return (self.metal.work_function - self.sc.chi) / e
 
     def contact_type(self, T=300):
         """
@@ -500,6 +724,44 @@ class MetalSemiconductorContact:
                     return ContactType.AUGMENTATION if dEf < 0 else ContactType.DEPLETION
                 if ct == 'n':
                     return ContactType.DEPLETION if dEf < 0 else ContactType.AUGMENTATION
+
+    def full_depletion_width(self, T=300):
+        r"""
+        Calculate the width of the depletion region, using the approximation of full depletion.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the depletion region.
+        """
+        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
+
+    def debye_length(self, T=300):
+        r"""
+        Calculate the Debye length (screening length).
+
+        .. math::
+            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Debye length.
+        """
+        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)
 
 
 class PNJunction:
