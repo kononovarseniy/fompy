@@ -29,4 +29,7 @@ def fermi(E, Ef, T):
     float
         The Fermi-Dirac distribution of `E`.
     """
-    return 1 / (1 + exp((E - Ef) / (k * T)))
+    arg = (E - Ef) / (k * T)
+    if arg > 500:  # issue #11
+        return 0
+    return 1 / (1 + exp(arg))

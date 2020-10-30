@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+from fompy import functions
 from fompy.constants import eV, volt
 from fompy.functions import fd1
 from fompy.materials import Si
@@ -108,6 +109,15 @@ class TestFermiDiracIntegral(unittest.TestCase):
                        309.9448732700438
                        ])
         self.assertEqual(0.0, np.max(np.abs(ys - fd1(xs))))
+
+
+class TestFunctions(unittest.TestCase):
+    def test_issue_11(self):
+        # Should not raise OverflowError
+        m = DopedSemiconductor(Si, 1e12, 0, 0, Si.Eg)
+        m.fermi_level(T=11)
+
+        self.assertEqual(functions.fermi(Si.Eg, 0, 11), 0)
 
 
 class TestPNJunction(unittest.TestCase):
