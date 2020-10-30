@@ -1,9 +1,9 @@
+from math import *
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 from fompy.constants import *
-from math import *
-
 from fompy.materials import Si
 
 

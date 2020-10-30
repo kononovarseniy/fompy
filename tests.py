@@ -175,7 +175,7 @@ class TestMSJunction(unittest.TestCase):
         self.assertAlmostEqual(c.debye_length() / unit('nm'), 4.4, delta=0.1)
 
 
-class TestFermiDiracIntegral(unittest.TestCase):
+class TestFunctions(unittest.TestCase):
     def test_fd1(self):
         xs = np.array([-3.0, -1.0, 1.0, 3.0, 7.0, 15.0, 30.0, 60.0])
         ys = np.array([0.04336636755041557,
@@ -189,8 +189,6 @@ class TestFermiDiracIntegral(unittest.TestCase):
                        ])
         self.assertEqual(0.0, np.max(np.abs(ys - functions.fd1(xs))))
 
-
-class TestFunctions(unittest.TestCase):
     def test_issue_11(self):
         # Should not raise OverflowError
         m = DopedSemiconductor(Si, 1e12, 0, 0, Si.Eg)
