@@ -71,6 +71,12 @@ class TestSemiconductor(unittest.TestCase):
     def test_fermi_level(self):
         self.assertAlmostEqual(Si.fermi_level(), 0.57 * eV, delta=0.01 * eV)
 
+    def test_degenerate_fermi_level(self):
+        mat = DopedSemiconductor(Si, 1e21, 0.045 * eV, 0, Si.Eg)
+        self.assertAlmostEqual(mat.fermi_level() / eV, -0.04, delta=0.001)  # Note the negative value
+        mat = DopedSemiconductor(Si, 10, 0, 1e20, Si.Eg - 0.045 * eV)
+        self.assertAlmostEqual(mat.fermi_level() / eV, 1.142, delta=0.001)
+
     def test_intrinsic_fermi_level(self):
         mat = DopedSemiconductor(Si, 1e15, 0, 1e17, Si.Eg)  # random parameters
         self.assertAlmostEqual(mat.intrinsic_fermi_level(), 0.57 * eV, delta=0.01 * eV)

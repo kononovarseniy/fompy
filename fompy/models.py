@@ -447,10 +447,15 @@ class Semiconductor:
         """note: the function decreases monotonically with increasing Ef"""
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def intrinsic_fermi_level(self, T=300) -> float:
-        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+    def _solve_electroneutrality_equation(self, equation, T) -> float:
+        eq = partial(equation, T=T)
+        return bisect(eq, -self.Eg, 2 * self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
-    def fermi_level(self, T=300) -> float:
+    def intrinsic_fermi_level(self, T=300):
+        # TODO: documentation
+        return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)
+
+    def fermi_level(self, T=300):
         """
         Determine the Fermi level from the condition of electroneutrality.
 
@@ -467,8 +472,7 @@ class Semiconductor:
         float
             The Fermi level.
         """
-        # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+        return self._solve_electroneutrality_equation(self._charge_imbalance, T)
 
     def conductivity_type(self, *, T=None, Ef=None):
         """
