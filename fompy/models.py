@@ -440,9 +440,11 @@ class Semiconductor:
         return self.Nv(T) * fd1(-Ef / (k * T))
 
     def _intrinsic_charge_imbalance(self, Ef, T):
+        """note: the function decreases monotonically with increasing Ef"""
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def _charge_imbalance(self, Ef, T):
+        """note: the function decreases monotonically with increasing Ef"""
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def intrinsic_fermi_level(self, T=300) -> float:
@@ -566,6 +568,7 @@ class DopedSemiconductor(Semiconductor):
         return self.Na * fermi(self.Ea, Ef, T)
 
     def _charge_imbalance(self, Ef, T):
+        """note: the function decreases monotonically with increasing Ef"""
         return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
                - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
 
