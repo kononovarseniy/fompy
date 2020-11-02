@@ -16,30 +16,27 @@ from fompy.constants import e, k, h_bar
 from fompy.functions import fermi, fd1
 
 
-def conductivity(n, n_mob, p, p_mob):
+def conductivity(n, mobility):
     r"""
     Calculate the conductivity of a material.
+    If there are several types of charge carriers, you should sum up the conductivities calculated for these types.
 
     .. math::
-        \sigma = e (n_e \mu_e + n_h \mu_h)
+        \sigma = e n \mu
 
     Parameters
     ----------
     n : float
-        The concentration of electrons.
-    n_mob : float
-        The electron mobility.
-    p : float
-        The concentration of holes.
-    p_mob : float
-        The hole mobility.
+        Carrier concentration.
+    mobility : float
+        Carrier mobility.
 
     Returns
     -------
     float
         The conductivity.
     """
-    return e * (n * n_mob + p * p_mob)
+    return e * n * mobility
 
 
 def concentration(resistivity, mobility):

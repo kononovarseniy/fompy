@@ -236,7 +236,7 @@ class TestFormulae(unittest.TestCase):
         self.mobility = 500 * unit('cm2 / V s')
 
     def test_conductivity(self):
-        resistivity = 1 / conductivity(0, 0, 1e18, self.mobility)
+        resistivity = 1 / conductivity(1e18, self.mobility)
         self.assertAlmostEqual(resistivity / unit('Ohm cm'), 0.012, delta=0.001)
 
     def test_concentration(self):
