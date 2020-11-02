@@ -147,7 +147,7 @@ def debye_length(eps, n, T):
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
 
 
-class CrystalLattice:
+class CrystalLattice(Model):
     &#34;&#34;&#34;
     A class to calculate properties of a crystal lattice.
     &#34;&#34;&#34;
@@ -167,6 +167,7 @@ class CrystalLattice:
         N : float
             The number of atoms in a cell.
         &#34;&#34;&#34;
+        super().__init__()
         self._a = a
         self._m = m
         self._r = r
@@ -323,7 +324,7 @@ class DiamondLikeLattice(CrystalLattice):
         super().__init__(a, m, a * sqrt(3) / 8, 8)
 
 
-class Semiconductor:
+class Semiconductor(Model):
     &#34;&#34;&#34;
     A class to calculate properties of an intrinsic (pure) semiconductor.
 
@@ -362,6 +363,7 @@ class Semiconductor:
         lattice : CrystalLattice or None
             The crystal lattice.
         &#34;&#34;&#34;
+        super().__init__()
         self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
@@ -645,7 +647,7 @@ class DopedSemiconductor(Semiconductor):
         return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;
 
 
-class Metal:
+class Metal(Model):
     &#34;&#34;&#34;
     A class to calculate properties of a metal.
 
@@ -664,6 +666,7 @@ class Metal:
         work_function : float
             The work function.
         &#34;&#34;&#34;
+        super().__init__()
         self.work_function = work_function
 
 
@@ -676,7 +679,7 @@ class ContactType(Enum):
     INVERSION = 2
 
 
-class MSJunction:
+class MSJunction(Model):
     &#34;&#34;&#34;
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -699,6 +702,7 @@ class MSJunction:
         sc : Semiconductor
             The semiconductor.
         &#34;&#34;&#34;
+        super().__init__()
         self.metal = metal
         self.sc = sc
 
@@ -1266,7 +1270,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class CrystalLattice:
+<pre><code class="python">class CrystalLattice(Model):
     &#34;&#34;&#34;
     A class to calculate properties of a crystal lattice.
     &#34;&#34;&#34;
@@ -1286,6 +1290,7 @@ Parameters</p>
         N : float
             The number of atoms in a cell.
         &#34;&#34;&#34;
+        super().__init__()
         self._a = a
         self._m = m
         self._r = r
@@ -1341,6 +1346,10 @@ Parameters</p>
         &#34;&#34;&#34;
         return self.concentration * self._m</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
+</ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></li>
@@ -1510,6 +1519,7 @@ Parameters</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1575,6 +1585,7 @@ Parameters</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1640,6 +1651,7 @@ Parameters</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1705,6 +1717,7 @@ Parameters</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
 </ul>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1762,7 +1775,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Semiconductor:
+<pre><code class="python">class Semiconductor(Model):
     &#34;&#34;&#34;
     A class to calculate properties of an intrinsic (pure) semiconductor.
 
@@ -1801,6 +1814,7 @@ Parameters</p>
         lattice : CrystalLattice or None
             The crystal lattice.
         &#34;&#34;&#34;
+        super().__init__()
         self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
@@ -1963,6 +1977,10 @@ Parameters</p>
         &#34;&#34;&#34;
         return &#39;i&#39;</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
+</ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></li>
@@ -2447,6 +2465,7 @@ Parameters</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></li>
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -2636,7 +2655,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Metal:
+<pre><code class="python">class Metal(Model):
     &#34;&#34;&#34;
     A class to calculate properties of a metal.
 
@@ -2655,8 +2674,13 @@ Parameters</p>
         work_function : float
             The work function.
         &#34;&#34;&#34;
+        super().__init__()
         self.work_function = work_function</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
+</ul>
 </dd>
 <dt id="fompy.models.ContactType"><code class="flex name class">
 <span>class <span class="ident">ContactType</span></span>
@@ -2721,7 +2745,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class MSJunction:
+<pre><code class="python">class MSJunction(Model):
     &#34;&#34;&#34;
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -2744,6 +2768,7 @@ Parameters</p>
         sc : Semiconductor
             The semiconductor.
         &#34;&#34;&#34;
+        super().__init__()
         self.metal = metal
         self.sc = sc
 
@@ -2851,6 +2876,10 @@ Parameters</p>
         &#34;&#34;&#34;
         return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
 </details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.approximations.Model" href="approximations.html#fompy.approximations.Model">Model</a></li>
+</ul>
 <h3>Methods</h3>
 <dl>
 <dt id="fompy.models.MSJunction.delta_phi"><code class="name flex">

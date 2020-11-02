@@ -4,11 +4,12 @@ from math import sqrt, pi
 import numpy as np
 
 from fompy import functions
+from fompy.approximations import Model, ApproximationError, approximation
 from fompy.constants import eV, volt, angstrom, amu
 from fompy.materials import Si
 from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, PrimitiveCubicLattice, \
-    DiamondLikeLattice, FaceCenteredCubicLattice, BodyCenteredCubicLattice, conductivity, concentration, FULL_DEPLETION, \
-    NON_DEGENERATE
+    DiamondLikeLattice, FaceCenteredCubicLattice, BodyCenteredCubicLattice, conductivity, concentration, \
+    FULL_DEPLETION, NON_DEGENERATE
 from fompy.units import unit, parse_unit
 
 
@@ -206,8 +207,8 @@ class TestFunctions(unittest.TestCase):
 class TestPNJunction(unittest.TestCase):
     def setUp(self):
         self.pn = PNJunction(Si, 5e16, None, 1e16, None)
-        self.pn_fd = PNJunction(Si, 5e16, None, 1e16, None).with_approximation(FULL_DEPLETION)
-        self.pn_fd2 = PNJunction(Si, 1e16, None, 1e16, None).with_approximation(FULL_DEPLETION)
+        self.pn_fd = PNJunction(Si, 5e16, None, 1e16, None).add_approximation(FULL_DEPLETION)
+        self.pn_fd2 = PNJunction(Si, 1e16, None, 1e16, None).add_approximation(FULL_DEPLETION)
 
     def test_delta_phi(self):
         self.assertAlmostEqual(self.pn.delta_phi() / volt, 0.81, delta=0.05)
@@ -240,14 +241,14 @@ class TestPNJunction(unittest.TestCase):
 class TestPNJunctionNonDegenerate(unittest.TestCase):
     def test_np(self):
         n = p = 1e17
-        pn = PNJunction(Si, n, 0, p, Si.Eg).with_approximation(NON_DEGENERATE)
+        pn = PNJunction(Si, n, 0, p, Si.Eg).add_approximation(NON_DEGENERATE)
         self.assertAlmostEqual(pn.pn(0), 1.2e19, delta=1e18)
         self.assertAlmostEqual(pn.p_n(0), 123.3, delta=0.1)
         self.assertAlmostEqual(pn.n_p(0), 121.6, delta=0.1)
 
     def test_j0(self):
         n = p = 1e17
-        pn = PNJunction(Si, n, 0, p, Si.Eg).with_approximation(NON_DEGENERATE)
+        pn = PNJunction(Si, n, 0, p, Si.Eg).add_approximation(NON_DEGENERATE)
         d_n = 36
         d_p = 12
         l_n = l_p = 1e-2
@@ -258,7 +259,7 @@ class TestPNJunctionNonDegenerate(unittest.TestCase):
 
     def test_current(self):
         n = p = 1e17
-        pn = PNJunction(Si, n, 0, p, Si.Eg).with_approximation(NON_DEGENERATE)
+        pn = PNJunction(Si, n, 0, p, Si.Eg).add_approximation(NON_DEGENERATE)
         d_n = 36
         d_p = 12
         l_n = l_p = 1e-2
@@ -285,6 +286,64 @@ class TestFormulae(unittest.TestCase):
     def test_concentration(self):
         self.assertAlmostEqual(concentration(0.01 * unit('Ohm cm'), self.mobility), 1.2e18, delta=1e17)
         self.assertAlmostEqual(concentration(10000 * unit('Ohm cm'), self.mobility), 1.2e12, delta=1e11)
+
+
+APPROX_1 = 'APPROX_1'
+require_1 = approximation(APPROX_1)
+APPROX_2 = 'APPROX_2'
+require_2 = approximation(APPROX_2)
+
+
+class TestingModel(Model):
+    @require_1
+    def foo1(self):
+        return 1
+
+    @require_2
+    def foo2(self):
+        return 2
+
+    @require_1
+    @require_2
+    def foo12(self):
+        return 12
+
+
+class TestApproximations(unittest.TestCase):
+    def test_checks(self):
+        m = TestingModel()
+        with self.assertRaises(ApproximationError):
+            m.foo1()
+        with self.assertRaises(ApproximationError):
+            m.foo2()
+        with self.assertRaises(ApproximationError):
+            m.foo12()
+
+        m.add_approximation(APPROX_1)
+        m.foo1()
+        with self.assertRaises(ApproximationError):
+            m.foo2()
+        with self.assertRaises(ApproximationError):
+            m.foo12()
+
+        m.remove_approximation(APPROX_1)
+        m.add_approximation(APPROX_2)
+        m.foo2()
+        with self.assertRaises(ApproximationError):
+            m.foo1()
+        with self.assertRaises(ApproximationError):
+            m.foo12()
+
+        m.add_approximation(APPROX_1)
+        m.foo1()
+        m.foo2()
+        m.foo12()
+
+    def check_return(self):
+        m = TestingModel().add_approximation(APPROX_1).add_approximation(APPROX_2)
+        self.assertEqual(m.foo1(), 1)
+        self.assertEqual(m.foo2(), 2)
+        self.assertEqual(m.foo12(), 12)
 
 
 if __name__ == '__main__':

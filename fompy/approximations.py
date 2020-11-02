@@ -1,4 +1,4 @@
-from functools import wraps, partial
+from functools import wraps
 
 
 class ApproximationError(RuntimeError):
@@ -9,8 +9,12 @@ class Model:
     def __init__(self):
         self.approximations = set()
 
-    def with_approximation(self, name):
+    def add_approximation(self, name):
         self.approximations.add(name)
+        return self
+
+    def remove_approximation(self, name):
+        self.approximations.remove(name)
         return self
 
 

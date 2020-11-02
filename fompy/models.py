@@ -115,7 +115,7 @@ def debye_length(eps, n, T):
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
 
 
-class CrystalLattice:
+class CrystalLattice(Model):
     """
     A class to calculate properties of a crystal lattice.
     """
@@ -135,6 +135,7 @@ class CrystalLattice:
         N : float
             The number of atoms in a cell.
         """
+        super().__init__()
         self._a = a
         self._m = m
         self._r = r
@@ -291,7 +292,7 @@ class DiamondLikeLattice(CrystalLattice):
         super().__init__(a, m, a * sqrt(3) / 8, 8)
 
 
-class Semiconductor:
+class Semiconductor(Model):
     """
     A class to calculate properties of an intrinsic (pure) semiconductor.
 
@@ -330,6 +331,7 @@ class Semiconductor:
         lattice : CrystalLattice or None
             The crystal lattice.
         """
+        super().__init__()
         self.lattice = lattice
         self.me = me_eff
         self.mh = mh_eff
@@ -613,7 +615,7 @@ class DopedSemiconductor(Semiconductor):
         return 'p' if self.p_concentration(Ef, T) > self.n_concentration(Ef, T) else 'n'
 
 
-class Metal:
+class Metal(Model):
     """
     A class to calculate properties of a metal.
 
@@ -632,6 +634,7 @@ class Metal:
         work_function : float
             The work function.
         """
+        super().__init__()
         self.work_function = work_function
 
 
@@ -644,7 +647,7 @@ class ContactType(Enum):
     INVERSION = 2
 
 
-class MSJunction:
+class MSJunction(Model):
     """
     A class to calculate properties of a contact between a metal and a semiconductor.
 
@@ -667,6 +670,7 @@ class MSJunction:
         sc : Semiconductor
             The semiconductor.
         """
+        super().__init__()
         self.metal = metal
         self.sc = sc
 

@@ -27,7 +27,7 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from functools import wraps, partial
+<pre><code class="python">from functools import wraps
 
 
 class ApproximationError(RuntimeError):
@@ -38,8 +38,12 @@ class Model:
     def __init__(self):
         self.approximations = set()
 
-    def with_approximation(self, name):
+    def add_approximation(self, name):
         self.approximations.add(name)
+        return self
+
+    def remove_approximation(self, name):
+        self.approximations.remove(name)
         return self
 
 
@@ -115,18 +119,26 @@ class approximation:  # noqa
     def __init__(self):
         self.approximations = set()
 
-    def with_approximation(self, name):
+    def add_approximation(self, name):
         self.approximations.add(name)
+        return self
+
+    def remove_approximation(self, name):
+        self.approximations.remove(name)
         return self</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="models.html#fompy.models.CrystalLattice">CrystalLattice</a></li>
+<li><a title="fompy.models.MSJunction" href="models.html#fompy.models.MSJunction">MSJunction</a></li>
+<li><a title="fompy.models.Metal" href="models.html#fompy.models.Metal">Metal</a></li>
 <li><a title="fompy.models.PNJunction" href="models.html#fompy.models.PNJunction">PNJunction</a></li>
+<li><a title="fompy.models.Semiconductor" href="models.html#fompy.models.Semiconductor">Semiconductor</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="fompy.approximations.Model.with_approximation"><code class="name flex">
-<span>def <span class="ident">with_approximation</span></span>(<span>self, name)</span>
+<dt id="fompy.approximations.Model.add_approximation"><code class="name flex">
+<span>def <span class="ident">add_approximation</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -134,8 +146,22 @@ class approximation:  # noqa
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def with_approximation(self, name):
+<pre><code class="python">def add_approximation(self, name):
     self.approximations.add(name)
+    return self</code></pre>
+</details>
+</dd>
+<dt id="fompy.approximations.Model.remove_approximation"><code class="name flex">
+<span>def <span class="ident">remove_approximation</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_approximation(self, name):
+    self.approximations.remove(name)
     return self</code></pre>
 </details>
 </dd>
@@ -184,7 +210,8 @@ class approximation:  # noqa
 <li>
 <h4><code><a title="fompy.approximations.Model" href="#fompy.approximations.Model">Model</a></code></h4>
 <ul class="">
-<li><code><a title="fompy.approximations.Model.with_approximation" href="#fompy.approximations.Model.with_approximation">with_approximation</a></code></li>
+<li><code><a title="fompy.approximations.Model.add_approximation" href="#fompy.approximations.Model.add_approximation">add_approximation</a></code></li>
+<li><code><a title="fompy.approximations.Model.remove_approximation" href="#fompy.approximations.Model.remove_approximation">remove_approximation</a></code></li>
 </ul>
 </li>
 <li>
