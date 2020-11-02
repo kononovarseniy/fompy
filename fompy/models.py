@@ -8,7 +8,7 @@ All energies are counted from the valence band edge E<sub>v</sub> &equiv; 0.
 
 from enum import Enum
 from functools import partial
-from math import pi, sqrt
+from math import pi, sqrt, exp
 
 from scipy.optimize import bisect
 
@@ -825,6 +825,61 @@ class PNJunction:
             The difference of potentials.
         """
         return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e
+
+
+class PNJunctionNonDegenerate(PNJunction):
+    # TODO: documentation
+
+    def pn(self, voltage, T=300):
+        r"""
+        .. math::
+            p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+        """
+        return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
+
+    def n_p(self, voltage, T=300):
+        r"""
+        .. math::
+            n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+        """
+        return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
+
+    def p_n(self, voltage, T=300):
+        r"""
+        .. math::
+            p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+        """
+        return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
+
+    def j0_p(self, diffusivity, diffusion_length):
+        r"""
+        .. math::
+            J_p = \frac{e D_p p_{n0}}{L_p}
+        """
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def j0_n(self, diffusivity, diffusion_length):
+        r"""
+        .. math::
+            J_n = \frac{e D_n n_{p0}}{L_n}
+        """
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+        r"""
+        .. math::
+            J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+        """
+        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+        r"""
+        .. math::
+            J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+        """
+        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
 
 
 class PNJunctionFullDepletion(PNJunction):

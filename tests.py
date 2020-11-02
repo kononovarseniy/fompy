@@ -4,11 +4,11 @@ from math import sqrt, pi
 import numpy as np
 
 from fompy import functions
-from fompy.constants import eV, volt, angstrom, amu
+from fompy.constants import eV, volt, angstrom, amu, ampere
 from fompy.materials import Si
 from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
-    BodyCenteredCubicLattice, conductivity, concentration
+    BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate
 from fompy.units import unit, parse_unit
 
 
@@ -235,6 +235,43 @@ class TestPNJunction(unittest.TestCase):
                          self.pn_fd.w_n() * self.pn_fd.n_mat.p_donor_concentration(), 0.0)
         self.assertEqual(self.pn_fd2.w_p() * self.pn_fd2.p_mat.n_acceptor_concentration() -
                          self.pn_fd2.w_n() * self.pn_fd2.n_mat.p_donor_concentration(), 0.0)
+
+
+class TestPNJunctionNonDegenerate(unittest.TestCase):
+    def test_np(self):
+        n = p = 1e17
+        pn = PNJunctionNonDegenerate(Si, n, 0, p, Si.Eg)
+        self.assertAlmostEqual(pn.pn(0), 1.2e19, delta=1e18)
+        self.assertAlmostEqual(pn.p_n(0), 123.3, delta=0.1)
+        self.assertAlmostEqual(pn.n_p(0), 121.6, delta=0.1)
+
+    def test_j0(self):
+        n = p = 1e17
+        pn = PNJunctionNonDegenerate(Si, n, 0, p, Si.Eg)
+        d_n = 36
+        d_p = 12
+        l_n = l_p = 1e-2
+
+        j0p = pn.j0_p(d_p, l_p)
+        j0n = pn.j0_n(d_n, l_n)
+        self.assertAlmostEqual((j0p + j0n) / unit('A / cm^2'), 9.4e-14, delta=0.1e-14)
+
+    def test_current(self):
+        n = p = 1e17
+        pn = PNJunctionNonDegenerate(Si, n, 0, p, Si.Eg)
+        d_n = 36
+        d_p = 12
+        l_n = l_p = 1e-2
+
+        voltage = 0.8 * volt
+        jp = pn.current_p(d_p, l_p, voltage)
+        jn = pn.current_n(d_n, l_n, voltage)
+        self.assertAlmostEqual((jp + jn) / unit('A / cm2'), 2.5, delta=0.1)
+
+        voltage = -100 * volt
+        jp = pn.current_p(d_p, l_p, voltage)
+        jn = pn.current_n(d_n, l_n, voltage)
+        self.assertAlmostEqual((jp + jn) / unit('A / cm2'), -9.4e-14, delta=0.1e-14)  # -J_0
 
 
 class TestFormulae(unittest.TestCase):
