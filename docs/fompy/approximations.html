@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>fompy API documentation</title>
-<meta name="description" content="This package contains modules for solving semiconductor physics problems …" />
+<title>fompy.approximations API documentation</title>
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/sanitize.css" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/typography.css" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.3.1/build/styles/github.min.css" crossorigin>
@@ -20,73 +20,149 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>fompy</code></h1>
+<h1 class="title">Module <code>fompy.approximations</code></h1>
 </header>
 <section id="section-intro">
-<p>This package contains modules for solving semiconductor physics problems.</p>
-<p>The modules include functions to calculate different properties of materials
-and classes implementing models of materials: intrinsic and doped semiconductors, metals,
-p-n junctions and metal-semiconductor junctions, various crystal lattices, etc.
-Also, there are instruments to handle unit conversions, since the unit system
-used in all computations is cgs (the Gaussian unit system).</p>
-<p>More information can be found in the descriptions of the modules.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
-This package contains modules for solving semiconductor physics problems.
+<pre><code class="python">from functools import wraps, partial
 
-The modules include functions to calculate different properties of materials
-and classes implementing models of materials: intrinsic and doped semiconductors, metals,
-p-n junctions and metal-semiconductor junctions, various crystal lattices, etc.
-Also, there are instruments to handle unit conversions, since the unit system
-used in all computations is cgs (the Gaussian unit system).
 
-More information can be found in the descriptions of the modules.
-&#34;&#34;&#34;
+class ApproximationError(RuntimeError):
+    pass
 
-VERSION = &#39;0.1.1&#39;</code></pre>
+
+class Model:
+    def __init__(self):
+        self.approximations = set()
+
+    def with_approximation(self, name):
+        self.approximations.add(name)
+        return self
+
+
+class _Wrapper:
+    def __init__(self, func):
+        self.func = func
+        self.approximations = set()
+        self.original_doc = func.__doc__
+
+    def __get__(self, obj, cls=None):
+        @wraps(self.func)
+        def call(*args, **kwargs):
+            if not self.approximations.issubset(obj.approximations):
+                raise ApproximationError
+            return self.func(obj, *args, **kwargs)
+
+        return call
+
+    def update_doc(self):
+        self.func.__doc__ = f&#39;**Required approximations:** {&#34;, &#34;.join(self.approximations)}\n{self.original_doc}&#39;
+
+
+class approximation:  # noqa
+    def __init__(self, name):
+        self.approx_name = name
+
+    def __call__(self, func):
+        wrapper = func if isinstance(func, _Wrapper) else _Wrapper(func)
+        wrapper.approximations.add(self.approx_name)
+        wrapper.update_doc()
+        return wrapper</code></pre>
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt><code class="name"><a title="fompy.approximations" href="approximations.html">fompy.approximations</a></code></dt>
+<dt id="fompy.approximations.ApproximationError"><code class="flex name class">
+<span>class <span class="ident">ApproximationError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Unspecified run-time error.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ApproximationError(RuntimeError):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.RuntimeError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="fompy.approximations.Model"><code class="flex name class">
+<span>class <span class="ident">Model</span></span>
+</code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="fompy.constants" href="constants.html">fompy.constants</a></code></dt>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Model:
+    def __init__(self):
+        self.approximations = set()
+
+    def with_approximation(self, name):
+        self.approximations.add(name)
+        return self</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="fompy.models.PNJunction" href="models.html#fompy.models.PNJunction">PNJunction</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.approximations.Model.with_approximation"><code class="name flex">
+<span>def <span class="ident">with_approximation</span></span>(<span>self, name)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>This module contains values of frequently used physical constants …</p></div>
-</dd>
-<dt><code class="name"><a title="fompy.functions" href="functions.html">fompy.functions</a></code></dt>
-<dd>
-<div class="desc"><p>This module contains useful functions.</p></div>
-</dd>
-<dt><code class="name"><a title="fompy.materials" href="materials.html">fompy.materials</a></code></dt>
-<dd>
-<div class="desc"><p>This module contains instances of classes from <code><a title="fompy.models" href="models.html">fompy.models</a></code> for particular materials.</p></div>
-</dd>
-<dt><code class="name"><a title="fompy.models" href="models.html">fompy.models</a></code></dt>
-<dd>
-<div class="desc"><p>This module contains classes useful for calculating properties of different materials …</p></div>
-</dd>
-<dt><code class="name"><a title="fompy.units" href="units.html">fompy.units</a></code></dt>
-<dd>
-<div class="desc"><p>This module contains classes for parsing units of measurement.</p></div>
-</dd>
-<dt><code class="name"><a title="fompy.util" href="util/index.html">fompy.util</a></code></dt>
-<dd>
-<div class="desc"><p>The submodules of this module contain utilities for computing special functions and for lexical analysis.</p></div>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_approximation(self, name):
+    self.approximations.add(name)
+    return self</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
+</dd>
+<dt id="fompy.approximations.approximation"><code class="flex name class">
+<span>class <span class="ident">approximation</span></span>
+<span>(</span><span>name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class approximation:  # noqa
+    def __init__(self, name):
+        self.approx_name = name
+
+    def __call__(self, func):
+        wrapper = func if isinstance(func, _Wrapper) else _Wrapper(func)
+        wrapper.approximations.add(self.approx_name)
+        wrapper.update_doc()
+        return wrapper</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -95,15 +171,25 @@ VERSION = &#39;0.1.1&#39;</code></pre>
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="fompy.approximations" href="approximations.html">fompy.approximations</a></code></li>
-<li><code><a title="fompy.constants" href="constants.html">fompy.constants</a></code></li>
-<li><code><a title="fompy.functions" href="functions.html">fompy.functions</a></code></li>
-<li><code><a title="fompy.materials" href="materials.html">fompy.materials</a></code></li>
-<li><code><a title="fompy.models" href="models.html">fompy.models</a></code></li>
-<li><code><a title="fompy.units" href="units.html">fompy.units</a></code></li>
-<li><code><a title="fompy.util" href="util/index.html">fompy.util</a></code></li>
+<li><code><a title="fompy" href="index.html">fompy</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="fompy.approximations.ApproximationError" href="#fompy.approximations.ApproximationError">ApproximationError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="fompy.approximations.Model" href="#fompy.approximations.Model">Model</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.approximations.Model.with_approximation" href="#fompy.approximations.Model.with_approximation">with_approximation</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.approximations.approximation" href="#fompy.approximations.approximation">approximation</a></code></h4>
+</li>
 </ul>
 </li>
 </ul>

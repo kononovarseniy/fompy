@@ -12,8 +12,15 @@ from math import pi, sqrt, exp
 
 from scipy.optimize import bisect
 
+from fompy.approximations import approximation, Model
 from fompy.constants import e, k, h_bar
 from fompy.functions import fermi, fd1
+
+NON_DEGENERATE = 'non-degenerate'
+requires_non_degenerate = approximation(NON_DEGENERATE)
+
+FULL_DEPLETION = 'full-depletion'
+requires_full_depletion = approximation(FULL_DEPLETION)
 
 
 def conductivity(n, mobility):
@@ -768,7 +775,7 @@ class MSJunction:
         return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)
 
 
-class PNJunction:
+class PNJunction(Model):
     """
     A class to calculate properties of a p-n junction.
 
@@ -799,6 +806,7 @@ class PNJunction:
         Ed : float
             The donor level.
         """
+        super().__init__()
         if Ea is None:
             Ea = 0
         if Ed is None:
@@ -826,73 +834,7 @@ class PNJunction:
         """
         return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e
 
-
-class PNJunctionNonDegenerate(PNJunction):
-    # TODO: documentation
-
-    def pn(self, voltage, T=300):
-        r"""
-        .. math::
-            p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
-        """
-        return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
-
-    def n_p(self, voltage, T=300):
-        r"""
-        .. math::
-            n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
-        """
-        return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
-
-    def p_n(self, voltage, T=300):
-        r"""
-        .. math::
-            p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
-        """
-        return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
-
-    def j0_p(self, diffusivity, diffusion_length):
-        r"""
-        .. math::
-            J_p = \frac{e D_p p_{n0}}{L_p}
-        """
-        return e * diffusivity * self.p_n(0) / diffusion_length
-
-    def j0_n(self, diffusivity, diffusion_length):
-        r"""
-        .. math::
-            J_n = \frac{e D_n n_{p0}}{L_n}
-        """
-        return e * diffusivity * self.p_n(0) / diffusion_length
-
-    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
-        r"""
-        .. math::
-            J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
-                = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
-        """
-        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
-
-    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
-        r"""
-        .. math::
-            J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
-                = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
-        """
-        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
-
-
-class PNJunctionFullDepletion(PNJunction):
-    """
-    A class to calculate properties of a p-n junction exhibiting full depletion (extends `PNJunction`).
-    """
-
-    def __init__(self, mat, Na, Ea, Nd, Ed):
-        """
-        Construct the necessary attributes for the `PNJunctionFullDepletion` object
-        (calls the `PNJunction` constructor).
-        """
-        super().__init__(mat, Na, Ea, Nd, Ed)
+    """Full depletion"""
 
     def _df_Na_Nd(self, T):
         return self.delta_phi(T), \
@@ -903,6 +845,7 @@ class PNJunctionFullDepletion(PNJunction):
         df, a, d = self._df_Na_Nd(T)
         return self.p_mat.eps / (2 * pi * e) * df, a, d
 
+    @requires_full_depletion
     def delta_phi_n(self, T=300):
         r"""
         Calculate the difference of potentials for the negative depletion layer.
@@ -923,6 +866,7 @@ class PNJunctionFullDepletion(PNJunction):
         df, a, d = self._df_Na_Nd(T)
         return df * a / (a + d)
 
+    @requires_full_depletion
     def delta_phi_p(self, T=300):
         r"""
         Calculate the difference of potentials for the positive depletion layer.
@@ -943,6 +887,7 @@ class PNJunctionFullDepletion(PNJunction):
         df, a, d = self._df_Na_Nd(T)
         return df * d / (a + d)
 
+    @requires_full_depletion
     def w(self, T=300):
         r"""
         Calculate the full depletion width.
@@ -963,6 +908,7 @@ class PNJunctionFullDepletion(PNJunction):
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * (a + d) / (a * d))
 
+    @requires_full_depletion
     def w_n(self, T=300):
         r"""
         Calculate the width of the negative depletion layer.
@@ -983,6 +929,7 @@ class PNJunctionFullDepletion(PNJunction):
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * a / d / (a + d))
 
+    @requires_full_depletion
     def w_p(self, T=300):
         r"""
         Calculate the width of the negative depletion layer.
@@ -1002,3 +949,63 @@ class PNJunctionFullDepletion(PNJunction):
         """
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))
+
+    """Non-degenerate"""
+
+    @requires_non_degenerate
+    def pn(self, voltage, T=300):
+        r"""
+        .. math::
+            p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+        """
+        return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
+
+    @requires_non_degenerate
+    def n_p(self, voltage, T=300):
+        r"""
+        .. math::
+            n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+        """
+        return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
+
+    @requires_non_degenerate
+    def p_n(self, voltage, T=300):
+        r"""
+        .. math::
+            p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+        """
+        return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
+
+    @requires_non_degenerate
+    def j0_p(self, diffusivity, diffusion_length):
+        r"""
+        .. math::
+            J_p = \frac{e D_p p_{n0}}{L_p}
+        """
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    @requires_non_degenerate
+    def j0_n(self, diffusivity, diffusion_length):
+        r"""
+        .. math::
+            J_n = \frac{e D_n n_{p0}}{L_n}
+        """
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    @requires_non_degenerate
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+        r"""
+        .. math::
+            J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+        """
+        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+
+    @requires_non_degenerate
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+        r"""
+        .. math::
+            J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+        """
+        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)

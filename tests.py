@@ -4,11 +4,11 @@ from math import sqrt, pi
 import numpy as np
 
 from fompy import functions
-from fompy.constants import eV, volt, angstrom, amu, ampere
+from fompy.constants import eV, volt, angstrom, amu
 from fompy.materials import Si
-from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
-    PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
-    BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate
+from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, PrimitiveCubicLattice, \
+    DiamondLikeLattice, FaceCenteredCubicLattice, BodyCenteredCubicLattice, conductivity, concentration, FULL_DEPLETION, \
+    NON_DEGENERATE
 from fompy.units import unit, parse_unit
 
 
@@ -206,8 +206,8 @@ class TestFunctions(unittest.TestCase):
 class TestPNJunction(unittest.TestCase):
     def setUp(self):
         self.pn = PNJunction(Si, 5e16, None, 1e16, None)
-        self.pn_fd = PNJunctionFullDepletion(Si, 5e16, None, 1e16, None)
-        self.pn_fd2 = PNJunctionFullDepletion(Si, 1e16, None, 1e16, None)
+        self.pn_fd = PNJunction(Si, 5e16, None, 1e16, None).with_approximation(FULL_DEPLETION)
+        self.pn_fd2 = PNJunction(Si, 1e16, None, 1e16, None).with_approximation(FULL_DEPLETION)
 
     def test_delta_phi(self):
         self.assertAlmostEqual(self.pn.delta_phi() / volt, 0.81, delta=0.05)
@@ -240,14 +240,14 @@ class TestPNJunction(unittest.TestCase):
 class TestPNJunctionNonDegenerate(unittest.TestCase):
     def test_np(self):
         n = p = 1e17
-        pn = PNJunctionNonDegenerate(Si, n, 0, p, Si.Eg)
+        pn = PNJunction(Si, n, 0, p, Si.Eg).with_approximation(NON_DEGENERATE)
         self.assertAlmostEqual(pn.pn(0), 1.2e19, delta=1e18)
         self.assertAlmostEqual(pn.p_n(0), 123.3, delta=0.1)
         self.assertAlmostEqual(pn.n_p(0), 121.6, delta=0.1)
 
     def test_j0(self):
         n = p = 1e17
-        pn = PNJunctionNonDegenerate(Si, n, 0, p, Si.Eg)
+        pn = PNJunction(Si, n, 0, p, Si.Eg).with_approximation(NON_DEGENERATE)
         d_n = 36
         d_p = 12
         l_n = l_p = 1e-2
@@ -258,7 +258,7 @@ class TestPNJunctionNonDegenerate(unittest.TestCase):
 
     def test_current(self):
         n = p = 1e17
-        pn = PNJunctionNonDegenerate(Si, n, 0, p, Si.Eg)
+        pn = PNJunction(Si, n, 0, p, Si.Eg).with_approximation(NON_DEGENERATE)
         d_n = 36
         d_p = 12
         l_n = l_p = 1e-2

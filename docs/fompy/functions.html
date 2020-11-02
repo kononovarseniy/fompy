@@ -63,7 +63,10 @@ def fermi(E, Ef, T):
     float
         The Fermi-Dirac distribution of `E`.
     &#34;&#34;&#34;
-    return 1 / (1 + exp((E - Ef) / (k * T)))</code></pre>
+    arg = (E - Ef) / (k * T)
+    if arg &gt; 500:  # issue #11
+        return 0
+    return 1 / (1 + exp(arg))</code></pre>
 </details>
 </section>
 <section>
@@ -119,7 +122,10 @@ Parameters</p>
     float
         The Fermi-Dirac distribution of `E`.
     &#34;&#34;&#34;
-    return 1 / (1 + exp((E - Ef) / (k * T)))</code></pre>
+    arg = (E - Ef) / (k * T)
+    if arg &gt; 500:  # issue #11
+        return 0
+    return 1 / (1 + exp(arg))</code></pre>
 </details>
 </dd>
 </dl>

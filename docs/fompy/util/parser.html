@@ -132,135 +132,6 @@ class TokenList(list):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="fompy.util.parser.TokenList"><code class="flex name class">
-<span>class <span class="ident">TokenList</span></span>
-<span>(</span><span>tokens)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class functioning as a list of tokens (extends <code>list</code>).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class TokenList(list):
-    &#34;&#34;&#34;
-    A class functioning as a list of tokens (extends `list`).
-    &#34;&#34;&#34;
-
-    def __init__(self, tokens):
-        super().__init__(tokens)
-        self._pos = 0
-
-    @property
-    def position(self):
-        &#34;&#34;&#34;Get or set the current position.&#34;&#34;&#34;
-        return self._pos
-
-    @position.setter
-    def position(self, pos):
-        self._pos = pos
-
-    def get(self, offset=0):
-        &#34;&#34;&#34;
-        Get a token.
-
-        Parameters
-        ----------
-        offset : int
-            An offset from the current `position`.
-
-        Returns
-        -------
-        `self[ position + offset ]`
-        None, None
-            When `position + offset` is past the end of the token list.
-        &#34;&#34;&#34;
-        if self._pos + offset &gt;= len(self):
-            return None, None
-        return self[self._pos + offset]
-
-    @property
-    def eof(self):
-        &#34;&#34;&#34;Get a boolean that is `True` if `position` is past the end of the token list, `False` otherwise.&#34;&#34;&#34;
-        return self._pos &gt;= len(self)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.list</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="fompy.util.parser.TokenList.eof"><code class="name">var <span class="ident">eof</span></code></dt>
-<dd>
-<div class="desc"><p>Get a boolean that is <code>True</code> if <code>position</code> is past the end of the token list, <code>False</code> otherwise.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def eof(self):
-    &#34;&#34;&#34;Get a boolean that is `True` if `position` is past the end of the token list, `False` otherwise.&#34;&#34;&#34;
-    return self._pos &gt;= len(self)</code></pre>
-</details>
-</dd>
-<dt id="fompy.util.parser.TokenList.position"><code class="name">var <span class="ident">position</span></code></dt>
-<dd>
-<div class="desc"><p>Get or set the current position.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def position(self):
-    &#34;&#34;&#34;Get or set the current position.&#34;&#34;&#34;
-    return self._pos</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="fompy.util.parser.TokenList.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>self, offset=0)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get a token.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>offset</code></strong> :&ensp;<code>int</code></dt>
-<dd>An offset from the current <code>position</code>.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>self[ position + offset ]</code></dt>
-<dt><code>None, None</code></dt>
-<dd>When <code>position + offset</code> is past the end of the token list.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get(self, offset=0):
-    &#34;&#34;&#34;
-    Get a token.
-
-    Parameters
-    ----------
-    offset : int
-        An offset from the current `position`.
-
-    Returns
-    -------
-    `self[ position + offset ]`
-    None, None
-        When `position + offset` is past the end of the token list.
-    &#34;&#34;&#34;
-    if self._pos + offset &gt;= len(self):
-        return None, None
-    return self[self._pos + offset]</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 <dt id="fompy.util.parser.Tokenizer"><code class="flex name class">
 <span>class <span class="ident">Tokenizer</span></span>
 <span>(</span><span>rules)</span>
@@ -377,6 +248,135 @@ def position(self):
 </dd>
 </dl>
 </dd>
+<dt id="fompy.util.parser.TokenList"><code class="flex name class">
+<span>class <span class="ident">TokenList</span></span>
+<span>(</span><span>tokens)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class functioning as a list of tokens (extends <code>list</code>).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TokenList(list):
+    &#34;&#34;&#34;
+    A class functioning as a list of tokens (extends `list`).
+    &#34;&#34;&#34;
+
+    def __init__(self, tokens):
+        super().__init__(tokens)
+        self._pos = 0
+
+    @property
+    def position(self):
+        &#34;&#34;&#34;Get or set the current position.&#34;&#34;&#34;
+        return self._pos
+
+    @position.setter
+    def position(self, pos):
+        self._pos = pos
+
+    def get(self, offset=0):
+        &#34;&#34;&#34;
+        Get a token.
+
+        Parameters
+        ----------
+        offset : int
+            An offset from the current `position`.
+
+        Returns
+        -------
+        `self[ position + offset ]`
+        None, None
+            When `position + offset` is past the end of the token list.
+        &#34;&#34;&#34;
+        if self._pos + offset &gt;= len(self):
+            return None, None
+        return self[self._pos + offset]
+
+    @property
+    def eof(self):
+        &#34;&#34;&#34;Get a boolean that is `True` if `position` is past the end of the token list, `False` otherwise.&#34;&#34;&#34;
+        return self._pos &gt;= len(self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.list</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="fompy.util.parser.TokenList.position"><code class="name">var <span class="ident">position</span></code></dt>
+<dd>
+<div class="desc"><p>Get or set the current position.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def position(self):
+    &#34;&#34;&#34;Get or set the current position.&#34;&#34;&#34;
+    return self._pos</code></pre>
+</details>
+</dd>
+<dt id="fompy.util.parser.TokenList.eof"><code class="name">var <span class="ident">eof</span></code></dt>
+<dd>
+<div class="desc"><p>Get a boolean that is <code>True</code> if <code>position</code> is past the end of the token list, <code>False</code> otherwise.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def eof(self):
+    &#34;&#34;&#34;Get a boolean that is `True` if `position` is past the end of the token list, `False` otherwise.&#34;&#34;&#34;
+    return self._pos &gt;= len(self)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.util.parser.TokenList.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self, offset=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get a token.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>offset</code></strong> :&ensp;<code>int</code></dt>
+<dd>An offset from the current <code>position</code>.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>self[ position + offset ]</code></dt>
+<dt><code>None, None</code></dt>
+<dd>When <code>position + offset</code> is past the end of the token list.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self, offset=0):
+    &#34;&#34;&#34;
+    Get a token.
+
+    Parameters
+    ----------
+    offset : int
+        An offset from the current `position`.
+
+    Returns
+    -------
+    `self[ position + offset ]`
+    None, None
+        When `position + offset` is past the end of the token list.
+    &#34;&#34;&#34;
+    if self._pos + offset &gt;= len(self):
+        return None, None
+    return self[self._pos + offset]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -394,17 +394,17 @@ def position(self):
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="fompy.util.parser.TokenList" href="#fompy.util.parser.TokenList">TokenList</a></code></h4>
-<ul class="">
-<li><code><a title="fompy.util.parser.TokenList.eof" href="#fompy.util.parser.TokenList.eof">eof</a></code></li>
-<li><code><a title="fompy.util.parser.TokenList.get" href="#fompy.util.parser.TokenList.get">get</a></code></li>
-<li><code><a title="fompy.util.parser.TokenList.position" href="#fompy.util.parser.TokenList.position">position</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="fompy.util.parser.Tokenizer" href="#fompy.util.parser.Tokenizer">Tokenizer</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.util.parser.Tokenizer.tokenize" href="#fompy.util.parser.Tokenizer.tokenize">tokenize</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.util.parser.TokenList" href="#fompy.util.parser.TokenList">TokenList</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.util.parser.TokenList.get" href="#fompy.util.parser.TokenList.get">get</a></code></li>
+<li><code><a title="fompy.util.parser.TokenList.position" href="#fompy.util.parser.TokenList.position">position</a></code></li>
+<li><code><a title="fompy.util.parser.TokenList.eof" href="#fompy.util.parser.TokenList.eof">eof</a></code></li>
 </ul>
 </li>
 </ul>
