@@ -391,6 +391,19 @@ class Semiconductor:
         return Semiconductor.effective_state_density(self.mh, T)
 
     def i_concentration(self, T=300):
+        """
+        Calculate the intrinsic concentration of electrons (independent of doping).
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The intrinsic concentration of electrons.
+        """
         return self.n_concentration(self.intrinsic_fermi_level(), T)
 
     def n_concentration(self, Ef=None, T=300):
@@ -441,6 +454,7 @@ class Semiconductor:
 
     def _intrinsic_charge_imbalance(self, Ef, T):
         """note: the function decreases monotonically with increasing Ef"""
+        # This method is meant to be overridden.
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def _charge_imbalance(self, Ef, T):
@@ -452,7 +466,23 @@ class Semiconductor:
         return bisect(eq, -self.Eg, 2 * self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
     def intrinsic_fermi_level(self, T=300):
-        # TODO: documentation
+        """
+        Determine the Fermi level from the condition of electroneutrality
+        based on the intrinsic electron concentration.
+
+        .. math::
+            n_h - n_{e,intrinsic} = 0
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+        """
         return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)
 
     def fermi_level(self, T=300):

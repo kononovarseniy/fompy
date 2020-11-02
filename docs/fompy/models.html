@@ -40,7 +40,7 @@ All energies are counted from the valence band edge E&lt;sub&gt;v&lt;/sub&gt; &a
 
 from enum import Enum
 from functools import partial
-from math import pi, sqrt
+from math import pi, sqrt, exp
 
 from scipy.optimize import bisect
 
@@ -48,30 +48,27 @@ from fompy.constants import e, k, h_bar
 from fompy.functions import fermi, fd1
 
 
-def conductivity(n, n_mob, p, p_mob):
+def conductivity(n, mobility):
     r&#34;&#34;&#34;
     Calculate the conductivity of a material.
+    If there are several types of charge carriers, you should sum up the conductivities calculated for these types.
 
     .. math::
-        \sigma = e (n_e \mu_e + n_h \mu_h)
+        \sigma = e n \mu
 
     Parameters
     ----------
     n : float
-        The concentration of electrons.
-    n_mob : float
-        The electron mobility.
-    p : float
-        The concentration of holes.
-    p_mob : float
-        The hole mobility.
+        Carrier concentration.
+    mobility : float
+        Carrier mobility.
 
     Returns
     -------
     float
         The conductivity.
     &#34;&#34;&#34;
-    return e * (n * n_mob + p * p_mob)
+    return e * n * mobility
 
 
 def concentration(resistivity, mobility):
@@ -426,6 +423,19 @@ class Semiconductor:
         return Semiconductor.effective_state_density(self.mh, T)
 
     def i_concentration(self, T=300):
+        &#34;&#34;&#34;
+        Calculate the intrinsic concentration of electrons (independent of doping).
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The intrinsic concentration of electrons.
+        &#34;&#34;&#34;
         return self.n_concentration(self.intrinsic_fermi_level(), T)
 
     def n_concentration(self, Ef=None, T=300):
@@ -475,15 +485,39 @@ class Semiconductor:
         return self.Nv(T) * fd1(-Ef / (k * T))
 
     def _intrinsic_charge_imbalance(self, Ef, T):
+        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
+        # This method is meant to be overridden.
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def _charge_imbalance(self, Ef, T):
+        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def intrinsic_fermi_level(self, T=300) -&gt; float:
-        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+    def _solve_electroneutrality_equation(self, equation, T) -&gt; float:
+        eq = partial(equation, T=T)
+        return bisect(eq, -self.Eg, 2 * self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
-    def fermi_level(self, T=300) -&gt; float:
+    def intrinsic_fermi_level(self, T=300):
+        &#34;&#34;&#34;
+        Determine the Fermi level from the condition of electroneutrality
+        based on the intrinsic electron concentration.
+
+        .. math::
+            n_h - n_{e,intrinsic} = 0
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+        &#34;&#34;&#34;
+        return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)
+
+    def fermi_level(self, T=300):
         &#34;&#34;&#34;
         Determine the Fermi level from the condition of electroneutrality.
 
@@ -500,8 +534,7 @@ class Semiconductor:
         float
             The Fermi level.
         &#34;&#34;&#34;
-        # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+        return self._solve_electroneutrality_equation(self._charge_imbalance, T)
 
     def conductivity_type(self, *, T=None, Ef=None):
         &#34;&#34;&#34;
@@ -601,6 +634,7 @@ class DopedSemiconductor(Semiconductor):
         return self.Na * fermi(self.Ea, Ef, T)
 
     def _charge_imbalance(self, Ef, T):
+        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
         return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
                - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
 
@@ -855,6 +889,61 @@ class PNJunction:
         return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e
 
 
+class PNJunctionNonDegenerate(PNJunction):
+    # TODO: documentation
+
+    def pn(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+        &#34;&#34;&#34;
+        return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
+
+    def n_p(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+        &#34;&#34;&#34;
+        return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
+
+    def p_n(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+        &#34;&#34;&#34;
+        return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
+
+    def j0_p(self, diffusivity, diffusion_length):
+        r&#34;&#34;&#34;
+        .. math::
+            J_p = \frac{e D_p p_{n0}}{L_p}
+        &#34;&#34;&#34;
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def j0_n(self, diffusivity, diffusion_length):
+        r&#34;&#34;&#34;
+        .. math::
+            J_n = \frac{e D_n n_{p0}}{L_n}
+        &#34;&#34;&#34;
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+        &#34;&#34;&#34;
+        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+        &#34;&#34;&#34;
+        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+
+
 class PNJunctionFullDepletion(PNJunction):
     &#34;&#34;&#34;
     A class to calculate properties of a p-n junction exhibiting full depletion (extends `PNJunction`).
@@ -1030,22 +1119,19 @@ Parameters</p>
 </details>
 </dd>
 <dt id="fompy.models.conductivity"><code class="name flex">
-<span>def <span class="ident">conductivity</span></span>(<span>n, n_mob, p, p_mob)</span>
+<span>def <span class="ident">conductivity</span></span>(<span>n, mobility)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the conductivity of a material.</p>
-<p><span><span class="MathJax_Preview"> \sigma = e (n_e \mu_e + n_h \mu_h) </span><script type="math/tex; mode=display"> \sigma = e (n_e \mu_e + n_h \mu_h) </script></span>
+<div class="desc"><p>Calculate the conductivity of a material.
+If there are several types of charge carriers, you should sum up the conductivities calculated for these types.</p>
+<p><span><span class="MathJax_Preview"> \sigma = e n \mu </span><script type="math/tex; mode=display"> \sigma = e n \mu </script></span>
 Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The concentration of electrons.</dd>
-<dt><strong><code>n_mob</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron mobility.</dd>
-<dt><strong><code>p</code></strong> :&ensp;<code>float</code></dt>
-<dd>The concentration of holes.</dd>
-<dt><strong><code>p_mob</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole mobility.</dd>
+<dd>Carrier concentration.</dd>
+<dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
+<dd>Carrier mobility.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1056,30 +1142,27 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def conductivity(n, n_mob, p, p_mob):
+<pre><code class="python">def conductivity(n, mobility):
     r&#34;&#34;&#34;
     Calculate the conductivity of a material.
+    If there are several types of charge carriers, you should sum up the conductivities calculated for these types.
 
     .. math::
-        \sigma = e (n_e \mu_e + n_h \mu_h)
+        \sigma = e n \mu
 
     Parameters
     ----------
     n : float
-        The concentration of electrons.
-    n_mob : float
-        The electron mobility.
-    p : float
-        The concentration of holes.
-    p_mob : float
-        The hole mobility.
+        Carrier concentration.
+    mobility : float
+        Carrier mobility.
 
     Returns
     -------
     float
         The conductivity.
     &#34;&#34;&#34;
-    return e * (n * n_mob + p * p_mob)</code></pre>
+    return e * n * mobility</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.debye_length"><code class="name flex">
@@ -1690,6 +1773,7 @@ Parameters</p>
         return self.Na * fermi(self.Ea, Ef, T)
 
     def _charge_imbalance(self, Ef, T):
+        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
         return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
                - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
 
@@ -1887,6 +1971,8 @@ Parameters</p>
 <li><code><a title="fompy.models.Semiconductor.Nv" href="#fompy.models.Semiconductor.Nv">Nv</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.effective_state_density" href="#fompy.models.Semiconductor.effective_state_density">effective_state_density</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.fermi_level" href="#fompy.models.Semiconductor.fermi_level">fermi_level</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.i_concentration" href="#fompy.models.Semiconductor.i_concentration">i_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.intrinsic_fermi_level" href="#fompy.models.Semiconductor.intrinsic_fermi_level">intrinsic_fermi_level</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.n_concentration" href="#fompy.models.Semiconductor.n_concentration">n_concentration</a></code></li>
 <li><code><a title="fompy.models.Semiconductor.p_concentration" href="#fompy.models.Semiconductor.p_concentration">p_concentration</a></code></li>
 </ul>
@@ -2466,6 +2552,7 @@ Returns</p>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="fompy.models.PNJunctionFullDepletion" href="#fompy.models.PNJunctionFullDepletion">PNJunctionFullDepletion</a></li>
+<li><a title="fompy.models.PNJunctionNonDegenerate" href="#fompy.models.PNJunctionNonDegenerate">PNJunctionNonDegenerate</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
@@ -2877,6 +2964,234 @@ Parameters</p>
 </li>
 </ul>
 </dd>
+<dt id="fompy.models.PNJunctionNonDegenerate"><code class="flex name class">
+<span>class <span class="ident">PNJunctionNonDegenerate</span></span>
+<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a p-n junction.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The base intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>n_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
+<dd>The n-type doped semiconductor.</dd>
+<dt><strong><code>p_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
+<dd>The p-type doped semiconductor.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The base intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor concentration.</dd>
+<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor level.</dd>
+<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor concentration.</dd>
+<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PNJunctionNonDegenerate(PNJunction):
+    # TODO: documentation
+
+    def pn(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+        &#34;&#34;&#34;
+        return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
+
+    def n_p(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+        &#34;&#34;&#34;
+        return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
+
+    def p_n(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+        &#34;&#34;&#34;
+        return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
+
+    def j0_p(self, diffusivity, diffusion_length):
+        r&#34;&#34;&#34;
+        .. math::
+            J_p = \frac{e D_p p_{n0}}{L_p}
+        &#34;&#34;&#34;
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def j0_n(self, diffusivity, diffusion_length):
+        r&#34;&#34;&#34;
+        .. math::
+            J_n = \frac{e D_n n_{p0}}{L_n}
+        &#34;&#34;&#34;
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+        &#34;&#34;&#34;
+        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+        r&#34;&#34;&#34;
+        .. math::
+            J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+        &#34;&#34;&#34;
+        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.PNJunctionNonDegenerate.current_n"><code class="name flex">
+<span>def <span class="ident">current_n</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+    r&#34;&#34;&#34;
+    .. math::
+        J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+            = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+    &#34;&#34;&#34;
+    return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.current_p"><code class="name flex">
+<span>def <span class="ident">current_p</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+    r&#34;&#34;&#34;
+    .. math::
+        J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+            = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+    &#34;&#34;&#34;
+    return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.j0_n"><code class="name flex">
+<span>def <span class="ident">j0_n</span></span>(<span>self, diffusivity, diffusion_length)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> J_n = \frac{e D_n n_{p0}}{L_n} </span><script type="math/tex; mode=display"> J_n = \frac{e D_n n_{p0}}{L_n} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def j0_n(self, diffusivity, diffusion_length):
+    r&#34;&#34;&#34;
+    .. math::
+        J_n = \frac{e D_n n_{p0}}{L_n}
+    &#34;&#34;&#34;
+    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.j0_p"><code class="name flex">
+<span>def <span class="ident">j0_p</span></span>(<span>self, diffusivity, diffusion_length)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> J_p = \frac{e D_p p_{n0}}{L_p} </span><script type="math/tex; mode=display"> J_p = \frac{e D_p p_{n0}}{L_p} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def j0_p(self, diffusivity, diffusion_length):
+    r&#34;&#34;&#34;
+    .. math::
+        J_p = \frac{e D_p p_{n0}}{L_p}
+    &#34;&#34;&#34;
+    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.n_p"><code class="name flex">
+<span>def <span class="ident">n_p</span></span>(<span>self, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def n_p(self, voltage, T=300):
+    r&#34;&#34;&#34;
+    .. math::
+        n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+    &#34;&#34;&#34;
+    return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.p_n"><code class="name flex">
+<span>def <span class="ident">p_n</span></span>(<span>self, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def p_n(self, voltage, T=300):
+    r&#34;&#34;&#34;
+    .. math::
+        p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+    &#34;&#34;&#34;
+    return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.pn"><code class="name flex">
+<span>def <span class="ident">pn</span></span>(<span>self, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pn(self, voltage, T=300):
+    r&#34;&#34;&#34;
+    .. math::
+        p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+    &#34;&#34;&#34;
+    return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.PNJunction.delta_phi" href="#fompy.models.PNJunction.delta_phi">delta_phi</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="fompy.models.PrimitiveCubicLattice"><code class="flex name class">
 <span>class <span class="ident">PrimitiveCubicLattice</span></span>
 <span>(</span><span>a, m)</span>
@@ -3090,6 +3405,19 @@ Parameters</p>
         return Semiconductor.effective_state_density(self.mh, T)
 
     def i_concentration(self, T=300):
+        &#34;&#34;&#34;
+        Calculate the intrinsic concentration of electrons (independent of doping).
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The intrinsic concentration of electrons.
+        &#34;&#34;&#34;
         return self.n_concentration(self.intrinsic_fermi_level(), T)
 
     def n_concentration(self, Ef=None, T=300):
@@ -3139,15 +3467,39 @@ Parameters</p>
         return self.Nv(T) * fd1(-Ef / (k * T))
 
     def _intrinsic_charge_imbalance(self, Ef, T):
+        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
+        # This method is meant to be overridden.
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def _charge_imbalance(self, Ef, T):
+        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
-    def intrinsic_fermi_level(self, T=300) -&gt; float:
-        return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+    def _solve_electroneutrality_equation(self, equation, T) -&gt; float:
+        eq = partial(equation, T=T)
+        return bisect(eq, -self.Eg, 2 * self.Eg, xtol=1e-6 * self.Eg)  # noqa
 
-    def fermi_level(self, T=300) -&gt; float:
+    def intrinsic_fermi_level(self, T=300):
+        &#34;&#34;&#34;
+        Determine the Fermi level from the condition of electroneutrality
+        based on the intrinsic electron concentration.
+
+        .. math::
+            n_h - n_{e,intrinsic} = 0
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+        &#34;&#34;&#34;
+        return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)
+
+    def fermi_level(self, T=300):
         &#34;&#34;&#34;
         Determine the Fermi level from the condition of electroneutrality.
 
@@ -3164,8 +3516,7 @@ Parameters</p>
         float
             The Fermi level.
         &#34;&#34;&#34;
-        # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-        return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa
+        return self._solve_electroneutrality_equation(self._charge_imbalance, T)
 
     def conductivity_type(self, *, T=None, Ef=None):
         &#34;&#34;&#34;
@@ -3342,7 +3693,7 @@ Parameters</p>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.fermi_level"><code class="name flex">
-<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300) ‑> float</span>
+<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Determine the Fermi level from the condition of electroneutrality.</p>
@@ -3362,7 +3713,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fermi_level(self, T=300) -&gt; float:
+<pre><code class="python">def fermi_level(self, T=300):
     &#34;&#34;&#34;
     Determine the Fermi level from the condition of electroneutrality.
 
@@ -3379,34 +3730,86 @@ Parameters</p>
     float
         The Fermi level.
     &#34;&#34;&#34;
-    # TODO: Not sure if it works correctly with Nd!=0 and Na!=0
-    return bisect(partial(self._charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa</code></pre>
+    return self._solve_electroneutrality_equation(self._charge_imbalance, T)</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.i_concentration"><code class="name flex">
 <span>def <span class="ident">i_concentration</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Calculate the intrinsic concentration of electrons (independent of doping).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The intrinsic concentration of electrons.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def i_concentration(self, T=300):
+    &#34;&#34;&#34;
+    Calculate the intrinsic concentration of electrons (independent of doping).
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The intrinsic concentration of electrons.
+    &#34;&#34;&#34;
     return self.n_concentration(self.intrinsic_fermi_level(), T)</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.intrinsic_fermi_level"><code class="name flex">
-<span>def <span class="ident">intrinsic_fermi_level</span></span>(<span>self, T=300) ‑> float</span>
+<span>def <span class="ident">intrinsic_fermi_level</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Determine the Fermi level from the condition of electroneutrality
+based on the intrinsic electron concentration.</p>
+<p><span><span class="MathJax_Preview"> n_h - n_{e,intrinsic} = 0 </span><script type="math/tex; mode=display"> n_h - n_{e,intrinsic} = 0 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Fermi level.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def intrinsic_fermi_level(self, T=300) -&gt; float:
-    return bisect(partial(self._intrinsic_charge_imbalance, T=T), 0, self.Eg, xtol=1e-6 * self.Eg)  # noqa</code></pre>
+<pre><code class="python">def intrinsic_fermi_level(self, T=300):
+    &#34;&#34;&#34;
+    Determine the Fermi level from the condition of electroneutrality
+    based on the intrinsic electron concentration.
+
+    .. math::
+        n_h - n_{e,intrinsic} = 0
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Fermi level.
+    &#34;&#34;&#34;
+    return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.n_concentration"><code class="name flex">
@@ -3595,6 +3998,18 @@ Parameters</p>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w" href="#fompy.models.PNJunctionFullDepletion.w">w</a></code></li>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w_n" href="#fompy.models.PNJunctionFullDepletion.w_n">w_n</a></code></li>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w_p" href="#fompy.models.PNJunctionFullDepletion.w_p">w_p</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.PNJunctionNonDegenerate" href="#fompy.models.PNJunctionNonDegenerate">PNJunctionNonDegenerate</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.current_n" href="#fompy.models.PNJunctionNonDegenerate.current_n">current_n</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.current_p" href="#fompy.models.PNJunctionNonDegenerate.current_p">current_p</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.j0_n" href="#fompy.models.PNJunctionNonDegenerate.j0_n">j0_n</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.j0_p" href="#fompy.models.PNJunctionNonDegenerate.j0_p">j0_p</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.n_p" href="#fompy.models.PNJunctionNonDegenerate.n_p">n_p</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.p_n" href="#fompy.models.PNJunctionNonDegenerate.p_n">p_n</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.pn" href="#fompy.models.PNJunctionNonDegenerate.pn">pn</a></code></li>
 </ul>
 </li>
 <li>
