@@ -27,9 +27,9 @@ def conductivity(n, mobility):
     Parameters
     ----------
     n : float
-        Carrier concentration.
+        The carrier concentration.
     mobility : float
-        Carrier mobility.
+        The carrier mobility.
 
     Returns
     -------
@@ -1015,7 +1015,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def w_p(self, T=300):
         r"""
-        Calculate the width of the negative depletion layer.
+        Calculate the width of the positive depletion layer.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -1028,7 +1028,7 @@ class PNJunctionFullDepletion(PNJunction):
         Returns
         -------
         float
-            The width of the negative depletion layer.
+            The width of the positive depletion layer.
         """
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))

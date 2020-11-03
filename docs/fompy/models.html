@@ -59,9 +59,9 @@ def conductivity(n, mobility):
     Parameters
     ----------
     n : float
-        Carrier concentration.
+        The carrier concentration.
     mobility : float
-        Carrier mobility.
+        The carrier mobility.
 
     Returns
     -------
@@ -1047,7 +1047,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def w_p(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the negative depletion layer.
+        Calculate the width of the positive depletion layer.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -1060,7 +1060,7 @@ class PNJunctionFullDepletion(PNJunction):
         Returns
         -------
         float
-            The width of the negative depletion layer.
+            The width of the positive depletion layer.
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))</code></pre>
@@ -1129,9 +1129,9 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>Carrier concentration.</dd>
+<dd>The carrier concentration.</dd>
 <dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
-<dd>Carrier mobility.</dd>
+<dd>The carrier mobility.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1153,9 +1153,9 @@ Parameters</p>
     Parameters
     ----------
     n : float
-        Carrier concentration.
+        The carrier concentration.
     mobility : float
-        Carrier mobility.
+        The carrier mobility.
 
     Returns
     -------
@@ -2714,7 +2714,7 @@ Parameters</p>
 
     def w_p(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the negative depletion layer.
+        Calculate the width of the positive depletion layer.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -2727,7 +2727,7 @@ Parameters</p>
         Returns
         -------
         float
-            The width of the negative depletion layer.
+            The width of the positive depletion layer.
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))</code></pre>
@@ -2914,7 +2914,7 @@ Parameters</p>
 <span>def <span class="ident">w_p</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the width of the negative depletion layer.</p>
+<div class="desc"><p>Calculate the width of the positive depletion layer.</p>
 <p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
 N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
 N_d^+ } } </script></span>
@@ -2927,7 +2927,7 @@ Parameters</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The width of the negative depletion layer.</dd>
+<dd>The width of the positive depletion layer.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2935,7 +2935,7 @@ Parameters</p>
 </summary>
 <pre><code class="python">def w_p(self, T=300):
     r&#34;&#34;&#34;
-    Calculate the width of the negative depletion layer.
+    Calculate the width of the positive depletion layer.
 
     .. math::
         w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -2948,7 +2948,7 @@ Parameters</p>
     Returns
     -------
     float
-        The width of the negative depletion layer.
+        The width of the positive depletion layer.
     &#34;&#34;&#34;
     tmp, a, d = self._w_tmp(T)
     return sqrt(tmp * d / a / (a + d))</code></pre>
