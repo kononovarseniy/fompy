@@ -890,56 +890,165 @@ class PNJunction:
 
 
 class PNJunctionNonDegenerate(PNJunction):
-    # TODO: documentation
+    &#34;&#34;&#34;
+    A class to calculate properties of a p-n junction in the non-degenerate semiconductor approximation
+    (extends `PNJunction`).
+    &#34;&#34;&#34;
 
     def pn(self, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the product of the hole and electron concentrations.
+
         .. math::
             p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration multiplied by the electron concentration.
         &#34;&#34;&#34;
         return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
 
     def n_p(self, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the electron concentration in the p-semiconductor.
+
         .. math::
             n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron concentration in the p-semiconductor.
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
 
     def p_n(self, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the hole concentration in the n-semiconductor.
+
         .. math::
             p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration in the n-semiconductor.
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
 
     def j0_p(self, diffusivity, diffusion_length):
         r&#34;&#34;&#34;
+        Calculate the hole current density without external voltage.
+
         .. math::
-            J_p = \frac{e D_p p_{n0}}{L_p}
+            J_{0p} = \frac{e D_p p_{n0}}{L_p}
+
+        Parameters
+        ----------
+        diffusivity : float
+            The hole diffusivity.
+        diffusion_length : float
+            The hole diffusion length.
+
+        Returns
+        -------
+        float
+            The hole current density.
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
     def j0_n(self, diffusivity, diffusion_length):
         r&#34;&#34;&#34;
+        Calculate the electron current density without external voltage.
+
         .. math::
-            J_n = \frac{e D_n n_{p0}}{L_n}
+            J_{0n} = \frac{e D_n n_{p0}}{L_n}
+
+        Parameters
+        ----------
+        diffusivity : float
+            The electron diffusivity.
+        diffusion_length : float
+            The electron diffusion length.
+
+        Returns
+        -------
+        float
+            The electron current density.
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
     def current_p(self, diffusivity, diffusion_length, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the hole current density.
+
         .. math::
             J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
                 = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+        Parameters
+        ----------
+        diffusivity : float
+            The hole diffusivity.
+        diffusion_length : float
+            The hole diffusion length.
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole current density.
         &#34;&#34;&#34;
         return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
 
     def current_n(self, diffusivity, diffusion_length, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the electron current density.
+
         .. math::
             J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
                 = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+        Parameters
+        ----------
+        diffusivity : float
+            The electron diffusivity.
+        diffusion_length : float
+            The electron diffusion length.
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron current density.
         &#34;&#34;&#34;
         return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
 
@@ -2969,16 +3078,8 @@ Parameters</p>
 <span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A class to calculate properties of a p-n junction.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
-<dd>The base intrinsic (pure) semiconductor.</dd>
-<dt><strong><code>n_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
-<dd>The n-type doped semiconductor.</dd>
-<dt><strong><code>p_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
-<dd>The p-type doped semiconductor.</dd>
-</dl>
+<div class="desc"><p>A class to calculate properties of a p-n junction in the non-degenerate semiconductor approximation
+(extends <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code>).</p>
 <p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> object.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -2998,56 +3099,165 @@ Parameters</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class PNJunctionNonDegenerate(PNJunction):
-    # TODO: documentation
+    &#34;&#34;&#34;
+    A class to calculate properties of a p-n junction in the non-degenerate semiconductor approximation
+    (extends `PNJunction`).
+    &#34;&#34;&#34;
 
     def pn(self, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the product of the hole and electron concentrations.
+
         .. math::
             p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration multiplied by the electron concentration.
         &#34;&#34;&#34;
         return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
 
     def n_p(self, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the electron concentration in the p-semiconductor.
+
         .. math::
             n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron concentration in the p-semiconductor.
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
 
     def p_n(self, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the hole concentration in the n-semiconductor.
+
         .. math::
             p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration in the n-semiconductor.
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
 
     def j0_p(self, diffusivity, diffusion_length):
         r&#34;&#34;&#34;
+        Calculate the hole current density without external voltage.
+
         .. math::
-            J_p = \frac{e D_p p_{n0}}{L_p}
+            J_{0p} = \frac{e D_p p_{n0}}{L_p}
+
+        Parameters
+        ----------
+        diffusivity : float
+            The hole diffusivity.
+        diffusion_length : float
+            The hole diffusion length.
+
+        Returns
+        -------
+        float
+            The hole current density.
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
     def j0_n(self, diffusivity, diffusion_length):
         r&#34;&#34;&#34;
+        Calculate the electron current density without external voltage.
+
         .. math::
-            J_n = \frac{e D_n n_{p0}}{L_n}
+            J_{0n} = \frac{e D_n n_{p0}}{L_n}
+
+        Parameters
+        ----------
+        diffusivity : float
+            The electron diffusivity.
+        diffusion_length : float
+            The electron diffusion length.
+
+        Returns
+        -------
+        float
+            The electron current density.
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
     def current_p(self, diffusivity, diffusion_length, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the hole current density.
+
         .. math::
             J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
                 = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+        Parameters
+        ----------
+        diffusivity : float
+            The hole diffusivity.
+        diffusion_length : float
+            The hole diffusion length.
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole current density.
         &#34;&#34;&#34;
         return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
 
     def current_n(self, diffusivity, diffusion_length, voltage, T=300):
         r&#34;&#34;&#34;
+        Calculate the electron current density.
+
         .. math::
             J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
                 = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+        Parameters
+        ----------
+        diffusivity : float
+            The electron diffusivity.
+        diffusion_length : float
+            The electron diffusion length.
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron current density.
         &#34;&#34;&#34;
         return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
@@ -3061,18 +3271,54 @@ Parameters</p>
 <span>def <span class="ident">current_n</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+<div class="desc"><p>Calculate the electron current density.</p>
+<p><span><span class="MathJax_Preview"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
 = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
-= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span></p></div>
+= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusion length.</dd>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The electron current density.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def current_n(self, diffusivity, diffusion_length, voltage, T=300):
     r&#34;&#34;&#34;
+    Calculate the electron current density.
+
     .. math::
         J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
             = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+    Parameters
+    ----------
+    diffusivity : float
+        The electron diffusivity.
+    diffusion_length : float
+        The electron diffusion length.
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The electron current density.
     &#34;&#34;&#34;
     return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
@@ -3081,18 +3327,54 @@ Parameters</p>
 <span>def <span class="ident">current_p</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+<div class="desc"><p>Calculate the hole current density.</p>
+<p><span><span class="MathJax_Preview"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
 = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
-= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span></p></div>
+= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusion length.</dd>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole current density.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def current_p(self, diffusivity, diffusion_length, voltage, T=300):
     r&#34;&#34;&#34;
+    Calculate the hole current density.
+
     .. math::
         J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
             = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+    Parameters
+    ----------
+    diffusivity : float
+        The hole diffusivity.
+    diffusion_length : float
+        The hole diffusion length.
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The hole current density.
     &#34;&#34;&#34;
     return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
@@ -3101,15 +3383,43 @@ Parameters</p>
 <span>def <span class="ident">j0_n</span></span>(<span>self, diffusivity, diffusion_length)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> J_n = \frac{e D_n n_{p0}}{L_n} </span><script type="math/tex; mode=display"> J_n = \frac{e D_n n_{p0}}{L_n} </script></span></p></div>
+<div class="desc"><p>Calculate the electron current density without external voltage.</p>
+<p><span><span class="MathJax_Preview"> J_{0n} = \frac{e D_n n_{p0}}{L_n} </span><script type="math/tex; mode=display"> J_{0n} = \frac{e D_n n_{p0}}{L_n} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusion length.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The electron current density.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def j0_n(self, diffusivity, diffusion_length):
     r&#34;&#34;&#34;
+    Calculate the electron current density without external voltage.
+
     .. math::
-        J_n = \frac{e D_n n_{p0}}{L_n}
+        J_{0n} = \frac{e D_n n_{p0}}{L_n}
+
+    Parameters
+    ----------
+    diffusivity : float
+        The electron diffusivity.
+    diffusion_length : float
+        The electron diffusion length.
+
+    Returns
+    -------
+    float
+        The electron current density.
     &#34;&#34;&#34;
     return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
 </details>
@@ -3118,15 +3428,43 @@ Parameters</p>
 <span>def <span class="ident">j0_p</span></span>(<span>self, diffusivity, diffusion_length)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> J_p = \frac{e D_p p_{n0}}{L_p} </span><script type="math/tex; mode=display"> J_p = \frac{e D_p p_{n0}}{L_p} </script></span></p></div>
+<div class="desc"><p>Calculate the hole current density without external voltage.</p>
+<p><span><span class="MathJax_Preview"> J_{0p} = \frac{e D_p p_{n0}}{L_p} </span><script type="math/tex; mode=display"> J_{0p} = \frac{e D_p p_{n0}}{L_p} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusion length.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole current density.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def j0_p(self, diffusivity, diffusion_length):
     r&#34;&#34;&#34;
+    Calculate the hole current density without external voltage.
+
     .. math::
-        J_p = \frac{e D_p p_{n0}}{L_p}
+        J_{0p} = \frac{e D_p p_{n0}}{L_p}
+
+    Parameters
+    ----------
+    diffusivity : float
+        The hole diffusivity.
+    diffusion_length : float
+        The hole diffusion length.
+
+    Returns
+    -------
+    float
+        The hole current density.
     &#34;&#34;&#34;
     return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
 </details>
@@ -3135,15 +3473,43 @@ Parameters</p>
 <span>def <span class="ident">n_p</span></span>(<span>self, voltage, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </script></span></p></div>
+<div class="desc"><p>Calculate the electron concentration in the p-semiconductor.</p>
+<p><span><span class="MathJax_Preview"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The electron concentration in the p-semiconductor.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def n_p(self, voltage, T=300):
     r&#34;&#34;&#34;
+    Calculate the electron concentration in the p-semiconductor.
+
     .. math::
         n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+
+    Parameters
+    ----------
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The electron concentration in the p-semiconductor.
     &#34;&#34;&#34;
     return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)</code></pre>
 </details>
@@ -3152,15 +3518,43 @@ Parameters</p>
 <span>def <span class="ident">p_n</span></span>(<span>self, voltage, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </script></span></p></div>
+<div class="desc"><p>Calculate the hole concentration in the n-semiconductor.</p>
+<p><span><span class="MathJax_Preview"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole concentration in the n-semiconductor.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def p_n(self, voltage, T=300):
     r&#34;&#34;&#34;
+    Calculate the hole concentration in the n-semiconductor.
+
     .. math::
         p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+
+    Parameters
+    ----------
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The hole concentration in the n-semiconductor.
     &#34;&#34;&#34;
     return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)</code></pre>
 </details>
@@ -3169,15 +3563,43 @@ Parameters</p>
 <span>def <span class="ident">pn</span></span>(<span>self, voltage, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </script></span></p></div>
+<div class="desc"><p>Calculate the product of the hole and electron concentrations.</p>
+<p><span><span class="MathJax_Preview"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole concentration multiplied by the electron concentration.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pn(self, voltage, T=300):
     r&#34;&#34;&#34;
+    Calculate the product of the hole and electron concentrations.
+
     .. math::
         p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+
+    Parameters
+    ----------
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The hole concentration multiplied by the electron concentration.
     &#34;&#34;&#34;
     return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))</code></pre>
 </details>
