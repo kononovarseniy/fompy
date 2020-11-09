@@ -487,10 +487,10 @@ class Semiconductor:
 
     def fermi_level(self, T=300):
         """
-        Determine the Fermi level from the condition of electroneutrality.
+        Determine the Fermi level from the condition of electroneutrality:
 
         .. math::
-            n_h - n_e = 0
+            p - n = 0
 
         Parameters
         ----------
@@ -605,6 +605,27 @@ class DopedSemiconductor(Semiconductor):
         """note: the function decreases monotonically with increasing Ef"""
         return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
                - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
+
+    def fermi_level(self, T=300):
+        r"""
+        Overrides `Semiconductor.fermi_level`
+
+        Determine the Fermi level from the condition of electroneutrality:
+
+        .. math::
+            p + N_d^{+} - n - N_a^{-} = 0
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+        """
+        return super().fermi_level(T)  # Note: the method _charge_imbalance() is overridden by DopedSemiconductor
 
     def conductivity_type(self, *, T=None, Ef=None):
         """
