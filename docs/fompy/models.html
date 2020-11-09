@@ -519,10 +519,10 @@ class Semiconductor:
 
     def fermi_level(self, T=300):
         &#34;&#34;&#34;
-        Determine the Fermi level from the condition of electroneutrality.
+        Determine the Fermi level from the condition of electroneutrality:
 
         .. math::
-            n_h - n_e = 0
+            p - n = 0
 
         Parameters
         ----------
@@ -637,6 +637,27 @@ class DopedSemiconductor(Semiconductor):
         &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
         return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
                - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
+
+    def fermi_level(self, T=300):
+        r&#34;&#34;&#34;
+        Overrides `Semiconductor.fermi_level`
+
+        Determine the Fermi level from the condition of electroneutrality:
+
+        .. math::
+            p + N_d^{+} - n - N_a^{-} = 0
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+        &#34;&#34;&#34;
+        return super().fermi_level(T)  # Note: the method _charge_imbalance() is overridden by DopedSemiconductor
 
     def conductivity_type(self, *, T=None, Ef=None):
         &#34;&#34;&#34;
@@ -960,7 +981,7 @@ class PNJunctionNonDegenerate(PNJunction):
 
     def j0_p(self, diffusivity, diffusion_length):
         r&#34;&#34;&#34;
-        Calculate the hole current density without external voltage.
+        Calculate the hole current density without external voltage (the dark current).
 
         .. math::
             J_{0p} = \frac{e D_p p_{n0}}{L_p}
@@ -981,7 +1002,7 @@ class PNJunctionNonDegenerate(PNJunction):
 
     def j0_n(self, diffusivity, diffusion_length):
         r&#34;&#34;&#34;
-        Calculate the electron current density without external voltage.
+        Calculate the electron current density without external voltage (the dark current).
 
         .. math::
             J_{0n} = \frac{e D_n n_{p0}}{L_n}
@@ -1076,7 +1097,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def delta_phi_n(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the difference of potentials for the negative depletion layer.
+        Calculate the difference of potentials in the n-type semiconductor.
 
         .. math::
             \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ }
@@ -1096,7 +1117,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def delta_phi_p(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the difference of potentials for the positive depletion layer.
+        Calculate the difference of potentials in the p-type semiconductor.
 
         .. math::
             \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ }
@@ -1136,7 +1157,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def w_n(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the negative depletion layer.
+        Calculate the width of the depletion layer inside an n-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -1156,7 +1177,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def w_p(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the positive depletion layer.
+        Calculate the width of the depletion layer inside an p-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -1182,51 +1203,6 @@ class PNJunctionFullDepletion(PNJunction):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fompy.models.concentration"><code class="name flex">
-<span>def <span class="ident">concentration</span></span>(<span>resistivity, mobility)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the concentration of charge carriers.</p>
-<p><span><span class="MathJax_Preview"> n = \frac{1}{\rho \mu e} </span><script type="math/tex; mode=display"> n = \frac{1}{\rho \mu e} </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>resistivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The resistivity of the material.</dd>
-<dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
-<dd>The carrier mobility.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The carrier concentration.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def concentration(resistivity, mobility):
-    r&#34;&#34;&#34;
-    Calculate the concentration of charge carriers.
-
-    .. math::
-        n = \frac{1}{\rho \mu e}
-
-    Parameters
-    ----------
-    resistivity : float
-        The resistivity of the material.
-    mobility : float
-        The carrier mobility.
-
-    Returns
-    -------
-    float
-        The carrier concentration.
-    &#34;&#34;&#34;
-    return 1 / (resistivity * mobility * e)</code></pre>
-</details>
-</dd>
 <dt id="fompy.models.conductivity"><code class="name flex">
 <span>def <span class="ident">conductivity</span></span>(<span>n, mobility)</span>
 </code></dt>
@@ -1272,6 +1248,99 @@ Parameters</p>
         The conductivity.
     &#34;&#34;&#34;
     return e * n * mobility</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.concentration"><code class="name flex">
+<span>def <span class="ident">concentration</span></span>(<span>resistivity, mobility)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the concentration of charge carriers.</p>
+<p><span><span class="MathJax_Preview"> n = \frac{1}{\rho \mu e} </span><script type="math/tex; mode=display"> n = \frac{1}{\rho \mu e} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>resistivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The resistivity of the material.</dd>
+<dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
+<dd>The carrier mobility.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The carrier concentration.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def concentration(resistivity, mobility):
+    r&#34;&#34;&#34;
+    Calculate the concentration of charge carriers.
+
+    .. math::
+        n = \frac{1}{\rho \mu e}
+
+    Parameters
+    ----------
+    resistivity : float
+        The resistivity of the material.
+    mobility : float
+        The carrier mobility.
+
+    Returns
+    -------
+    float
+        The carrier concentration.
+    &#34;&#34;&#34;
+    return 1 / (resistivity * mobility * e)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.depletion_width"><code class="name flex">
+<span>def <span class="ident">depletion_width</span></span>(<span>eps, n, d_phi)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dd>The dielectric constant.</dd>
+<dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
+<dd>The carrier concentration.</dd>
+<dt><strong><code>d_phi</code></strong> :&ensp;<code>float</code></dt>
+<dd>The difference of potentials.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The width of the depletion region.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def depletion_width(eps, n, d_phi):
+    r&#34;&#34;&#34;
+    Calculate the width of the depletion region, using the approximation of full depletion.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant.
+    n : float
+        The carrier concentration.
+    d_phi : float
+        The difference of potentials.
+    Returns
+    -------
+    float
+        The width of the depletion region.
+    &#34;&#34;&#34;
+    return sqrt(eps * d_phi / (2 * pi * e * n))</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.debye_length"><code class="name flex">
@@ -1323,162 +1392,11 @@ Parameters</p>
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))</code></pre>
 </details>
 </dd>
-<dt id="fompy.models.depletion_width"><code class="name flex">
-<span>def <span class="ident">depletion_width</span></span>(<span>eps, n, d_phi)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
-<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
-<dd>The dielectric constant.</dd>
-<dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The carrier concentration.</dd>
-<dt><strong><code>d_phi</code></strong> :&ensp;<code>float</code></dt>
-<dd>The difference of potentials.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The width of the depletion region.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def depletion_width(eps, n, d_phi):
-    r&#34;&#34;&#34;
-    Calculate the width of the depletion region, using the approximation of full depletion.
-
-    .. math::
-        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
-
-    Parameters
-    ----------
-    eps : float
-        The dielectric constant.
-    n : float
-        The carrier concentration.
-    d_phi : float
-        The difference of potentials.
-    Returns
-    -------
-    float
-        The width of the depletion region.
-    &#34;&#34;&#34;
-    return sqrt(eps * d_phi / (2 * pi * e * n))</code></pre>
-</details>
-</dd>
 </dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="fompy.models.BodyCenteredCubicLattice"><code class="flex name class">
-<span>class <span class="ident">BodyCenteredCubicLattice</span></span>
-<span>(</span><span>a, m)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a body-centered cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
-<p>Construct the necessary parameters for the <code><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></code> object.
-Calls the base class constructor, replacing the following parameters:</p>
-<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{4} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{4} </script></span>
-<span><span class="MathJax_Preview"> N = 2 </span><script type="math/tex; mode=display"> N = 2 </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
-<dd>The lattice parameter.</dd>
-<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
-<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class BodyCenteredCubicLattice(CrystalLattice):
-    &#34;&#34;&#34;
-    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
-    &#34;&#34;&#34;
-
-    def __init__(self, a, m):
-        r&#34;&#34;&#34;
-        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
-        Calls the base class constructor, replacing the following parameters:
-
-        .. math::
-            r = \frac{a \sqrt{3}}{4}
-        .. math::
-            N = 2
-
-        Parameters
-        ----------
-        a : float
-            The lattice parameter.
-        m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
-        &#34;&#34;&#34;
-        super().__init__(a, m, a * sqrt(3) / 4, 2)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
-</ul>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
-<ul class="hlist">
-<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
-<dt id="fompy.models.ContactType"><code class="flex name class">
-<span>class <span class="ident">ContactType</span></span>
-<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>An enumeration of contact types.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class ContactType(Enum):
-    &#34;&#34;&#34;
-    An enumeration of contact types.
-    &#34;&#34;&#34;
-    AUGMENTATION = 0,
-    DEPLETION = 1,
-    INVERSION = 2</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="fompy.models.ContactType.AUGMENTATION"><code class="name">var <span class="ident">AUGMENTATION</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="fompy.models.ContactType.DEPLETION"><code class="name">var <span class="ident">DEPLETION</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="fompy.models.ContactType.INVERSION"><code class="name">var <span class="ident">INVERSION</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="fompy.models.CrystalLattice"><code class="flex name class">
 <span>class <span class="ident">CrystalLattice</span></span>
 <span>(</span><span>a, m, r, N)</span>
@@ -1585,6 +1503,45 @@ Parameters</p>
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="fompy.models.CrystalLattice.a"><code class="name">var <span class="ident">a</span></code></dt>
+<dd>
+<div class="desc"><p>Get the lattice parameter.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def a(self):
+    &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+    return self._a</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.m"><code class="name">var <span class="ident">m</span></code></dt>
+<dd>
+<div class="desc"><p>Get the mass of an atom (the average mass in case of there being several types of atoms).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def m(self):
+    &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+    return self._m</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.CrystalLattice.r"><code class="name">var <span class="ident">r</span></code></dt>
+<dd>
+<div class="desc"><p>Get the maximum radius of non-intersecting spheres around atoms.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def r(self):
+    &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+    return self._r</code></pre>
+</details>
+</dd>
 <dt id="fompy.models.CrystalLattice.N"><code class="name">var <span class="ident">N</span></code></dt>
 <dd>
 <div class="desc"><p>Get the number of atoms in a cell.</p></div>
@@ -1598,17 +1555,23 @@ def N(self):
     return self._N</code></pre>
 </details>
 </dd>
-<dt id="fompy.models.CrystalLattice.a"><code class="name">var <span class="ident">a</span></code></dt>
+<dt id="fompy.models.CrystalLattice.packing_density"><code class="name">var <span class="ident">packing_density</span></code></dt>
 <dd>
-<div class="desc"><p>Get the lattice parameter.</p></div>
+<div class="desc"><p>Get the packing density.</p>
+<p><span><span class="MathJax_Preview"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </span><script type="math/tex; mode=display"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </script></span></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def a(self):
-    &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
-    return self._a</code></pre>
+def packing_density(self):
+    r&#34;&#34;&#34;
+    Get the packing density.
+
+    .. math::
+        \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
+    &#34;&#34;&#34;
+    return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.CrystalLattice.concentration"><code class="name">var <span class="ident">concentration</span></code></dt>
@@ -1649,63 +1612,18 @@ def density(self):
     return self.concentration * self._m</code></pre>
 </details>
 </dd>
-<dt id="fompy.models.CrystalLattice.m"><code class="name">var <span class="ident">m</span></code></dt>
-<dd>
-<div class="desc"><p>Get the mass of an atom (the average mass in case of there being several types of atoms).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def m(self):
-    &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
-    return self._m</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.CrystalLattice.packing_density"><code class="name">var <span class="ident">packing_density</span></code></dt>
-<dd>
-<div class="desc"><p>Get the packing density.</p>
-<p><span><span class="MathJax_Preview"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </span><script type="math/tex; mode=display"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </script></span></p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def packing_density(self):
-    r&#34;&#34;&#34;
-    Get the packing density.
-
-    .. math::
-        \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
-    &#34;&#34;&#34;
-    return self._N * 4 / 3 * pi * self._r ** 3 / self._a ** 3</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.CrystalLattice.r"><code class="name">var <span class="ident">r</span></code></dt>
-<dd>
-<div class="desc"><p>Get the maximum radius of non-intersecting spheres around atoms.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def r(self):
-    &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
-    return self._r</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
-<dt id="fompy.models.DiamondLikeLattice"><code class="flex name class">
-<span>class <span class="ident">DiamondLikeLattice</span></span>
+<dt id="fompy.models.PrimitiveCubicLattice"><code class="flex name class">
+<span>class <span class="ident">PrimitiveCubicLattice</span></span>
 <span>(</span><span>a, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A class to calculate properties of a diamond-like lattice.</p>
-<p>Construct the necessary parameters for the <code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code> object.
+<div class="desc"><p>A class to calculate properties of a primitive cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code> object.
 Calls the base class constructor, replacing the following parameters:</p>
-<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{8} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{8} </script></span>
-<span><span class="MathJax_Preview"> N = 8 </span><script type="math/tex; mode=display"> N = 8 </script></span>
+<p><span><span class="MathJax_Preview"> r = \frac{a}{2} </span><script type="math/tex; mode=display"> r = \frac{a}{2} </script></span>
+<span><span class="MathJax_Preview"> N = 1 </span><script type="math/tex; mode=display"> N = 1 </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -1718,20 +1636,20 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DiamondLikeLattice(CrystalLattice):
+<pre><code class="python">class PrimitiveCubicLattice(CrystalLattice):
     &#34;&#34;&#34;
-    A class to calculate properties of a diamond-like lattice.
+    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
     &#34;&#34;&#34;
 
     def __init__(self, a, m):
         r&#34;&#34;&#34;
-        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
         Calls the base class constructor, replacing the following parameters:
 
         .. math::
-            r = \frac{a \sqrt{3}}{8}
+            r = \frac{a}{2}
         .. math::
-            N = 8
+            N = 1
 
         Parameters
         ----------
@@ -1740,7 +1658,7 @@ Parameters</p>
         m : float
             The mass of an atom (the average mass in case of there being several types of atoms).
         &#34;&#34;&#34;
-        super().__init__(a, m, a * sqrt(3) / 8, 8)</code></pre>
+        super().__init__(a, m, a / 2, 1)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1757,333 +1675,6 @@ Parameters</p>
 <li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
 <li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
 <li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
-<dt id="fompy.models.DopedSemiconductor"><code class="flex name class">
-<span>class <span class="ident">DopedSemiconductor</span></span>
-<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a doped semiconductor (extends <code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code>).</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
-<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
-<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
-<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
-</dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code> object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
-<dd>The base intrinsic (pure) semiconductor.</dd>
-<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
-<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
-<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
-<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DopedSemiconductor(Semiconductor):
-    &#34;&#34;&#34;
-    A class to calculate properties of a doped semiconductor (extends `Semiconductor`).
-
-    Attributes
-    ----------
-    Na : float
-        The acceptor concentration.
-    Ea : float
-        The acceptor level.
-    Nd : float
-        The donor concentration.
-    Ed : float
-        The donor level.
-    &#34;&#34;&#34;
-
-    def __init__(self, mat, Na, Ea, Nd, Ed):
-        &#34;&#34;&#34;
-        Construct the necessary attributes for the `DopedSemiconductor` object.
-
-        Parameters
-        ----------
-        mat : Semiconductor
-            The base intrinsic (pure) semiconductor.
-        Na : float
-            The acceptor concentration.
-        Ea : float
-            The acceptor level.
-        Nd : float
-            The donor concentration.
-        Ed : float
-            The donor level.
-        &#34;&#34;&#34;
-        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
-        self.Na = Na
-        self.Ea = Ea
-        self.Nd = Nd
-        self.Ed = Ed
-
-    def p_donor_concentration(self, Ef=None, T=300):
-        r&#34;&#34;&#34;
-        Calculate the concentration of positive donor ions.
-
-        .. math::
-            N_d^+ = N_d \cdot (1 - f(E_d))
-
-        Parameters
-        ----------
-        Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The concentration of positive donor ions.
-        &#34;&#34;&#34;
-        if Ef is None:
-            Ef = self.fermi_level(T)
-        return self.Nd * (1 - fermi(self.Ed, Ef, T))
-
-    def n_acceptor_concentration(self, Ef=None, T=300):
-        r&#34;&#34;&#34;
-        Calculate the concentration of negative acceptor ions.
-
-        .. math::
-            N_a^- = N_d f(E_a)
-
-        Parameters
-        ----------
-        Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The concentration of negative acceptor ions.
-        &#34;&#34;&#34;
-        if Ef is None:
-            Ef = self.fermi_level(T)
-        return self.Na * fermi(self.Ea, Ef, T)
-
-    def _charge_imbalance(self, Ef, T):
-        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
-        return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
-               - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
-
-    def conductivity_type(self, *, T=None, Ef=None):
-        &#34;&#34;&#34;
-        Tell the conductivity type (overrides `Semiconductor.conductivity_type`).
-
-        Parameters
-        ----------
-        Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
-        T : float or None
-            The temperature. If `None`, `T` is assigned 300 K.
-
-        Returns
-        -------
-        str
-            `&#39;p&#39;` -- the positive type; `&#39;n&#39;` -- the negative type.
-
-        Raises
-        ------
-        ValueError
-            Both `T` and `Ef` are specified (neither is `None`).
-        &#34;&#34;&#34;
-        if Ef is not None and T is not None:
-            raise ValueError(&#39;Both T and Ef are specified&#39;)
-        if T is None:
-            T = 300
-        if Ef is None:
-            Ef = self.fermi_level(T)
-        return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="fompy.models.DopedSemiconductor.conductivity_type"><code class="name flex">
-<span>def <span class="ident">conductivity_type</span></span>(<span>self, *, T=None, Ef=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Tell the conductivity type (overrides <code><a title="fompy.models.Semiconductor.conductivity_type" href="#fompy.models.Semiconductor.conductivity_type">Semiconductor.conductivity_type()</a></code>).</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The temperature. If <code>None</code>, <code>T</code> is assigned 300 K.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>str</code></dt>
-<dd><code>'p'</code> &ndash; the positive type; <code>'n'</code> &ndash; the negative type.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>ValueError</code></dt>
-<dd>Both <code>T</code> and <code>Ef</code> are specified (neither is <code>None</code>).</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def conductivity_type(self, *, T=None, Ef=None):
-    &#34;&#34;&#34;
-    Tell the conductivity type (overrides `Semiconductor.conductivity_type`).
-
-    Parameters
-    ----------
-    Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
-    T : float or None
-        The temperature. If `None`, `T` is assigned 300 K.
-
-    Returns
-    -------
-    str
-        `&#39;p&#39;` -- the positive type; `&#39;n&#39;` -- the negative type.
-
-    Raises
-    ------
-    ValueError
-        Both `T` and `Ef` are specified (neither is `None`).
-    &#34;&#34;&#34;
-    if Ef is not None and T is not None:
-        raise ValueError(&#39;Both T and Ef are specified&#39;)
-    if T is None:
-        T = 300
-    if Ef is None:
-        Ef = self.fermi_level(T)
-    return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.DopedSemiconductor.n_acceptor_concentration"><code class="name flex">
-<span>def <span class="ident">n_acceptor_concentration</span></span>(<span>self, Ef=None, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the concentration of negative acceptor ions.</p>
-<p><span><span class="MathJax_Preview"> N_a^- = N_d f(E_a) </span><script type="math/tex; mode=display"> N_a^- = N_d f(E_a) </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The concentration of negative acceptor ions.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def n_acceptor_concentration(self, Ef=None, T=300):
-    r&#34;&#34;&#34;
-    Calculate the concentration of negative acceptor ions.
-
-    .. math::
-        N_a^- = N_d f(E_a)
-
-    Parameters
-    ----------
-    Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The concentration of negative acceptor ions.
-    &#34;&#34;&#34;
-    if Ef is None:
-        Ef = self.fermi_level(T)
-    return self.Na * fermi(self.Ea, Ef, T)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.DopedSemiconductor.p_donor_concentration"><code class="name flex">
-<span>def <span class="ident">p_donor_concentration</span></span>(<span>self, Ef=None, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the concentration of positive donor ions.</p>
-<p><span><span class="MathJax_Preview"> N_d^+ = N_d \cdot (1 - f(E_d)) </span><script type="math/tex; mode=display"> N_d^+ = N_d \cdot (1 - f(E_d)) </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The concentration of positive donor ions.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def p_donor_concentration(self, Ef=None, T=300):
-    r&#34;&#34;&#34;
-    Calculate the concentration of positive donor ions.
-
-    .. math::
-        N_d^+ = N_d \cdot (1 - f(E_d))
-
-    Parameters
-    ----------
-    Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The concentration of positive donor ions.
-    &#34;&#34;&#34;
-    if Ef is None:
-        Ef = self.fermi_level(T)
-    return self.Nd * (1 - fermi(self.Ed, Ef, T))</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></b></code>:
-<ul class="hlist">
-<li><code><a title="fompy.models.Semiconductor.Nc" href="#fompy.models.Semiconductor.Nc">Nc</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.Nv" href="#fompy.models.Semiconductor.Nv">Nv</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.effective_state_density" href="#fompy.models.Semiconductor.effective_state_density">effective_state_density</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.fermi_level" href="#fompy.models.Semiconductor.fermi_level">fermi_level</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.i_concentration" href="#fompy.models.Semiconductor.i_concentration">i_concentration</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.intrinsic_fermi_level" href="#fompy.models.Semiconductor.intrinsic_fermi_level">intrinsic_fermi_level</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.n_concentration" href="#fompy.models.Semiconductor.n_concentration">n_concentration</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.p_concentration" href="#fompy.models.Semiconductor.p_concentration">p_concentration</a></code></li>
 </ul>
 </li>
 </ul>
@@ -2153,1477 +1744,16 @@ Parameters</p>
 </li>
 </ul>
 </dd>
-<dt id="fompy.models.MSJunction"><code class="flex name class">
-<span>class <span class="ident">MSJunction</span></span>
-<span>(</span><span>metal, sc)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a contact between a metal and a semiconductor.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>metal</code></strong> :&ensp;<code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></dt>
-<dd>The metal.</dd>
-<dt><strong><code>sc</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
-<dd>The semiconductor.</dd>
-</dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.MSJunction" href="#fompy.models.MSJunction">MSJunction</a></code> object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>metal</code></strong> :&ensp;<code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></dt>
-<dd>The metal.</dd>
-<dt><strong><code>sc</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
-<dd>The semiconductor.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class MSJunction:
-    &#34;&#34;&#34;
-    A class to calculate properties of a contact between a metal and a semiconductor.
-
-    Attributes
-    ----------
-    metal : Metal
-        The metal.
-    sc : Semiconductor
-        The semiconductor.
-    &#34;&#34;&#34;
-
-    def __init__(self, metal, sc):
-        &#34;&#34;&#34;
-        Construct the necessary attributes for the `MSJunction` object.
-
-        Parameters
-        ----------
-        metal : Metal
-            The metal.
-        sc : Semiconductor
-            The semiconductor.
-        &#34;&#34;&#34;
-        self.metal = metal
-        self.sc = sc
-
-    def delta_phi(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
-
-        .. math::
-            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The difference of potentials.
-        &#34;&#34;&#34;
-        return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
-
-    def schottky_barrier(self):
-        r&#34;&#34;&#34;
-        Calculate the height of the Schottky barrier.
-
-        .. math::
-            \Phi_B = \frac{ \Phi_M - \chi }{ e }
-
-        Returns
-        -------
-        float
-            The height of the Schottky barrier.
-        &#34;&#34;&#34;
-        return (self.metal.work_function - self.sc.chi) / e
-
-    def contact_type(self, T=300):
-        &#34;&#34;&#34;
-        Determine the type of the contact.
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        ContactType
-            The type of the contact.
-
-        Raises
-        ------
-        NotImplementedError
-            The semiconductor is of the intrinsic conductivity type.
-        &#34;&#34;&#34;
-        ct = self.sc.conductivity_type(T=T)
-        Ef = self.sc.fermi_level(T)
-        dEf = -self.delta_phi(T) * e
-        if ct == &#39;i&#39;:
-            raise NotImplementedError(&#39;I do not know which cases are possible&#39;)
-        else:
-            if ct != self.sc.conductivity_type(Ef=Ef + dEf):
-                return ContactType.INVERSION
-            else:
-                if ct == &#39;p&#39;:
-                    return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
-                if ct == &#39;n&#39;:
-                    return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION
-
-    def full_depletion_width(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the width of the depletion region, using the approximation of full depletion.
-
-        .. math::
-            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The width of the depletion region.
-        &#34;&#34;&#34;
-        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
-
-    def debye_length(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the Debye length (screening length).
-
-        .. math::
-            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The Debye length.
-        &#34;&#34;&#34;
-        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="fompy.models.MSJunction.contact_type"><code class="name flex">
-<span>def <span class="ident">contact_type</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Determine the type of the contact.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code><a title="fompy.models.ContactType" href="#fompy.models.ContactType">ContactType</a></code></dt>
-<dd>The type of the contact.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>NotImplementedError</code></dt>
-<dd>The semiconductor is of the intrinsic conductivity type.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def contact_type(self, T=300):
-    &#34;&#34;&#34;
-    Determine the type of the contact.
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    ContactType
-        The type of the contact.
-
-    Raises
-    ------
-    NotImplementedError
-        The semiconductor is of the intrinsic conductivity type.
-    &#34;&#34;&#34;
-    ct = self.sc.conductivity_type(T=T)
-    Ef = self.sc.fermi_level(T)
-    dEf = -self.delta_phi(T) * e
-    if ct == &#39;i&#39;:
-        raise NotImplementedError(&#39;I do not know which cases are possible&#39;)
-    else:
-        if ct != self.sc.conductivity_type(Ef=Ef + dEf):
-            return ContactType.INVERSION
-        else:
-            if ct == &#39;p&#39;:
-                return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
-            if ct == &#39;n&#39;:
-                return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.MSJunction.debye_length"><code class="name flex">
-<span>def <span class="ident">debye_length</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the Debye length (screening length).</p>
-<p><span><span class="MathJax_Preview"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } } </span><script type="math/tex; mode=display"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The Debye length.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def debye_length(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the Debye length (screening length).
-
-    .. math::
-        \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The Debye length.
-    &#34;&#34;&#34;
-    return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.MSJunction.delta_phi"><code class="name flex">
-<span>def <span class="ident">delta_phi</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).</p>
-<p><span><span class="MathJax_Preview"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def delta_phi(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
-
-    .. math::
-        \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The difference of potentials.
-    &#34;&#34;&#34;
-    return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.MSJunction.full_depletion_width"><code class="name flex">
-<span>def <span class="ident">full_depletion_width</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
-<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The width of the depletion region.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def full_depletion_width(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the width of the depletion region, using the approximation of full depletion.
-
-    .. math::
-        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The width of the depletion region.
-    &#34;&#34;&#34;
-    return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.MSJunction.schottky_barrier"><code class="name flex">
-<span>def <span class="ident">schottky_barrier</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the height of the Schottky barrier.</p>
-<p><span><span class="MathJax_Preview"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </span><script type="math/tex; mode=display"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </script></span>
-Returns</p>
-<hr>
-<dl>
-<dt><code>float</code></dt>
-<dd>The height of the Schottky barrier.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def schottky_barrier(self):
-    r&#34;&#34;&#34;
-    Calculate the height of the Schottky barrier.
-
-    .. math::
-        \Phi_B = \frac{ \Phi_M - \chi }{ e }
-
-    Returns
-    -------
-    float
-        The height of the Schottky barrier.
-    &#34;&#34;&#34;
-    return (self.metal.work_function - self.sc.chi) / e</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="fompy.models.Metal"><code class="flex name class">
-<span>class <span class="ident">Metal</span></span>
-<span>(</span><span>work_function)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a metal.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
-<dd>The work function.</dd>
-</dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code> object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
-<dd>The work function.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Metal:
-    &#34;&#34;&#34;
-    A class to calculate properties of a metal.
-
-    Attributes
-    ----------
-    work_function : float
-        The work function.
-    &#34;&#34;&#34;
-
-    def __init__(self, work_function):
-        &#34;&#34;&#34;
-        Construct the necessary attributes for the `Metal` object.
-
-        Parameters
-        ----------
-        work_function : float
-            The work function.
-        &#34;&#34;&#34;
-        self.work_function = work_function</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunction"><code class="flex name class">
-<span>class <span class="ident">PNJunction</span></span>
-<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a p-n junction.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
-<dd>The base intrinsic (pure) semiconductor.</dd>
-<dt><strong><code>n_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
-<dd>The n-type doped semiconductor.</dd>
-<dt><strong><code>p_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
-<dd>The p-type doped semiconductor.</dd>
-</dl>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
-<dd>The base intrinsic (pure) semiconductor.</dd>
-<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
-<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
-<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
-<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PNJunction:
-    &#34;&#34;&#34;
-    A class to calculate properties of a p-n junction.
-
-    Attributes
-    ----------
-    mat : Semiconductor
-        The base intrinsic (pure) semiconductor.
-    n_mat : DopedSemiconductor
-        The n-type doped semiconductor.
-    p_mat : DopedSemiconductor
-        The p-type doped semiconductor.
-    &#34;&#34;&#34;
-
-    def __init__(self, mat, Na, Ea, Nd, Ed):
-        &#34;&#34;&#34;
-        Construct the necessary attributes for the `PNJunction` object.
-
-        Parameters
-        ----------
-        mat : Semiconductor
-            The base intrinsic (pure) semiconductor.
-        Na : float
-            The acceptor concentration.
-        Ea : float
-            The acceptor level.
-        Nd : float
-            The donor concentration.
-        Ed : float
-            The donor level.
-        &#34;&#34;&#34;
-        if Ea is None:
-            Ea = 0
-        if Ed is None:
-            Ed = mat.Eg
-        self.mat = mat
-        self.p_mat = DopedSemiconductor(mat, Na, Ea, 0, Ed)
-        self.n_mat = DopedSemiconductor(mat, 0, Ea, Nd, Ed)
-
-    def delta_phi(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the difference between the donor and acceptor Fermi potentials.
-
-        .. math::
-            \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The difference of potentials.
-        &#34;&#34;&#34;
-        return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e</code></pre>
-</details>
-<h3>Subclasses</h3>
-<ul class="hlist">
-<li><a title="fompy.models.PNJunctionFullDepletion" href="#fompy.models.PNJunctionFullDepletion">PNJunctionFullDepletion</a></li>
-<li><a title="fompy.models.PNJunctionNonDegenerate" href="#fompy.models.PNJunctionNonDegenerate">PNJunctionNonDegenerate</a></li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="fompy.models.PNJunction.delta_phi"><code class="name flex">
-<span>def <span class="ident">delta_phi</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the difference between the donor and acceptor Fermi potentials.</p>
-<p><span><span class="MathJax_Preview"> \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def delta_phi(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the difference between the donor and acceptor Fermi potentials.
-
-    .. math::
-        \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The difference of potentials.
-    &#34;&#34;&#34;
-    return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="fompy.models.PNJunctionFullDepletion"><code class="flex name class">
-<span>class <span class="ident">PNJunctionFullDepletion</span></span>
-<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a p-n junction exhibiting full depletion (extends <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code>).</p>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunctionFullDepletion" href="#fompy.models.PNJunctionFullDepletion">PNJunctionFullDepletion</a></code> object
-(calls the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> constructor).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PNJunctionFullDepletion(PNJunction):
-    &#34;&#34;&#34;
-    A class to calculate properties of a p-n junction exhibiting full depletion (extends `PNJunction`).
-    &#34;&#34;&#34;
-
-    def __init__(self, mat, Na, Ea, Nd, Ed):
-        &#34;&#34;&#34;
-        Construct the necessary attributes for the `PNJunctionFullDepletion` object
-        (calls the `PNJunction` constructor).
-        &#34;&#34;&#34;
-        super().__init__(mat, Na, Ea, Nd, Ed)
-
-    def _df_Na_Nd(self, T):
-        return self.delta_phi(T), \
-               self.p_mat.n_acceptor_concentration(T=T), \
-               self.n_mat.p_donor_concentration(T=T)
-
-    def _w_tmp(self, T):
-        df, a, d = self._df_Na_Nd(T)
-        return self.p_mat.eps / (2 * pi * e) * df, a, d
-
-    def delta_phi_n(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the difference of potentials for the negative depletion layer.
-
-        .. math::
-            \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The difference of potentials.
-        &#34;&#34;&#34;
-        df, a, d = self._df_Na_Nd(T)
-        return df * a / (a + d)
-
-    def delta_phi_p(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the difference of potentials for the positive depletion layer.
-
-        .. math::
-            \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The difference of potentials.
-        &#34;&#34;&#34;
-        df, a, d = self._df_Na_Nd(T)
-        return df * d / (a + d)
-
-    def w(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the full depletion width.
-
-        .. math::
-            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-  N_d^+ } }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The full depletion width.
-        &#34;&#34;&#34;
-        tmp, a, d = self._w_tmp(T)
-        return sqrt(tmp * (a + d) / (a * d))
-
-    def w_n(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the width of the negative depletion layer.
-
-        .. math::
-            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The width of the negative depletion layer.
-        &#34;&#34;&#34;
-        tmp, a, d = self._w_tmp(T)
-        return sqrt(tmp * a / d / (a + d))
-
-    def w_p(self, T=300):
-        r&#34;&#34;&#34;
-        Calculate the width of the positive depletion layer.
-
-        .. math::
-            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
-
-        Parameters
-        ----------
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The width of the positive depletion layer.
-        &#34;&#34;&#34;
-        tmp, a, d = self._w_tmp(T)
-        return sqrt(tmp * d / a / (a + d))</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="fompy.models.PNJunctionFullDepletion.delta_phi_n"><code class="name flex">
-<span>def <span class="ident">delta_phi_n</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the difference of potentials for the negative depletion layer.</p>
-<p><span><span class="MathJax_Preview"> \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ } </span><script type="math/tex; mode=display"> \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def delta_phi_n(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the difference of potentials for the negative depletion layer.
-
-    .. math::
-        \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The difference of potentials.
-    &#34;&#34;&#34;
-    df, a, d = self._df_Na_Nd(T)
-    return df * a / (a + d)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionFullDepletion.delta_phi_p"><code class="name flex">
-<span>def <span class="ident">delta_phi_p</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the difference of potentials for the positive depletion layer.</p>
-<p><span><span class="MathJax_Preview"> \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ } </span><script type="math/tex; mode=display"> \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def delta_phi_p(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the difference of potentials for the positive depletion layer.
-
-    .. math::
-        \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The difference of potentials.
-    &#34;&#34;&#34;
-    df, a, d = self._df_Na_Nd(T)
-    return df * d / (a + d)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionFullDepletion.w"><code class="name flex">
-<span>def <span class="ident">w</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the full depletion width.</p>
-<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-
-N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-
-N_d^+ } } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The full depletion width.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def w(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the full depletion width.
-
-    .. math::
-        w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-  N_d^+ } }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The full depletion width.
-    &#34;&#34;&#34;
-    tmp, a, d = self._w_tmp(T)
-    return sqrt(tmp * (a + d) / (a * d))</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionFullDepletion.w_n"><code class="name flex">
-<span>def <span class="ident">w_n</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the width of the negative depletion layer.</p>
-<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-
-N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-
-N_d^+ } } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The width of the negative depletion layer.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def w_n(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the width of the negative depletion layer.
-
-    .. math::
-        w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The width of the negative depletion layer.
-    &#34;&#34;&#34;
-    tmp, a, d = self._w_tmp(T)
-    return sqrt(tmp * a / d / (a + d))</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionFullDepletion.w_p"><code class="name flex">
-<span>def <span class="ident">w_p</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the width of the positive depletion layer.</p>
-<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
-N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
-N_d^+ } } </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The width of the positive depletion layer.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def w_p(self, T=300):
-    r&#34;&#34;&#34;
-    Calculate the width of the positive depletion layer.
-
-    .. math::
-        w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The width of the positive depletion layer.
-    &#34;&#34;&#34;
-    tmp, a, d = self._w_tmp(T)
-    return sqrt(tmp * d / a / (a + d))</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></b></code>:
-<ul class="hlist">
-<li><code><a title="fompy.models.PNJunction.delta_phi" href="#fompy.models.PNJunction.delta_phi">delta_phi</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
-<dt id="fompy.models.PNJunctionNonDegenerate"><code class="flex name class">
-<span>class <span class="ident">PNJunctionNonDegenerate</span></span>
-<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to calculate properties of a p-n junction in the non-degenerate semiconductor approximation
-(extends <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code>).</p>
-<p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
-<dd>The base intrinsic (pure) semiconductor.</dd>
-<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
-<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
-<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
-<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class PNJunctionNonDegenerate(PNJunction):
-    &#34;&#34;&#34;
-    A class to calculate properties of a p-n junction in the non-degenerate semiconductor approximation
-    (extends `PNJunction`).
-    &#34;&#34;&#34;
-
-    def pn(self, voltage, T=300):
-        r&#34;&#34;&#34;
-        Calculate the product of the hole and electron concentrations.
-
-        .. math::
-            p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
-
-        Parameters
-        ----------
-        voltage : float
-            The voltage at the p-n junction.
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The hole concentration multiplied by the electron concentration.
-        &#34;&#34;&#34;
-        return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
-
-    def n_p(self, voltage, T=300):
-        r&#34;&#34;&#34;
-        Calculate the electron concentration in the p-semiconductor.
-
-        .. math::
-            n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
-
-        Parameters
-        ----------
-        voltage : float
-            The voltage at the p-n junction.
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The electron concentration in the p-semiconductor.
-        &#34;&#34;&#34;
-        return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
-
-    def p_n(self, voltage, T=300):
-        r&#34;&#34;&#34;
-        Calculate the hole concentration in the n-semiconductor.
-
-        .. math::
-            p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
-
-        Parameters
-        ----------
-        voltage : float
-            The voltage at the p-n junction.
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The hole concentration in the n-semiconductor.
-        &#34;&#34;&#34;
-        return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
-
-    def j0_p(self, diffusivity, diffusion_length):
-        r&#34;&#34;&#34;
-        Calculate the hole current density without external voltage.
-
-        .. math::
-            J_{0p} = \frac{e D_p p_{n0}}{L_p}
-
-        Parameters
-        ----------
-        diffusivity : float
-            The hole diffusivity.
-        diffusion_length : float
-            The hole diffusion length.
-
-        Returns
-        -------
-        float
-            The hole current density.
-        &#34;&#34;&#34;
-        return e * diffusivity * self.p_n(0) / diffusion_length
-
-    def j0_n(self, diffusivity, diffusion_length):
-        r&#34;&#34;&#34;
-        Calculate the electron current density without external voltage.
-
-        .. math::
-            J_{0n} = \frac{e D_n n_{p0}}{L_n}
-
-        Parameters
-        ----------
-        diffusivity : float
-            The electron diffusivity.
-        diffusion_length : float
-            The electron diffusion length.
-
-        Returns
-        -------
-        float
-            The electron current density.
-        &#34;&#34;&#34;
-        return e * diffusivity * self.p_n(0) / diffusion_length
-
-    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
-        r&#34;&#34;&#34;
-        Calculate the hole current density.
-
-        .. math::
-            J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
-                = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
-
-        Parameters
-        ----------
-        diffusivity : float
-            The hole diffusivity.
-        diffusion_length : float
-            The hole diffusion length.
-        voltage : float
-            The voltage at the p-n junction.
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The hole current density.
-        &#34;&#34;&#34;
-        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
-
-    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
-        r&#34;&#34;&#34;
-        Calculate the electron current density.
-
-        .. math::
-            J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
-                = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
-
-        Parameters
-        ----------
-        diffusivity : float
-            The electron diffusivity.
-        diffusion_length : float
-            The electron diffusion length.
-        voltage : float
-            The voltage at the p-n junction.
-        T : float
-            The temperature.
-
-        Returns
-        -------
-        float
-            The electron current density.
-        &#34;&#34;&#34;
-        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="fompy.models.PNJunctionNonDegenerate.current_n"><code class="name flex">
-<span>def <span class="ident">current_n</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the electron current density.</p>
-<p><span><span class="MathJax_Preview"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
-= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
-= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusivity.</dd>
-<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusion length.</dd>
-<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The electron current density.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def current_n(self, diffusivity, diffusion_length, voltage, T=300):
-    r&#34;&#34;&#34;
-    Calculate the electron current density.
-
-    .. math::
-        J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
-            = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
-
-    Parameters
-    ----------
-    diffusivity : float
-        The electron diffusivity.
-    diffusion_length : float
-        The electron diffusion length.
-    voltage : float
-        The voltage at the p-n junction.
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The electron current density.
-    &#34;&#34;&#34;
-    return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionNonDegenerate.current_p"><code class="name flex">
-<span>def <span class="ident">current_p</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the hole current density.</p>
-<p><span><span class="MathJax_Preview"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
-= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
-= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusivity.</dd>
-<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusion length.</dd>
-<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The hole current density.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def current_p(self, diffusivity, diffusion_length, voltage, T=300):
-    r&#34;&#34;&#34;
-    Calculate the hole current density.
-
-    .. math::
-        J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
-            = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
-
-    Parameters
-    ----------
-    diffusivity : float
-        The hole diffusivity.
-    diffusion_length : float
-        The hole diffusion length.
-    voltage : float
-        The voltage at the p-n junction.
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The hole current density.
-    &#34;&#34;&#34;
-    return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionNonDegenerate.j0_n"><code class="name flex">
-<span>def <span class="ident">j0_n</span></span>(<span>self, diffusivity, diffusion_length)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the electron current density without external voltage.</p>
-<p><span><span class="MathJax_Preview"> J_{0n} = \frac{e D_n n_{p0}}{L_n} </span><script type="math/tex; mode=display"> J_{0n} = \frac{e D_n n_{p0}}{L_n} </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusivity.</dd>
-<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusion length.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The electron current density.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def j0_n(self, diffusivity, diffusion_length):
-    r&#34;&#34;&#34;
-    Calculate the electron current density without external voltage.
-
-    .. math::
-        J_{0n} = \frac{e D_n n_{p0}}{L_n}
-
-    Parameters
-    ----------
-    diffusivity : float
-        The electron diffusivity.
-    diffusion_length : float
-        The electron diffusion length.
-
-    Returns
-    -------
-    float
-        The electron current density.
-    &#34;&#34;&#34;
-    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionNonDegenerate.j0_p"><code class="name flex">
-<span>def <span class="ident">j0_p</span></span>(<span>self, diffusivity, diffusion_length)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the hole current density without external voltage.</p>
-<p><span><span class="MathJax_Preview"> J_{0p} = \frac{e D_p p_{n0}}{L_p} </span><script type="math/tex; mode=display"> J_{0p} = \frac{e D_p p_{n0}}{L_p} </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusivity.</dd>
-<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusion length.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The hole current density.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def j0_p(self, diffusivity, diffusion_length):
-    r&#34;&#34;&#34;
-    Calculate the hole current density without external voltage.
-
-    .. math::
-        J_{0p} = \frac{e D_p p_{n0}}{L_p}
-
-    Parameters
-    ----------
-    diffusivity : float
-        The hole diffusivity.
-    diffusion_length : float
-        The hole diffusion length.
-
-    Returns
-    -------
-    float
-        The hole current density.
-    &#34;&#34;&#34;
-    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionNonDegenerate.n_p"><code class="name flex">
-<span>def <span class="ident">n_p</span></span>(<span>self, voltage, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the electron concentration in the p-semiconductor.</p>
-<p><span><span class="MathJax_Preview"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The electron concentration in the p-semiconductor.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def n_p(self, voltage, T=300):
-    r&#34;&#34;&#34;
-    Calculate the electron concentration in the p-semiconductor.
-
-    .. math::
-        n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
-
-    Parameters
-    ----------
-    voltage : float
-        The voltage at the p-n junction.
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The electron concentration in the p-semiconductor.
-    &#34;&#34;&#34;
-    return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionNonDegenerate.p_n"><code class="name flex">
-<span>def <span class="ident">p_n</span></span>(<span>self, voltage, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the hole concentration in the n-semiconductor.</p>
-<p><span><span class="MathJax_Preview"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The hole concentration in the n-semiconductor.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def p_n(self, voltage, T=300):
-    r&#34;&#34;&#34;
-    Calculate the hole concentration in the n-semiconductor.
-
-    .. math::
-        p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
-
-    Parameters
-    ----------
-    voltage : float
-        The voltage at the p-n junction.
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The hole concentration in the n-semiconductor.
-    &#34;&#34;&#34;
-    return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.PNJunctionNonDegenerate.pn"><code class="name flex">
-<span>def <span class="ident">pn</span></span>(<span>self, voltage, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Calculate the product of the hole and electron concentrations.</p>
-<p><span><span class="MathJax_Preview"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The hole concentration multiplied by the electron concentration.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def pn(self, voltage, T=300):
-    r&#34;&#34;&#34;
-    Calculate the product of the hole and electron concentrations.
-
-    .. math::
-        p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
-
-    Parameters
-    ----------
-    voltage : float
-        The voltage at the p-n junction.
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The hole concentration multiplied by the electron concentration.
-    &#34;&#34;&#34;
-    return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></b></code>:
-<ul class="hlist">
-<li><code><a title="fompy.models.PNJunction.delta_phi" href="#fompy.models.PNJunction.delta_phi">delta_phi</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
-<dt id="fompy.models.PrimitiveCubicLattice"><code class="flex name class">
-<span>class <span class="ident">PrimitiveCubicLattice</span></span>
+<dt id="fompy.models.BodyCenteredCubicLattice"><code class="flex name class">
+<span>class <span class="ident">BodyCenteredCubicLattice</span></span>
 <span>(</span><span>a, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A class to calculate properties of a primitive cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
-<p>Construct the necessary parameters for the <code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code> object.
+<div class="desc"><p>A class to calculate properties of a body-centered cubic lattice (extends <code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code>).</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></code> object.
 Calls the base class constructor, replacing the following parameters:</p>
-<p><span><span class="MathJax_Preview"> r = \frac{a}{2} </span><script type="math/tex; mode=display"> r = \frac{a}{2} </script></span>
-<span><span class="MathJax_Preview"> N = 1 </span><script type="math/tex; mode=display"> N = 1 </script></span>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{4} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{4} </script></span>
+<span><span class="MathJax_Preview"> N = 2 </span><script type="math/tex; mode=display"> N = 2 </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -3636,20 +1766,20 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class PrimitiveCubicLattice(CrystalLattice):
+<pre><code class="python">class BodyCenteredCubicLattice(CrystalLattice):
     &#34;&#34;&#34;
-    A class to calculate properties of a primitive cubic lattice (extends `CrystalLattice`).
+    A class to calculate properties of a body-centered cubic lattice (extends `CrystalLattice`).
     &#34;&#34;&#34;
 
     def __init__(self, a, m):
         r&#34;&#34;&#34;
-        Construct the necessary parameters for the `PrimitiveCubicLattice` object.
+        Construct the necessary parameters for the `BodyCenteredCubicLattice` object.
         Calls the base class constructor, replacing the following parameters:
 
         .. math::
-            r = \frac{a}{2}
+            r = \frac{a \sqrt{3}}{4}
         .. math::
-            N = 1
+            N = 2
 
         Parameters
         ----------
@@ -3658,7 +1788,72 @@ Parameters</p>
         m : float
             The mass of an atom (the average mass in case of there being several types of atoms).
         &#34;&#34;&#34;
-        super().__init__(a, m, a / 2, 1)</code></pre>
+        super().__init__(a, m, a * sqrt(3) / 4, 2)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="fompy.models.DiamondLikeLattice"><code class="flex name class">
+<span>class <span class="ident">DiamondLikeLattice</span></span>
+<span>(</span><span>a, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a diamond-like lattice.</p>
+<p>Construct the necessary parameters for the <code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code> object.
+Calls the base class constructor, replacing the following parameters:</p>
+<p><span><span class="MathJax_Preview"> r = \frac{a \sqrt{3}}{8} </span><script type="math/tex; mode=display"> r = \frac{a \sqrt{3}}{8} </script></span>
+<span><span class="MathJax_Preview"> N = 8 </span><script type="math/tex; mode=display"> N = 8 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The lattice parameter.</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiamondLikeLattice(CrystalLattice):
+    &#34;&#34;&#34;
+    A class to calculate properties of a diamond-like lattice.
+    &#34;&#34;&#34;
+
+    def __init__(self, a, m):
+        r&#34;&#34;&#34;
+        Construct the necessary parameters for the `DiamondLikeLattice` object.
+        Calls the base class constructor, replacing the following parameters:
+
+        .. math::
+            r = \frac{a \sqrt{3}}{8}
+        .. math::
+            N = 8
+
+        Parameters
+        ----------
+        a : float
+            The lattice parameter.
+        m : float
+            The mass of an atom (the average mass in case of there being several types of atoms).
+        &#34;&#34;&#34;
+        super().__init__(a, m, a * sqrt(3) / 8, 8)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3923,10 +2118,10 @@ Parameters</p>
 
     def fermi_level(self, T=300):
         &#34;&#34;&#34;
-        Determine the Fermi level from the condition of electroneutrality.
+        Determine the Fermi level from the condition of electroneutrality:
 
         .. math::
-            n_h - n_e = 0
+            p - n = 0
 
         Parameters
         ----------
@@ -4088,73 +2283,6 @@ Parameters</p>
     return Semiconductor.effective_state_density(self.mh, T)</code></pre>
 </details>
 </dd>
-<dt id="fompy.models.Semiconductor.conductivity_type"><code class="name flex">
-<span>def <span class="ident">conductivity_type</span></span>(<span>self, *, T=None, Ef=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Tell the conductivity type.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>str</code></dt>
-<dd><code>'i'</code> &ndash; the intrinsic type.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def conductivity_type(self, *, T=None, Ef=None):
-    &#34;&#34;&#34;
-    Tell the conductivity type.
-
-    Returns
-    -------
-    str
-        `&#39;i&#39;` -- the intrinsic type.
-    &#34;&#34;&#34;
-    return &#39;i&#39;</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.Semiconductor.fermi_level"><code class="name flex">
-<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Determine the Fermi level from the condition of electroneutrality.</p>
-<p><span><span class="MathJax_Preview"> n_h - n_e = 0 </span><script type="math/tex; mode=display"> n_h - n_e = 0 </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The Fermi level.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def fermi_level(self, T=300):
-    &#34;&#34;&#34;
-    Determine the Fermi level from the condition of electroneutrality.
-
-    .. math::
-        n_h - n_e = 0
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The Fermi level.
-    &#34;&#34;&#34;
-    return self._solve_electroneutrality_equation(self._charge_imbalance, T)</code></pre>
-</details>
-</dd>
 <dt id="fompy.models.Semiconductor.i_concentration"><code class="name flex">
 <span>def <span class="ident">i_concentration</span></span>(<span>self, T=300)</span>
 </code></dt>
@@ -4189,49 +2317,6 @@ Parameters</p>
         The intrinsic concentration of electrons.
     &#34;&#34;&#34;
     return self.n_concentration(self.intrinsic_fermi_level(), T)</code></pre>
-</details>
-</dd>
-<dt id="fompy.models.Semiconductor.intrinsic_fermi_level"><code class="name flex">
-<span>def <span class="ident">intrinsic_fermi_level</span></span>(<span>self, T=300)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Determine the Fermi level from the condition of electroneutrality
-based on the intrinsic electron concentration.</p>
-<p><span><span class="MathJax_Preview"> n_h - n_{e,intrinsic} = 0 </span><script type="math/tex; mode=display"> n_h - n_{e,intrinsic} = 0 </script></span>
-Parameters</p>
-<hr>
-<dl>
-<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>The Fermi level.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def intrinsic_fermi_level(self, T=300):
-    &#34;&#34;&#34;
-    Determine the Fermi level from the condition of electroneutrality
-    based on the intrinsic electron concentration.
-
-    .. math::
-        n_h - n_{e,intrinsic} = 0
-
-    Parameters
-    ----------
-    T : float
-        The temperature.
-
-    Returns
-    -------
-    float
-        The Fermi level.
-    &#34;&#34;&#34;
-    return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.n_concentration"><code class="name flex">
@@ -4328,7 +2413,2007 @@ Parameters</p>
     return self.Nv(T) * fd1(-Ef / (k * T))</code></pre>
 </details>
 </dd>
+<dt id="fompy.models.Semiconductor.intrinsic_fermi_level"><code class="name flex">
+<span>def <span class="ident">intrinsic_fermi_level</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Determine the Fermi level from the condition of electroneutrality
+based on the intrinsic electron concentration.</p>
+<p><span><span class="MathJax_Preview"> n_h - n_{e,intrinsic} = 0 </span><script type="math/tex; mode=display"> n_h - n_{e,intrinsic} = 0 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
 </dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Fermi level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def intrinsic_fermi_level(self, T=300):
+    &#34;&#34;&#34;
+    Determine the Fermi level from the condition of electroneutrality
+    based on the intrinsic electron concentration.
+
+    .. math::
+        n_h - n_{e,intrinsic} = 0
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Fermi level.
+    &#34;&#34;&#34;
+    return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.Semiconductor.fermi_level"><code class="name flex">
+<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Determine the Fermi level from the condition of electroneutrality:</p>
+<p><span><span class="MathJax_Preview"> p - n = 0 </span><script type="math/tex; mode=display"> p - n = 0 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Fermi level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fermi_level(self, T=300):
+    &#34;&#34;&#34;
+    Determine the Fermi level from the condition of electroneutrality:
+
+    .. math::
+        p - n = 0
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Fermi level.
+    &#34;&#34;&#34;
+    return self._solve_electroneutrality_equation(self._charge_imbalance, T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.Semiconductor.conductivity_type"><code class="name flex">
+<span>def <span class="ident">conductivity_type</span></span>(<span>self, *, T=None, Ef=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tell the conductivity type.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd><code>'i'</code> &ndash; the intrinsic type.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def conductivity_type(self, *, T=None, Ef=None):
+    &#34;&#34;&#34;
+    Tell the conductivity type.
+
+    Returns
+    -------
+    str
+        `&#39;i&#39;` -- the intrinsic type.
+    &#34;&#34;&#34;
+    return &#39;i&#39;</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.DopedSemiconductor"><code class="flex name class">
+<span>class <span class="ident">DopedSemiconductor</span></span>
+<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a doped semiconductor (extends <code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code>).</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor concentration.</dd>
+<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor level.</dd>
+<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor concentration.</dd>
+<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor level.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The base intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor concentration.</dd>
+<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor level.</dd>
+<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor concentration.</dd>
+<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DopedSemiconductor(Semiconductor):
+    &#34;&#34;&#34;
+    A class to calculate properties of a doped semiconductor (extends `Semiconductor`).
+
+    Attributes
+    ----------
+    Na : float
+        The acceptor concentration.
+    Ea : float
+        The acceptor level.
+    Nd : float
+        The donor concentration.
+    Ed : float
+        The donor level.
+    &#34;&#34;&#34;
+
+    def __init__(self, mat, Na, Ea, Nd, Ed):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `DopedSemiconductor` object.
+
+        Parameters
+        ----------
+        mat : Semiconductor
+            The base intrinsic (pure) semiconductor.
+        Na : float
+            The acceptor concentration.
+        Ea : float
+            The acceptor level.
+        Nd : float
+            The donor concentration.
+        Ed : float
+            The donor level.
+        &#34;&#34;&#34;
+        super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
+        self.Na = Na
+        self.Ea = Ea
+        self.Nd = Nd
+        self.Ed = Ed
+
+    def p_donor_concentration(self, Ef=None, T=300):
+        r&#34;&#34;&#34;
+        Calculate the concentration of positive donor ions.
+
+        .. math::
+            N_d^+ = N_d \cdot (1 - f(E_d))
+
+        Parameters
+        ----------
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The concentration of positive donor ions.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Nd * (1 - fermi(self.Ed, Ef, T))
+
+    def n_acceptor_concentration(self, Ef=None, T=300):
+        r&#34;&#34;&#34;
+        Calculate the concentration of negative acceptor ions.
+
+        .. math::
+            N_a^- = N_d f(E_a)
+
+        Parameters
+        ----------
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The concentration of negative acceptor ions.
+        &#34;&#34;&#34;
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return self.Na * fermi(self.Ea, Ef, T)
+
+    def _charge_imbalance(self, Ef, T):
+        &#34;&#34;&#34;note: the function decreases monotonically with increasing Ef&#34;&#34;&#34;
+        return self.p_concentration(Ef, T) + self.p_donor_concentration(Ef, T) \
+               - self.n_concentration(Ef, T) - self.n_acceptor_concentration(Ef, T)
+
+    def fermi_level(self, T=300):
+        r&#34;&#34;&#34;
+        Overrides `Semiconductor.fermi_level`
+
+        Determine the Fermi level from the condition of electroneutrality:
+
+        .. math::
+            p + N_d^{+} - n - N_a^{-} = 0
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Fermi level.
+        &#34;&#34;&#34;
+        return super().fermi_level(T)  # Note: the method _charge_imbalance() is overridden by DopedSemiconductor
+
+    def conductivity_type(self, *, T=None, Ef=None):
+        &#34;&#34;&#34;
+        Tell the conductivity type (overrides `Semiconductor.conductivity_type`).
+
+        Parameters
+        ----------
+        Ef : float or None
+            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        T : float or None
+            The temperature. If `None`, `T` is assigned 300 K.
+
+        Returns
+        -------
+        str
+            `&#39;p&#39;` -- the positive type; `&#39;n&#39;` -- the negative type.
+
+        Raises
+        ------
+        ValueError
+            Both `T` and `Ef` are specified (neither is `None`).
+        &#34;&#34;&#34;
+        if Ef is not None and T is not None:
+            raise ValueError(&#39;Both T and Ef are specified&#39;)
+        if T is None:
+            T = 300
+        if Ef is None:
+            Ef = self.fermi_level(T)
+        return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.DopedSemiconductor.p_donor_concentration"><code class="name flex">
+<span>def <span class="ident">p_donor_concentration</span></span>(<span>self, Ef=None, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the concentration of positive donor ions.</p>
+<p><span><span class="MathJax_Preview"> N_d^+ = N_d \cdot (1 - f(E_d)) </span><script type="math/tex; mode=display"> N_d^+ = N_d \cdot (1 - f(E_d)) </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
+<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The concentration of positive donor ions.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def p_donor_concentration(self, Ef=None, T=300):
+    r&#34;&#34;&#34;
+    Calculate the concentration of positive donor ions.
+
+    .. math::
+        N_d^+ = N_d \cdot (1 - f(E_d))
+
+    Parameters
+    ----------
+    Ef : float or None
+        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The concentration of positive donor ions.
+    &#34;&#34;&#34;
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return self.Nd * (1 - fermi(self.Ed, Ef, T))</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.DopedSemiconductor.n_acceptor_concentration"><code class="name flex">
+<span>def <span class="ident">n_acceptor_concentration</span></span>(<span>self, Ef=None, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the concentration of negative acceptor ions.</p>
+<p><span><span class="MathJax_Preview"> N_a^- = N_d f(E_a) </span><script type="math/tex; mode=display"> N_a^- = N_d f(E_a) </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
+<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The concentration of negative acceptor ions.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def n_acceptor_concentration(self, Ef=None, T=300):
+    r&#34;&#34;&#34;
+    Calculate the concentration of negative acceptor ions.
+
+    .. math::
+        N_a^- = N_d f(E_a)
+
+    Parameters
+    ----------
+    Ef : float or None
+        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The concentration of negative acceptor ions.
+    &#34;&#34;&#34;
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return self.Na * fermi(self.Ea, Ef, T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.DopedSemiconductor.fermi_level"><code class="name flex">
+<span>def <span class="ident">fermi_level</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Overrides <code><a title="fompy.models.Semiconductor.fermi_level" href="#fompy.models.Semiconductor.fermi_level">Semiconductor.fermi_level()</a></code></p>
+<p>Determine the Fermi level from the condition of electroneutrality:</p>
+<p><span><span class="MathJax_Preview"> p + N_d^{+} - n - N_a^{-} = 0 </span><script type="math/tex; mode=display"> p + N_d^{+} - n - N_a^{-} = 0 </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Fermi level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fermi_level(self, T=300):
+    r&#34;&#34;&#34;
+    Overrides `Semiconductor.fermi_level`
+
+    Determine the Fermi level from the condition of electroneutrality:
+
+    .. math::
+        p + N_d^{+} - n - N_a^{-} = 0
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Fermi level.
+    &#34;&#34;&#34;
+    return super().fermi_level(T)  # Note: the method _charge_imbalance() is overridden by DopedSemiconductor</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.DopedSemiconductor.conductivity_type"><code class="name flex">
+<span>def <span class="ident">conductivity_type</span></span>(<span>self, *, T=None, Ef=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Tell the conductivity type (overrides <code><a title="fompy.models.Semiconductor.conductivity_type" href="#fompy.models.Semiconductor.conductivity_type">Semiconductor.conductivity_type()</a></code>).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
+<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
+<dd>The temperature. If <code>None</code>, <code>T</code> is assigned 300 K.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd><code>'p'</code> &ndash; the positive type; <code>'n'</code> &ndash; the negative type.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>Both <code>T</code> and <code>Ef</code> are specified (neither is <code>None</code>).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def conductivity_type(self, *, T=None, Ef=None):
+    &#34;&#34;&#34;
+    Tell the conductivity type (overrides `Semiconductor.conductivity_type`).
+
+    Parameters
+    ----------
+    Ef : float or None
+        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+    T : float or None
+        The temperature. If `None`, `T` is assigned 300 K.
+
+    Returns
+    -------
+    str
+        `&#39;p&#39;` -- the positive type; `&#39;n&#39;` -- the negative type.
+
+    Raises
+    ------
+    ValueError
+        Both `T` and `Ef` are specified (neither is `None`).
+    &#34;&#34;&#34;
+    if Ef is not None and T is not None:
+        raise ValueError(&#39;Both T and Ef are specified&#39;)
+    if T is None:
+        T = 300
+    if Ef is None:
+        Ef = self.fermi_level(T)
+    return &#39;p&#39; if self.p_concentration(Ef, T) &gt; self.n_concentration(Ef, T) else &#39;n&#39;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.Semiconductor.Nc" href="#fompy.models.Semiconductor.Nc">Nc</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.Nv" href="#fompy.models.Semiconductor.Nv">Nv</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.effective_state_density" href="#fompy.models.Semiconductor.effective_state_density">effective_state_density</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.i_concentration" href="#fompy.models.Semiconductor.i_concentration">i_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.intrinsic_fermi_level" href="#fompy.models.Semiconductor.intrinsic_fermi_level">intrinsic_fermi_level</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.n_concentration" href="#fompy.models.Semiconductor.n_concentration">n_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.p_concentration" href="#fompy.models.Semiconductor.p_concentration">p_concentration</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="fompy.models.Metal"><code class="flex name class">
+<span>class <span class="ident">Metal</span></span>
+<span>(</span><span>work_function)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a metal.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
+<dd>The work function.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Metal:
+    &#34;&#34;&#34;
+    A class to calculate properties of a metal.
+
+    Attributes
+    ----------
+    work_function : float
+        The work function.
+    &#34;&#34;&#34;
+
+    def __init__(self, work_function):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `Metal` object.
+
+        Parameters
+        ----------
+        work_function : float
+            The work function.
+        &#34;&#34;&#34;
+        self.work_function = work_function</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.ContactType"><code class="flex name class">
+<span>class <span class="ident">ContactType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration of contact types.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContactType(Enum):
+    &#34;&#34;&#34;
+    An enumeration of contact types.
+    &#34;&#34;&#34;
+    AUGMENTATION = 0,
+    DEPLETION = 1,
+    INVERSION = 2</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="fompy.models.ContactType.AUGMENTATION"><code class="name">var <span class="ident">AUGMENTATION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="fompy.models.ContactType.DEPLETION"><code class="name">var <span class="ident">DEPLETION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="fompy.models.ContactType.INVERSION"><code class="name">var <span class="ident">INVERSION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.MSJunction"><code class="flex name class">
+<span>class <span class="ident">MSJunction</span></span>
+<span>(</span><span>metal, sc)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a contact between a metal and a semiconductor.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>metal</code></strong> :&ensp;<code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></dt>
+<dd>The metal.</dd>
+<dt><strong><code>sc</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The semiconductor.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.MSJunction" href="#fompy.models.MSJunction">MSJunction</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>metal</code></strong> :&ensp;<code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></dt>
+<dd>The metal.</dd>
+<dt><strong><code>sc</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The semiconductor.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MSJunction:
+    &#34;&#34;&#34;
+    A class to calculate properties of a contact between a metal and a semiconductor.
+
+    Attributes
+    ----------
+    metal : Metal
+        The metal.
+    sc : Semiconductor
+        The semiconductor.
+    &#34;&#34;&#34;
+
+    def __init__(self, metal, sc):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `MSJunction` object.
+
+        Parameters
+        ----------
+        metal : Metal
+            The metal.
+        sc : Semiconductor
+            The semiconductor.
+        &#34;&#34;&#34;
+        self.metal = metal
+        self.sc = sc
+
+    def delta_phi(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
+
+        .. math::
+            \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        &#34;&#34;&#34;
+        return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
+
+    def schottky_barrier(self):
+        r&#34;&#34;&#34;
+        Calculate the height of the Schottky barrier.
+
+        .. math::
+            \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+        Returns
+        -------
+        float
+            The height of the Schottky barrier.
+        &#34;&#34;&#34;
+        return (self.metal.work_function - self.sc.chi) / e
+
+    def contact_type(self, T=300):
+        &#34;&#34;&#34;
+        Determine the type of the contact.
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        ContactType
+            The type of the contact.
+
+        Raises
+        ------
+        NotImplementedError
+            The semiconductor is of the intrinsic conductivity type.
+        &#34;&#34;&#34;
+        ct = self.sc.conductivity_type(T=T)
+        Ef = self.sc.fermi_level(T)
+        dEf = -self.delta_phi(T) * e
+        if ct == &#39;i&#39;:
+            raise NotImplementedError(&#39;I do not know which cases are possible&#39;)
+        else:
+            if ct != self.sc.conductivity_type(Ef=Ef + dEf):
+                return ContactType.INVERSION
+            else:
+                if ct == &#39;p&#39;:
+                    return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
+                if ct == &#39;n&#39;:
+                    return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION
+
+    def full_depletion_width(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the width of the depletion region, using the approximation of full depletion.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the depletion region.
+        &#34;&#34;&#34;
+        return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
+
+    def debye_length(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the Debye length (screening length).
+
+        .. math::
+            \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The Debye length.
+        &#34;&#34;&#34;
+        return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.MSJunction.delta_phi"><code class="name flex">
+<span>def <span class="ident">delta_phi</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).</p>
+<p><span><span class="MathJax_Preview"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The difference of potentials.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delta_phi(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the difference between the exit potentials of the metal and the semiconductor (in units of voltage).
+
+    .. math::
+        \Delta \phi = - \frac{ E_g - E_f(T) + \chi - \Phi_M }{ e }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The difference of potentials.
+    &#34;&#34;&#34;
+    return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.schottky_barrier"><code class="name flex">
+<span>def <span class="ident">schottky_barrier</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the height of the Schottky barrier.</p>
+<p><span><span class="MathJax_Preview"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </span><script type="math/tex; mode=display"> \Phi_B = \frac{ \Phi_M - \chi }{ e } </script></span>
+Returns</p>
+<hr>
+<dl>
+<dt><code>float</code></dt>
+<dd>The height of the Schottky barrier.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def schottky_barrier(self):
+    r&#34;&#34;&#34;
+    Calculate the height of the Schottky barrier.
+
+    .. math::
+        \Phi_B = \frac{ \Phi_M - \chi }{ e }
+
+    Returns
+    -------
+    float
+        The height of the Schottky barrier.
+    &#34;&#34;&#34;
+    return (self.metal.work_function - self.sc.chi) / e</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.contact_type"><code class="name flex">
+<span>def <span class="ident">contact_type</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Determine the type of the contact.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="fompy.models.ContactType" href="#fompy.models.ContactType">ContactType</a></code></dt>
+<dd>The type of the contact.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>NotImplementedError</code></dt>
+<dd>The semiconductor is of the intrinsic conductivity type.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def contact_type(self, T=300):
+    &#34;&#34;&#34;
+    Determine the type of the contact.
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    ContactType
+        The type of the contact.
+
+    Raises
+    ------
+    NotImplementedError
+        The semiconductor is of the intrinsic conductivity type.
+    &#34;&#34;&#34;
+    ct = self.sc.conductivity_type(T=T)
+    Ef = self.sc.fermi_level(T)
+    dEf = -self.delta_phi(T) * e
+    if ct == &#39;i&#39;:
+        raise NotImplementedError(&#39;I do not know which cases are possible&#39;)
+    else:
+        if ct != self.sc.conductivity_type(Ef=Ef + dEf):
+            return ContactType.INVERSION
+        else:
+            if ct == &#39;p&#39;:
+                return ContactType.AUGMENTATION if dEf &lt; 0 else ContactType.DEPLETION
+            if ct == &#39;n&#39;:
+                return ContactType.DEPLETION if dEf &lt; 0 else ContactType.AUGMENTATION</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.full_depletion_width"><code class="name flex">
+<span>def <span class="ident">full_depletion_width</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the width of the depletion region, using the approximation of full depletion.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The width of the depletion region.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def full_depletion_width(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the width of the depletion region, using the approximation of full depletion.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon \Delta \phi }{ 2 \pi e n } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The width of the depletion region.
+    &#34;&#34;&#34;
+    return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.MSJunction.debye_length"><code class="name flex">
+<span>def <span class="ident">debye_length</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the Debye length (screening length).</p>
+<p><span><span class="MathJax_Preview"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } } </span><script type="math/tex; mode=display"> \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The Debye length.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def debye_length(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the Debye length (screening length).
+
+    .. math::
+        \lambda_D = \sqrt{ \frac{ \epsilon k T }{ 4 \pi e^2 n_e } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The Debye length.
+    &#34;&#34;&#34;
+    return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.PNJunction"><code class="flex name class">
+<span>class <span class="ident">PNJunction</span></span>
+<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a p-n junction.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The base intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>n_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
+<dd>The n-type doped semiconductor.</dd>
+<dt><strong><code>p_mat</code></strong> :&ensp;<code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
+<dd>The p-type doped semiconductor.</dd>
+</dl>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The base intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor concentration.</dd>
+<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor level.</dd>
+<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor concentration.</dd>
+<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PNJunction:
+    &#34;&#34;&#34;
+    A class to calculate properties of a p-n junction.
+
+    Attributes
+    ----------
+    mat : Semiconductor
+        The base intrinsic (pure) semiconductor.
+    n_mat : DopedSemiconductor
+        The n-type doped semiconductor.
+    p_mat : DopedSemiconductor
+        The p-type doped semiconductor.
+    &#34;&#34;&#34;
+
+    def __init__(self, mat, Na, Ea, Nd, Ed):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `PNJunction` object.
+
+        Parameters
+        ----------
+        mat : Semiconductor
+            The base intrinsic (pure) semiconductor.
+        Na : float
+            The acceptor concentration.
+        Ea : float
+            The acceptor level.
+        Nd : float
+            The donor concentration.
+        Ed : float
+            The donor level.
+        &#34;&#34;&#34;
+        if Ea is None:
+            Ea = 0
+        if Ed is None:
+            Ed = mat.Eg
+        self.mat = mat
+        self.p_mat = DopedSemiconductor(mat, Na, Ea, 0, Ed)
+        self.n_mat = DopedSemiconductor(mat, 0, Ea, Nd, Ed)
+
+    def delta_phi(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the difference between the donor and acceptor Fermi potentials.
+
+        .. math::
+            \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        &#34;&#34;&#34;
+        return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="fompy.models.PNJunctionFullDepletion" href="#fompy.models.PNJunctionFullDepletion">PNJunctionFullDepletion</a></li>
+<li><a title="fompy.models.PNJunctionNonDegenerate" href="#fompy.models.PNJunctionNonDegenerate">PNJunctionNonDegenerate</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.PNJunction.delta_phi"><code class="name flex">
+<span>def <span class="ident">delta_phi</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the difference between the donor and acceptor Fermi potentials.</p>
+<p><span><span class="MathJax_Preview"> \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e } </span><script type="math/tex; mode=display"> \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The difference of potentials.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delta_phi(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the difference between the donor and acceptor Fermi potentials.
+
+    .. math::
+        \Delta \phi = \frac{ E_{f,n}(T) - E_{f,p}(T) }{ e }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The difference of potentials.
+    &#34;&#34;&#34;
+    return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate"><code class="flex name class">
+<span>class <span class="ident">PNJunctionNonDegenerate</span></span>
+<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a p-n junction in the non-degenerate semiconductor approximation
+(extends <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code>).</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The base intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor concentration.</dd>
+<dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
+<dd>The acceptor level.</dd>
+<dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor concentration.</dd>
+<dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
+<dd>The donor level.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PNJunctionNonDegenerate(PNJunction):
+    &#34;&#34;&#34;
+    A class to calculate properties of a p-n junction in the non-degenerate semiconductor approximation
+    (extends `PNJunction`).
+    &#34;&#34;&#34;
+
+    def pn(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        Calculate the product of the hole and electron concentrations.
+
+        .. math::
+            p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration multiplied by the electron concentration.
+        &#34;&#34;&#34;
+        return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
+
+    def n_p(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        Calculate the electron concentration in the p-semiconductor.
+
+        .. math::
+            n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron concentration in the p-semiconductor.
+        &#34;&#34;&#34;
+        return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
+
+    def p_n(self, voltage, T=300):
+        r&#34;&#34;&#34;
+        Calculate the hole concentration in the n-semiconductor.
+
+        .. math::
+            p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+
+        Parameters
+        ----------
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole concentration in the n-semiconductor.
+        &#34;&#34;&#34;
+        return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
+
+    def j0_p(self, diffusivity, diffusion_length):
+        r&#34;&#34;&#34;
+        Calculate the hole current density without external voltage (the dark current).
+
+        .. math::
+            J_{0p} = \frac{e D_p p_{n0}}{L_p}
+
+        Parameters
+        ----------
+        diffusivity : float
+            The hole diffusivity.
+        diffusion_length : float
+            The hole diffusion length.
+
+        Returns
+        -------
+        float
+            The hole current density.
+        &#34;&#34;&#34;
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def j0_n(self, diffusivity, diffusion_length):
+        r&#34;&#34;&#34;
+        Calculate the electron current density without external voltage (the dark current).
+
+        .. math::
+            J_{0n} = \frac{e D_n n_{p0}}{L_n}
+
+        Parameters
+        ----------
+        diffusivity : float
+            The electron diffusivity.
+        diffusion_length : float
+            The electron diffusion length.
+
+        Returns
+        -------
+        float
+            The electron current density.
+        &#34;&#34;&#34;
+        return e * diffusivity * self.p_n(0) / diffusion_length
+
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+        r&#34;&#34;&#34;
+        Calculate the hole current density.
+
+        .. math::
+            J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+        Parameters
+        ----------
+        diffusivity : float
+            The hole diffusivity.
+        diffusion_length : float
+            The hole diffusion length.
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The hole current density.
+        &#34;&#34;&#34;
+        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+        r&#34;&#34;&#34;
+        Calculate the electron current density.
+
+        .. math::
+            J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+                = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+        Parameters
+        ----------
+        diffusivity : float
+            The electron diffusivity.
+        diffusion_length : float
+            The electron diffusion length.
+        voltage : float
+            The voltage at the p-n junction.
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The electron current density.
+        &#34;&#34;&#34;
+        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.PNJunctionNonDegenerate.pn"><code class="name flex">
+<span>def <span class="ident">pn</span></span>(<span>self, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the product of the hole and electron concentrations.</p>
+<p><span><span class="MathJax_Preview"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p \cdot n = n_i^2 \exp{\frac{e V}{k T}} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole concentration multiplied by the electron concentration.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pn(self, voltage, T=300):
+    r&#34;&#34;&#34;
+    Calculate the product of the hole and electron concentrations.
+
+    .. math::
+        p \cdot n = n_i^2 \exp{\frac{e V}{k T}}
+
+    Parameters
+    ----------
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The hole concentration multiplied by the electron concentration.
+    &#34;&#34;&#34;
+    return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.n_p"><code class="name flex">
+<span>def <span class="ident">n_p</span></span>(<span>self, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the electron concentration in the p-semiconductor.</p>
+<p><span><span class="MathJax_Preview"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The electron concentration in the p-semiconductor.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def n_p(self, voltage, T=300):
+    r&#34;&#34;&#34;
+    Calculate the electron concentration in the p-semiconductor.
+
+    .. math::
+        n_p = \frac{n_i^2}{p_p} \exp{\frac{e V}{k T}}
+
+    Parameters
+    ----------
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The electron concentration in the p-semiconductor.
+    &#34;&#34;&#34;
+    return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.p_n"><code class="name flex">
+<span>def <span class="ident">p_n</span></span>(<span>self, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the hole concentration in the n-semiconductor.</p>
+<p><span><span class="MathJax_Preview"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </span><script type="math/tex; mode=display"> p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole concentration in the n-semiconductor.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def p_n(self, voltage, T=300):
+    r&#34;&#34;&#34;
+    Calculate the hole concentration in the n-semiconductor.
+
+    .. math::
+        p_n = \frac{n_i^2}{n_n} \exp{\frac{e V}{k T}}
+
+    Parameters
+    ----------
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The hole concentration in the n-semiconductor.
+    &#34;&#34;&#34;
+    return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.j0_p"><code class="name flex">
+<span>def <span class="ident">j0_p</span></span>(<span>self, diffusivity, diffusion_length)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the hole current density without external voltage (the dark current).</p>
+<p><span><span class="MathJax_Preview"> J_{0p} = \frac{e D_p p_{n0}}{L_p} </span><script type="math/tex; mode=display"> J_{0p} = \frac{e D_p p_{n0}}{L_p} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusion length.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole current density.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def j0_p(self, diffusivity, diffusion_length):
+    r&#34;&#34;&#34;
+    Calculate the hole current density without external voltage (the dark current).
+
+    .. math::
+        J_{0p} = \frac{e D_p p_{n0}}{L_p}
+
+    Parameters
+    ----------
+    diffusivity : float
+        The hole diffusivity.
+    diffusion_length : float
+        The hole diffusion length.
+
+    Returns
+    -------
+    float
+        The hole current density.
+    &#34;&#34;&#34;
+    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.j0_n"><code class="name flex">
+<span>def <span class="ident">j0_n</span></span>(<span>self, diffusivity, diffusion_length)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the electron current density without external voltage (the dark current).</p>
+<p><span><span class="MathJax_Preview"> J_{0n} = \frac{e D_n n_{p0}}{L_n} </span><script type="math/tex; mode=display"> J_{0n} = \frac{e D_n n_{p0}}{L_n} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusion length.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The electron current density.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def j0_n(self, diffusivity, diffusion_length):
+    r&#34;&#34;&#34;
+    Calculate the electron current density without external voltage (the dark current).
+
+    .. math::
+        J_{0n} = \frac{e D_n n_{p0}}{L_n}
+
+    Parameters
+    ----------
+    diffusivity : float
+        The electron diffusivity.
+    diffusion_length : float
+        The electron diffusion length.
+
+    Returns
+    -------
+    float
+        The electron current density.
+    &#34;&#34;&#34;
+    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.current_p"><code class="name flex">
+<span>def <span class="ident">current_p</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the hole current density.</p>
+<p><span><span class="MathJax_Preview"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The hole diffusion length.</dd>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The hole current density.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+    r&#34;&#34;&#34;
+    Calculate the hole current density.
+
+    .. math::
+        J_p = J_{0p}\left[\exp{\frac{e V}{k T}} - 1\right]
+            = \frac{e D_p p_{n0}}{L_p}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+    Parameters
+    ----------
+    diffusivity : float
+        The hole diffusivity.
+    diffusion_length : float
+        The hole diffusion length.
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The hole current density.
+    &#34;&#34;&#34;
+    return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionNonDegenerate.current_n"><code class="name flex">
+<span>def <span class="ident">current_n</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the electron current density.</p>
+<p><span><span class="MathJax_Preview"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </span><script type="math/tex; mode=display"> J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+= \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right] </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusivity.</dd>
+<dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
+<dd>The electron diffusion length.</dd>
+<dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
+<dd>The voltage at the p-n junction.</dd>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The electron current density.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+    r&#34;&#34;&#34;
+    Calculate the electron current density.
+
+    .. math::
+        J_n = J_{0n}\left[\exp{\frac{e V}{k T}} - 1\right]
+            = \frac{e D_n n_{p0}}{L_n}\left[\exp{\frac{e V}{k T}} - 1\right]
+
+    Parameters
+    ----------
+    diffusivity : float
+        The electron diffusivity.
+    diffusion_length : float
+        The electron diffusion length.
+    voltage : float
+        The voltage at the p-n junction.
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The electron current density.
+    &#34;&#34;&#34;
+    return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.PNJunction.delta_phi" href="#fompy.models.PNJunction.delta_phi">delta_phi</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="fompy.models.PNJunctionFullDepletion"><code class="flex name class">
+<span>class <span class="ident">PNJunctionFullDepletion</span></span>
+<span>(</span><span>mat, Na, Ea, Nd, Ed)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to calculate properties of a p-n junction exhibiting full depletion (extends <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code>).</p>
+<p>Construct the necessary attributes for the <code><a title="fompy.models.PNJunctionFullDepletion" href="#fompy.models.PNJunctionFullDepletion">PNJunctionFullDepletion</a></code> object
+(calls the <code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code> constructor).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PNJunctionFullDepletion(PNJunction):
+    &#34;&#34;&#34;
+    A class to calculate properties of a p-n junction exhibiting full depletion (extends `PNJunction`).
+    &#34;&#34;&#34;
+
+    def __init__(self, mat, Na, Ea, Nd, Ed):
+        &#34;&#34;&#34;
+        Construct the necessary attributes for the `PNJunctionFullDepletion` object
+        (calls the `PNJunction` constructor).
+        &#34;&#34;&#34;
+        super().__init__(mat, Na, Ea, Nd, Ed)
+
+    def _df_Na_Nd(self, T):
+        return self.delta_phi(T), \
+               self.p_mat.n_acceptor_concentration(T=T), \
+               self.n_mat.p_donor_concentration(T=T)
+
+    def _w_tmp(self, T):
+        df, a, d = self._df_Na_Nd(T)
+        return self.p_mat.eps / (2 * pi * e) * df, a, d
+
+    def delta_phi_n(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the difference of potentials in the n-type semiconductor.
+
+        .. math::
+            \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        &#34;&#34;&#34;
+        df, a, d = self._df_Na_Nd(T)
+        return df * a / (a + d)
+
+    def delta_phi_p(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the difference of potentials in the p-type semiconductor.
+
+        .. math::
+            \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The difference of potentials.
+        &#34;&#34;&#34;
+        df, a, d = self._df_Na_Nd(T)
+        return df * d / (a + d)
+
+    def w(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the full depletion width.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-  N_d^+ } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The full depletion width.
+        &#34;&#34;&#34;
+        tmp, a, d = self._w_tmp(T)
+        return sqrt(tmp * (a + d) / (a * d))
+
+    def w_n(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the width of the depletion layer inside an n-type semiconductor.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the negative depletion layer.
+        &#34;&#34;&#34;
+        tmp, a, d = self._w_tmp(T)
+        return sqrt(tmp * a / d / (a + d))
+
+    def w_p(self, T=300):
+        r&#34;&#34;&#34;
+        Calculate the width of the depletion layer inside an p-type semiconductor.
+
+        .. math::
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
+
+        Parameters
+        ----------
+        T : float
+            The temperature.
+
+        Returns
+        -------
+        float
+            The width of the positive depletion layer.
+        &#34;&#34;&#34;
+        tmp, a, d = self._w_tmp(T)
+        return sqrt(tmp * d / a / (a + d))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.PNJunctionFullDepletion.delta_phi_n"><code class="name flex">
+<span>def <span class="ident">delta_phi_n</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the difference of potentials in the n-type semiconductor.</p>
+<p><span><span class="MathJax_Preview"> \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ } </span><script type="math/tex; mode=display"> \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The difference of potentials.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delta_phi_n(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the difference of potentials in the n-type semiconductor.
+
+    .. math::
+        \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The difference of potentials.
+    &#34;&#34;&#34;
+    df, a, d = self._df_Na_Nd(T)
+    return df * a / (a + d)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionFullDepletion.delta_phi_p"><code class="name flex">
+<span>def <span class="ident">delta_phi_p</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the difference of potentials in the p-type semiconductor.</p>
+<p><span><span class="MathJax_Preview"> \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ } </span><script type="math/tex; mode=display"> \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The difference of potentials.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delta_phi_p(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the difference of potentials in the p-type semiconductor.
+
+    .. math::
+        \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The difference of potentials.
+    &#34;&#34;&#34;
+    df, a, d = self._df_Na_Nd(T)
+    return df * d / (a + d)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionFullDepletion.w"><code class="name flex">
+<span>def <span class="ident">w</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the full depletion width.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-
+N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-
+N_d^+ } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The full depletion width.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def w(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the full depletion width.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- + N_d^+ }{ N_a^-  N_d^+ } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The full depletion width.
+    &#34;&#34;&#34;
+    tmp, a, d = self._w_tmp(T)
+    return sqrt(tmp * (a + d) / (a * d))</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionFullDepletion.w_n"><code class="name flex">
+<span>def <span class="ident">w_n</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the width of the depletion layer inside an n-type semiconductor.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-
+N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-
+N_d^+ } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The width of the negative depletion layer.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def w_n(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the width of the depletion layer inside an n-type semiconductor.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The width of the negative depletion layer.
+    &#34;&#34;&#34;
+    tmp, a, d = self._w_tmp(T)
+    return sqrt(tmp * a / d / (a + d))</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PNJunctionFullDepletion.w_p"><code class="name flex">
+<span>def <span class="ident">w_p</span></span>(<span>self, T=300)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the width of the depletion layer inside an p-type semiconductor.</p>
+<p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
+N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
+N_d^+ } } </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
+<dd>The temperature.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The width of the positive depletion layer.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def w_p(self, T=300):
+    r&#34;&#34;&#34;
+    Calculate the width of the depletion layer inside an p-type semiconductor.
+
+    .. math::
+        w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
+
+    Parameters
+    ----------
+    T : float
+        The temperature.
+
+    Returns
+    -------
+    float
+        The width of the positive depletion layer.
+    &#34;&#34;&#34;
+    tmp, a, d = self._w_tmp(T)
+    return sqrt(tmp * d / a / (a + d))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.PNJunction.delta_phi" href="#fompy.models.PNJunction.delta_phi">delta_phi</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -4348,16 +4433,63 @@ Parameters</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fompy.models.concentration" href="#fompy.models.concentration">concentration</a></code></li>
 <li><code><a title="fompy.models.conductivity" href="#fompy.models.conductivity">conductivity</a></code></li>
-<li><code><a title="fompy.models.debye_length" href="#fompy.models.debye_length">debye_length</a></code></li>
+<li><code><a title="fompy.models.concentration" href="#fompy.models.concentration">concentration</a></code></li>
 <li><code><a title="fompy.models.depletion_width" href="#fompy.models.depletion_width">depletion_width</a></code></li>
+<li><code><a title="fompy.models.debye_length" href="#fompy.models.debye_length">debye_length</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
+<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code></h4>
+</li>
+<li>
+<h4><code><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></code></h4>
+</li>
+<li>
 <h4><code><a title="fompy.models.BodyCenteredCubicLattice" href="#fompy.models.BodyCenteredCubicLattice">BodyCenteredCubicLattice</a></code></h4>
+</li>
+<li>
+<h4><code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code></h4>
+</li>
+<li>
+<h4><code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.models.Semiconductor.effective_state_density" href="#fompy.models.Semiconductor.effective_state_density">effective_state_density</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.Nc" href="#fompy.models.Semiconductor.Nc">Nc</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.Nv" href="#fompy.models.Semiconductor.Nv">Nv</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.i_concentration" href="#fompy.models.Semiconductor.i_concentration">i_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.n_concentration" href="#fompy.models.Semiconductor.n_concentration">n_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.p_concentration" href="#fompy.models.Semiconductor.p_concentration">p_concentration</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.intrinsic_fermi_level" href="#fompy.models.Semiconductor.intrinsic_fermi_level">intrinsic_fermi_level</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.fermi_level" href="#fompy.models.Semiconductor.fermi_level">fermi_level</a></code></li>
+<li><code><a title="fompy.models.Semiconductor.conductivity_type" href="#fompy.models.Semiconductor.conductivity_type">conductivity_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.models.DopedSemiconductor.p_donor_concentration" href="#fompy.models.DopedSemiconductor.p_donor_concentration">p_donor_concentration</a></code></li>
+<li><code><a title="fompy.models.DopedSemiconductor.n_acceptor_concentration" href="#fompy.models.DopedSemiconductor.n_acceptor_concentration">n_acceptor_concentration</a></code></li>
+<li><code><a title="fompy.models.DopedSemiconductor.fermi_level" href="#fompy.models.DopedSemiconductor.fermi_level">fermi_level</a></code></li>
+<li><code><a title="fompy.models.DopedSemiconductor.conductivity_type" href="#fompy.models.DopedSemiconductor.conductivity_type">conductivity_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></h4>
 </li>
 <li>
 <h4><code><a title="fompy.models.ContactType" href="#fompy.models.ContactType">ContactType</a></code></h4>
@@ -4368,48 +4500,31 @@ Parameters</p>
 </ul>
 </li>
 <li>
-<h4><code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code></h4>
-<ul class="two-column">
-<li><code><a title="fompy.models.CrystalLattice.N" href="#fompy.models.CrystalLattice.N">N</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.a" href="#fompy.models.CrystalLattice.a">a</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.concentration" href="#fompy.models.CrystalLattice.concentration">concentration</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.density" href="#fompy.models.CrystalLattice.density">density</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.m" href="#fompy.models.CrystalLattice.m">m</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.packing_density" href="#fompy.models.CrystalLattice.packing_density">packing_density</a></code></li>
-<li><code><a title="fompy.models.CrystalLattice.r" href="#fompy.models.CrystalLattice.r">r</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fompy.models.DiamondLikeLattice" href="#fompy.models.DiamondLikeLattice">DiamondLikeLattice</a></code></h4>
-</li>
-<li>
-<h4><code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></h4>
-<ul class="">
-<li><code><a title="fompy.models.DopedSemiconductor.conductivity_type" href="#fompy.models.DopedSemiconductor.conductivity_type">conductivity_type</a></code></li>
-<li><code><a title="fompy.models.DopedSemiconductor.n_acceptor_concentration" href="#fompy.models.DopedSemiconductor.n_acceptor_concentration">n_acceptor_concentration</a></code></li>
-<li><code><a title="fompy.models.DopedSemiconductor.p_donor_concentration" href="#fompy.models.DopedSemiconductor.p_donor_concentration">p_donor_concentration</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fompy.models.FaceCenteredCubicLattice" href="#fompy.models.FaceCenteredCubicLattice">FaceCenteredCubicLattice</a></code></h4>
-</li>
-<li>
 <h4><code><a title="fompy.models.MSJunction" href="#fompy.models.MSJunction">MSJunction</a></code></h4>
 <ul class="">
-<li><code><a title="fompy.models.MSJunction.contact_type" href="#fompy.models.MSJunction.contact_type">contact_type</a></code></li>
-<li><code><a title="fompy.models.MSJunction.debye_length" href="#fompy.models.MSJunction.debye_length">debye_length</a></code></li>
 <li><code><a title="fompy.models.MSJunction.delta_phi" href="#fompy.models.MSJunction.delta_phi">delta_phi</a></code></li>
-<li><code><a title="fompy.models.MSJunction.full_depletion_width" href="#fompy.models.MSJunction.full_depletion_width">full_depletion_width</a></code></li>
 <li><code><a title="fompy.models.MSJunction.schottky_barrier" href="#fompy.models.MSJunction.schottky_barrier">schottky_barrier</a></code></li>
+<li><code><a title="fompy.models.MSJunction.contact_type" href="#fompy.models.MSJunction.contact_type">contact_type</a></code></li>
+<li><code><a title="fompy.models.MSJunction.full_depletion_width" href="#fompy.models.MSJunction.full_depletion_width">full_depletion_width</a></code></li>
+<li><code><a title="fompy.models.MSJunction.debye_length" href="#fompy.models.MSJunction.debye_length">debye_length</a></code></li>
 </ul>
-</li>
-<li>
-<h4><code><a title="fompy.models.Metal" href="#fompy.models.Metal">Metal</a></code></h4>
 </li>
 <li>
 <h4><code><a title="fompy.models.PNJunction" href="#fompy.models.PNJunction">PNJunction</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.models.PNJunction.delta_phi" href="#fompy.models.PNJunction.delta_phi">delta_phi</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.PNJunctionNonDegenerate" href="#fompy.models.PNJunctionNonDegenerate">PNJunctionNonDegenerate</a></code></h4>
+<ul class="two-column">
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.pn" href="#fompy.models.PNJunctionNonDegenerate.pn">pn</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.n_p" href="#fompy.models.PNJunctionNonDegenerate.n_p">n_p</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.p_n" href="#fompy.models.PNJunctionNonDegenerate.p_n">p_n</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.j0_p" href="#fompy.models.PNJunctionNonDegenerate.j0_p">j0_p</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.j0_n" href="#fompy.models.PNJunctionNonDegenerate.j0_n">j0_n</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.current_p" href="#fompy.models.PNJunctionNonDegenerate.current_p">current_p</a></code></li>
+<li><code><a title="fompy.models.PNJunctionNonDegenerate.current_n" href="#fompy.models.PNJunctionNonDegenerate.current_n">current_n</a></code></li>
 </ul>
 </li>
 <li>
@@ -4420,35 +4535,6 @@ Parameters</p>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w" href="#fompy.models.PNJunctionFullDepletion.w">w</a></code></li>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w_n" href="#fompy.models.PNJunctionFullDepletion.w_n">w_n</a></code></li>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w_p" href="#fompy.models.PNJunctionFullDepletion.w_p">w_p</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fompy.models.PNJunctionNonDegenerate" href="#fompy.models.PNJunctionNonDegenerate">PNJunctionNonDegenerate</a></code></h4>
-<ul class="two-column">
-<li><code><a title="fompy.models.PNJunctionNonDegenerate.current_n" href="#fompy.models.PNJunctionNonDegenerate.current_n">current_n</a></code></li>
-<li><code><a title="fompy.models.PNJunctionNonDegenerate.current_p" href="#fompy.models.PNJunctionNonDegenerate.current_p">current_p</a></code></li>
-<li><code><a title="fompy.models.PNJunctionNonDegenerate.j0_n" href="#fompy.models.PNJunctionNonDegenerate.j0_n">j0_n</a></code></li>
-<li><code><a title="fompy.models.PNJunctionNonDegenerate.j0_p" href="#fompy.models.PNJunctionNonDegenerate.j0_p">j0_p</a></code></li>
-<li><code><a title="fompy.models.PNJunctionNonDegenerate.n_p" href="#fompy.models.PNJunctionNonDegenerate.n_p">n_p</a></code></li>
-<li><code><a title="fompy.models.PNJunctionNonDegenerate.p_n" href="#fompy.models.PNJunctionNonDegenerate.p_n">p_n</a></code></li>
-<li><code><a title="fompy.models.PNJunctionNonDegenerate.pn" href="#fompy.models.PNJunctionNonDegenerate.pn">pn</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="fompy.models.PrimitiveCubicLattice" href="#fompy.models.PrimitiveCubicLattice">PrimitiveCubicLattice</a></code></h4>
-</li>
-<li>
-<h4><code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></h4>
-<ul class="">
-<li><code><a title="fompy.models.Semiconductor.Nc" href="#fompy.models.Semiconductor.Nc">Nc</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.Nv" href="#fompy.models.Semiconductor.Nv">Nv</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.conductivity_type" href="#fompy.models.Semiconductor.conductivity_type">conductivity_type</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.effective_state_density" href="#fompy.models.Semiconductor.effective_state_density">effective_state_density</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.fermi_level" href="#fompy.models.Semiconductor.fermi_level">fermi_level</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.i_concentration" href="#fompy.models.Semiconductor.i_concentration">i_concentration</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.intrinsic_fermi_level" href="#fompy.models.Semiconductor.intrinsic_fermi_level">intrinsic_fermi_level</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.n_concentration" href="#fompy.models.Semiconductor.n_concentration">n_concentration</a></code></li>
-<li><code><a title="fompy.models.Semiconductor.p_concentration" href="#fompy.models.Semiconductor.p_concentration">p_concentration</a></code></li>
 </ul>
 </li>
 </ul>

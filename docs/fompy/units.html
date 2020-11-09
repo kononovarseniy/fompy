@@ -383,97 +383,6 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="fompy.units.CompositeUnit"><code class="flex name class">
-<span>class <span class="ident">CompositeUnit</span></span>
-<span>(</span><span>nom, denom)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class to convert a composite unit of measurement into cgs.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>nom</code></strong> :&ensp;<code>iterable(<a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a>, <a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a>)</code></dt>
-<dd>The numerator.</dd>
-<dt><strong><code>denom</code></strong> :&ensp;<code>iterable(<a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a>, <a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a>)</code></dt>
-<dd>The denominator.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class CompositeUnit:
-    &#34;&#34;&#34;
-    A class to convert a composite unit of measurement into cgs.
-
-    Attributes
-    ----------
-    nom : iterable(CompositeUnit, SimpleUnit)
-        The numerator.
-    denom : iterable(CompositeUnit, SimpleUnit)
-        The denominator.
-    &#34;&#34;&#34;
-
-    def __init__(self, nom, denom):
-        self.nom = nom
-        self.denom = denom
-
-    def get_number(self):
-        &#34;&#34;&#34;
-        Get the value of the unit expressed in cgs.
-
-        Returns
-        -------
-        float
-        &#34;&#34;&#34;
-        res = 1
-        for u in self.nom:
-            res *= u.get_number()
-        for u in self.denom:
-            res /= u.get_number()
-        return res
-
-    def __str__(self):
-        if len(self.nom) &gt; 0:
-            res = &#39; &#39;.join(map(str, self.nom))
-        else:
-            res = &#39;1&#39;
-        if len(self.denom) &gt; 0:
-            res += &#39; / &#39; + &#39; &#39;.join(map(str, self.denom))
-        return res</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="fompy.units.CompositeUnit.get_number"><code class="name flex">
-<span>def <span class="ident">get_number</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get the value of the unit expressed in cgs.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>float</code></dt>
-<dd>&nbsp;</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_number(self):
-    &#34;&#34;&#34;
-    Get the value of the unit expressed in cgs.
-
-    Returns
-    -------
-    float
-    &#34;&#34;&#34;
-    res = 1
-    for u in self.nom:
-        res *= u.get_number()
-    for u in self.denom:
-        res /= u.get_number()
-    return res</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 <dt id="fompy.units.SimpleUnit"><code class="flex name class">
 <span>class <span class="ident">SimpleUnit</span></span>
 <span>(</span><span>name, power)</span>
@@ -588,6 +497,97 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 </dd>
 </dl>
 </dd>
+<dt id="fompy.units.CompositeUnit"><code class="flex name class">
+<span>class <span class="ident">CompositeUnit</span></span>
+<span>(</span><span>nom, denom)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class to convert a composite unit of measurement into cgs.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>nom</code></strong> :&ensp;<code>iterable(<a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a>, <a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a>)</code></dt>
+<dd>The numerator.</dd>
+<dt><strong><code>denom</code></strong> :&ensp;<code>iterable(<a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a>, <a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a>)</code></dt>
+<dd>The denominator.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CompositeUnit:
+    &#34;&#34;&#34;
+    A class to convert a composite unit of measurement into cgs.
+
+    Attributes
+    ----------
+    nom : iterable(CompositeUnit, SimpleUnit)
+        The numerator.
+    denom : iterable(CompositeUnit, SimpleUnit)
+        The denominator.
+    &#34;&#34;&#34;
+
+    def __init__(self, nom, denom):
+        self.nom = nom
+        self.denom = denom
+
+    def get_number(self):
+        &#34;&#34;&#34;
+        Get the value of the unit expressed in cgs.
+
+        Returns
+        -------
+        float
+        &#34;&#34;&#34;
+        res = 1
+        for u in self.nom:
+            res *= u.get_number()
+        for u in self.denom:
+            res /= u.get_number()
+        return res
+
+    def __str__(self):
+        if len(self.nom) &gt; 0:
+            res = &#39; &#39;.join(map(str, self.nom))
+        else:
+            res = &#39;1&#39;
+        if len(self.denom) &gt; 0:
+            res += &#39; / &#39; + &#39; &#39;.join(map(str, self.denom))
+        return res</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.units.CompositeUnit.get_number"><code class="name flex">
+<span>def <span class="ident">get_number</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the value of the unit expressed in cgs.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_number(self):
+    &#34;&#34;&#34;
+    Get the value of the unit expressed in cgs.
+
+    Returns
+    -------
+    float
+    &#34;&#34;&#34;
+    res = 1
+    for u in self.nom:
+        res *= u.get_number()
+    for u in self.denom:
+        res /= u.get_number()
+    return res</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -611,15 +611,15 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a></code></h4>
-<ul class="">
-<li><code><a title="fompy.units.CompositeUnit.get_number" href="#fompy.units.CompositeUnit.get_number">get_number</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="fompy.units.SimpleUnit" href="#fompy.units.SimpleUnit">SimpleUnit</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.units.SimpleUnit.get_number" href="#fompy.units.SimpleUnit.get_number">get_number</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.units.CompositeUnit" href="#fompy.units.CompositeUnit">CompositeUnit</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.units.CompositeUnit.get_number" href="#fompy.units.CompositeUnit.get_number">get_number</a></code></li>
 </ul>
 </li>
 </ul>

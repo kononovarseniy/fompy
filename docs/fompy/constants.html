@@ -124,6 +124,14 @@ a0 = h_bar ** 2 / (me * e ** 2)
 <section>
 <h2 class="section-title" id="header-variables">Global variables</h2>
 <dl>
+<dt id="fompy.constants.c"><code class="name">var <span class="ident">c</span></code></dt>
+<dd>
+<div class="desc"><p>The speed of light in vacuum.</p></div>
+</dd>
+<dt id="fompy.constants.k"><code class="name">var <span class="ident">k</span></code></dt>
+<dd>
+<div class="desc"><p>The Boltzmann constant.</p></div>
+</dd>
 <dt id="fompy.constants.Na"><code class="name">var <span class="ident">Na</span></code></dt>
 <dd>
 <div class="desc"><p>The Avogadro constant.</p></div>
@@ -132,49 +140,25 @@ a0 = h_bar ** 2 / (me * e ** 2)
 <dd>
 <div class="desc"><p>The [universal] gas constant.</p></div>
 </dd>
-<dt id="fompy.constants.Ry"><code class="name">var <span class="ident">Ry</span></code></dt>
+<dt id="fompy.constants.sigma"><code class="name">var <span class="ident">sigma</span></code></dt>
 <dd>
-<div class="desc"><p>The Reynolds number.</p></div>
+<div class="desc"><p>The Stefan-Boltzmann constant.</p></div>
 </dd>
-<dt id="fompy.constants.a0"><code class="name">var <span class="ident">a0</span></code></dt>
+<dt id="fompy.constants.me"><code class="name">var <span class="ident">me</span></code></dt>
 <dd>
-<div class="desc"><p>The Bohr radius.</p></div>
+<div class="desc"><p>The electron mass.</p></div>
 </dd>
-<dt id="fompy.constants.ampere"><code class="name">var <span class="ident">ampere</span></code></dt>
+<dt id="fompy.constants.mp"><code class="name">var <span class="ident">mp</span></code></dt>
 <dd>
-<div class="desc"><p>One ampere.</p></div>
+<div class="desc"><p>The proton mass.</p></div>
 </dd>
-<dt id="fompy.constants.amu"><code class="name">var <span class="ident">amu</span></code></dt>
+<dt id="fompy.constants.mn"><code class="name">var <span class="ident">mn</span></code></dt>
 <dd>
-<div class="desc"><p>The atomic mass unit (dalton).</p></div>
-</dd>
-<dt id="fompy.constants.angstrom"><code class="name">var <span class="ident">angstrom</span></code></dt>
-<dd>
-<div class="desc"><p>One angstrom expressed in centimeters.</p></div>
-</dd>
-<dt id="fompy.constants.c"><code class="name">var <span class="ident">c</span></code></dt>
-<dd>
-<div class="desc"><p>The speed of light in vacuum.</p></div>
+<div class="desc"><p>The neutron mass.</p></div>
 </dd>
 <dt id="fompy.constants.e"><code class="name">var <span class="ident">e</span></code></dt>
 <dd>
 <div class="desc"><p>The electron charge.</p></div>
-</dd>
-<dt id="fompy.constants.eV"><code class="name">var <span class="ident">eV</span></code></dt>
-<dd>
-<div class="desc"><p>One electronvolt expressed in ergs.</p></div>
-</dd>
-<dt id="fompy.constants.eV_T"><code class="name">var <span class="ident">eV_T</span></code></dt>
-<dd>
-<div class="desc"><p>An off-system unit of temperature equal to eV / k.</p></div>
-</dd>
-<dt id="fompy.constants.eV_m"><code class="name">var <span class="ident">eV_m</span></code></dt>
-<dd>
-<div class="desc"><p>An off-system unit of mass equal to eV / c^2.</p></div>
-</dd>
-<dt id="fompy.constants.farad"><code class="name">var <span class="ident">farad</span></code></dt>
-<dd>
-<div class="desc"><p>One farad.</p></div>
 </dd>
 <dt id="fompy.constants.h"><code class="name">var <span class="ident">h</span></code></dt>
 <dd>
@@ -184,37 +168,53 @@ a0 = h_bar ** 2 / (me * e ** 2)
 <dd>
 <div class="desc"><p>The reduced Planck constant.</p></div>
 </dd>
-<dt id="fompy.constants.henry"><code class="name">var <span class="ident">henry</span></code></dt>
+<dt id="fompy.constants.eV"><code class="name">var <span class="ident">eV</span></code></dt>
 <dd>
-<div class="desc"><p>One henry.</p></div>
+<div class="desc"><p>One electronvolt expressed in ergs.</p></div>
 </dd>
-<dt id="fompy.constants.k"><code class="name">var <span class="ident">k</span></code></dt>
+<dt id="fompy.constants.eV_m"><code class="name">var <span class="ident">eV_m</span></code></dt>
 <dd>
-<div class="desc"><p>The Boltzmann constant.</p></div>
+<div class="desc"><p>An off-system unit of mass equal to eV / c^2.</p></div>
 </dd>
-<dt id="fompy.constants.me"><code class="name">var <span class="ident">me</span></code></dt>
+<dt id="fompy.constants.eV_T"><code class="name">var <span class="ident">eV_T</span></code></dt>
 <dd>
-<div class="desc"><p>The electron mass.</p></div>
+<div class="desc"><p>An off-system unit of temperature equal to eV / k.</p></div>
 </dd>
-<dt id="fompy.constants.mn"><code class="name">var <span class="ident">mn</span></code></dt>
+<dt id="fompy.constants.amu"><code class="name">var <span class="ident">amu</span></code></dt>
 <dd>
-<div class="desc"><p>The neutron mass.</p></div>
+<div class="desc"><p>The atomic mass unit (dalton).</p></div>
 </dd>
-<dt id="fompy.constants.mp"><code class="name">var <span class="ident">mp</span></code></dt>
+<dt id="fompy.constants.angstrom"><code class="name">var <span class="ident">angstrom</span></code></dt>
 <dd>
-<div class="desc"><p>The proton mass.</p></div>
+<div class="desc"><p>One angstrom expressed in centimeters.</p></div>
+</dd>
+<dt id="fompy.constants.volt"><code class="name">var <span class="ident">volt</span></code></dt>
+<dd>
+<div class="desc"><p>One volt.</p></div>
+</dd>
+<dt id="fompy.constants.ampere"><code class="name">var <span class="ident">ampere</span></code></dt>
+<dd>
+<div class="desc"><p>One ampere.</p></div>
 </dd>
 <dt id="fompy.constants.ohm"><code class="name">var <span class="ident">ohm</span></code></dt>
 <dd>
 <div class="desc"><p>One ohm.</p></div>
 </dd>
-<dt id="fompy.constants.sigma"><code class="name">var <span class="ident">sigma</span></code></dt>
+<dt id="fompy.constants.farad"><code class="name">var <span class="ident">farad</span></code></dt>
 <dd>
-<div class="desc"><p>The Stefan-Boltzmann constant.</p></div>
+<div class="desc"><p>One farad.</p></div>
 </dd>
-<dt id="fompy.constants.volt"><code class="name">var <span class="ident">volt</span></code></dt>
+<dt id="fompy.constants.henry"><code class="name">var <span class="ident">henry</span></code></dt>
 <dd>
-<div class="desc"><p>One volt.</p></div>
+<div class="desc"><p>One henry.</p></div>
+</dd>
+<dt id="fompy.constants.Ry"><code class="name">var <span class="ident">Ry</span></code></dt>
+<dd>
+<div class="desc"><p>The Reynolds number.</p></div>
+</dd>
+<dt id="fompy.constants.a0"><code class="name">var <span class="ident">a0</span></code></dt>
+<dd>
+<div class="desc"><p>The Bohr radius.</p></div>
 </dd>
 </dl>
 </section>
@@ -236,29 +236,29 @@ a0 = h_bar ** 2 / (me * e ** 2)
 </li>
 <li><h3><a href="#header-variables">Global variables</a></h3>
 <ul class="two-column">
+<li><code><a title="fompy.constants.c" href="#fompy.constants.c">c</a></code></li>
+<li><code><a title="fompy.constants.k" href="#fompy.constants.k">k</a></code></li>
 <li><code><a title="fompy.constants.Na" href="#fompy.constants.Na">Na</a></code></li>
 <li><code><a title="fompy.constants.R" href="#fompy.constants.R">R</a></code></li>
-<li><code><a title="fompy.constants.Ry" href="#fompy.constants.Ry">Ry</a></code></li>
-<li><code><a title="fompy.constants.a0" href="#fompy.constants.a0">a0</a></code></li>
-<li><code><a title="fompy.constants.ampere" href="#fompy.constants.ampere">ampere</a></code></li>
-<li><code><a title="fompy.constants.amu" href="#fompy.constants.amu">amu</a></code></li>
-<li><code><a title="fompy.constants.angstrom" href="#fompy.constants.angstrom">angstrom</a></code></li>
-<li><code><a title="fompy.constants.c" href="#fompy.constants.c">c</a></code></li>
+<li><code><a title="fompy.constants.sigma" href="#fompy.constants.sigma">sigma</a></code></li>
+<li><code><a title="fompy.constants.me" href="#fompy.constants.me">me</a></code></li>
+<li><code><a title="fompy.constants.mp" href="#fompy.constants.mp">mp</a></code></li>
+<li><code><a title="fompy.constants.mn" href="#fompy.constants.mn">mn</a></code></li>
 <li><code><a title="fompy.constants.e" href="#fompy.constants.e">e</a></code></li>
-<li><code><a title="fompy.constants.eV" href="#fompy.constants.eV">eV</a></code></li>
-<li><code><a title="fompy.constants.eV_T" href="#fompy.constants.eV_T">eV_T</a></code></li>
-<li><code><a title="fompy.constants.eV_m" href="#fompy.constants.eV_m">eV_m</a></code></li>
-<li><code><a title="fompy.constants.farad" href="#fompy.constants.farad">farad</a></code></li>
 <li><code><a title="fompy.constants.h" href="#fompy.constants.h">h</a></code></li>
 <li><code><a title="fompy.constants.h_bar" href="#fompy.constants.h_bar">h_bar</a></code></li>
-<li><code><a title="fompy.constants.henry" href="#fompy.constants.henry">henry</a></code></li>
-<li><code><a title="fompy.constants.k" href="#fompy.constants.k">k</a></code></li>
-<li><code><a title="fompy.constants.me" href="#fompy.constants.me">me</a></code></li>
-<li><code><a title="fompy.constants.mn" href="#fompy.constants.mn">mn</a></code></li>
-<li><code><a title="fompy.constants.mp" href="#fompy.constants.mp">mp</a></code></li>
-<li><code><a title="fompy.constants.ohm" href="#fompy.constants.ohm">ohm</a></code></li>
-<li><code><a title="fompy.constants.sigma" href="#fompy.constants.sigma">sigma</a></code></li>
+<li><code><a title="fompy.constants.eV" href="#fompy.constants.eV">eV</a></code></li>
+<li><code><a title="fompy.constants.eV_m" href="#fompy.constants.eV_m">eV_m</a></code></li>
+<li><code><a title="fompy.constants.eV_T" href="#fompy.constants.eV_T">eV_T</a></code></li>
+<li><code><a title="fompy.constants.amu" href="#fompy.constants.amu">amu</a></code></li>
+<li><code><a title="fompy.constants.angstrom" href="#fompy.constants.angstrom">angstrom</a></code></li>
 <li><code><a title="fompy.constants.volt" href="#fompy.constants.volt">volt</a></code></li>
+<li><code><a title="fompy.constants.ampere" href="#fompy.constants.ampere">ampere</a></code></li>
+<li><code><a title="fompy.constants.ohm" href="#fompy.constants.ohm">ohm</a></code></li>
+<li><code><a title="fompy.constants.farad" href="#fompy.constants.farad">farad</a></code></li>
+<li><code><a title="fompy.constants.henry" href="#fompy.constants.henry">henry</a></code></li>
+<li><code><a title="fompy.constants.Ry" href="#fompy.constants.Ry">Ry</a></code></li>
+<li><code><a title="fompy.constants.a0" href="#fompy.constants.a0">a0</a></code></li>
 </ul>
 </li>
 </ul>
