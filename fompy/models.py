@@ -928,7 +928,7 @@ class PNJunctionNonDegenerate(PNJunction):
 
     def j0_p(self, diffusivity, diffusion_length):
         r"""
-        Calculate the hole current density without external voltage.
+        Calculate the hole current density without external voltage (the dark current).
 
         .. math::
             J_{0p} = \frac{e D_p p_{n0}}{L_p}
@@ -949,7 +949,7 @@ class PNJunctionNonDegenerate(PNJunction):
 
     def j0_n(self, diffusivity, diffusion_length):
         r"""
-        Calculate the electron current density without external voltage.
+        Calculate the electron current density without external voltage (the dark current).
 
         .. math::
             J_{0n} = \frac{e D_n n_{p0}}{L_n}
@@ -1044,7 +1044,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def delta_phi_n(self, T=300):
         r"""
-        Calculate the difference of potentials for the negative depletion layer.
+        Calculate the difference of potentials in the n-type semiconductor.
 
         .. math::
             \Delta\phi_n = \Delta\phi \frac{ N_a^- }{ N_a^- + N_d^+ }
@@ -1064,7 +1064,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def delta_phi_p(self, T=300):
         r"""
-        Calculate the difference of potentials for the positive depletion layer.
+        Calculate the difference of potentials in the p-type semiconductor.
 
         .. math::
             \Delta\phi_p = \Delta\phi \frac{ N_d^+ }{ N_a^- + N_d^+ }
@@ -1104,7 +1104,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def w_n(self, T=300):
         r"""
-        Calculate the width of the negative depletion layer.
+        Calculate the width of the depletion layer inside an n-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -1124,7 +1124,7 @@ class PNJunctionFullDepletion(PNJunction):
 
     def w_p(self, T=300):
         r"""
-        Calculate the width of the positive depletion layer.
+        Calculate the width of the depletion layer inside an p-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
