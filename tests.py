@@ -8,7 +8,8 @@ from fompy.constants import eV, volt, angstrom, amu, ampere
 from fompy.materials import Si
 from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
-    BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate
+    BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate, hydrogen_like_energy, \
+    hydrogen_like_radius
 from fompy.units import unit, parse_unit
 
 
@@ -285,6 +286,14 @@ class TestFormulae(unittest.TestCase):
     def test_concentration(self):
         self.assertAlmostEqual(concentration(0.01 * unit('Ohm cm'), self.mobility), 1.2e18, delta=1e17)
         self.assertAlmostEqual(concentration(10000 * unit('Ohm cm'), self.mobility), 1.2e12, delta=1e11)
+
+    def test_hydrogen_like_energy(self):
+        self.assertAlmostEqual(hydrogen_like_energy(Si.eps, Si.me) / eV, 0.035, delta=0.001)
+        self.assertAlmostEqual(hydrogen_like_energy(Si.eps, Si.mh) / eV, 0.080, delta=0.001)
+
+    def test_hydrogen_like_radius(self):
+        self.assertAlmostEqual(hydrogen_like_radius(Si.eps, Si.me) / angstrom, 17.2, delta=0.1)
+        self.assertAlmostEqual(hydrogen_like_radius(Si.eps, Si.mh) / angstrom, 7.6, delta=9.1)
 
 
 if __name__ == '__main__':

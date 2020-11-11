@@ -108,6 +108,24 @@ def debye_length(eps, n, T):
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
 
 
+def hydrogen_like_energy(eps, m):
+    r"""
+    .. math::
+        E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2}
+    """
+    # TODO: documentation
+    return e ** 4 * m / (2 * h_bar ** 2) / eps ** 2
+
+
+def hydrogen_like_radius(eps, m):
+    r"""
+    ..math::
+        r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2}
+    """
+    # TODO: documentation
+    return eps * h_bar ** 2 / (m * e ** 2)
+
+
 class CrystalLattice:
     """
     A class to calculate properties of a crystal lattice.
