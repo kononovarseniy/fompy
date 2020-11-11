@@ -22,16 +22,16 @@ def fermi(E, Ef, T):
     Parameters
     ----------
     E : float
-        The energy level.
+        The energy level [erg].
     Ef : float
-        The Fermi level.
+        The Fermi level [erg].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Fermi-Dirac distribution of `E`.
+        The Fermi-Dirac distribution of `E` [1].
     """
     arg = (E - Ef) / (k * T)
     if arg > 500:  # issue #11

@@ -52,16 +52,16 @@ def fermi(E, Ef, T):
     Parameters
     ----------
     E : float
-        The energy level.
+        The energy level [erg].
     Ef : float
-        The Fermi level.
+        The Fermi level [erg].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Fermi-Dirac distribution of `E`.
+        The Fermi-Dirac distribution of `E` [1].
     &#34;&#34;&#34;
     arg = (E - Ef) / (k * T)
     if arg &gt; 500:  # issue #11
@@ -86,16 +86,16 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>E</code></strong> :&ensp;<code>float</code></dt>
-<dd>The energy level.</dd>
+<dd>The energy level [erg].</dd>
 <dt><strong><code>Ef</code></strong> :&ensp;<code>float</code></dt>
-<dd>The Fermi level.</dd>
+<dd>The Fermi level [erg].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The Fermi-Dirac distribution of <code>E</code>.</dd>
+<dd>The Fermi-Dirac distribution of <code>E</code> [1].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -111,16 +111,16 @@ Parameters</p>
     Parameters
     ----------
     E : float
-        The energy level.
+        The energy level [erg].
     Ef : float
-        The Fermi level.
+        The Fermi level [erg].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Fermi-Dirac distribution of `E`.
+        The Fermi-Dirac distribution of `E` [1].
     &#34;&#34;&#34;
     arg = (E - Ef) / (k * T)
     if arg &gt; 500:  # issue #11

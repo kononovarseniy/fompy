@@ -59,14 +59,14 @@ def conductivity(n, mobility):
     Parameters
     ----------
     n : float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     mobility : float
-        The carrier mobility.
+        The carrier mobility [cm&lt;sup&gt;2&lt;/sup&gt; statV&lt;sup&gt;&amp;minus;1&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
 
     Returns
     -------
     float
-        The conductivity.
+        The conductivity [s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
     &#34;&#34;&#34;
     return e * n * mobility
 
@@ -81,14 +81,14 @@ def concentration(resistivity, mobility):
     Parameters
     ----------
     resistivity : float
-        The resistivity of the material.
+        The resistivity of the material [s].
     mobility : float
-        The carrier mobility.
+        The carrier mobility [cm&lt;sup&gt;2&lt;/sup&gt; statV&lt;sup&gt;&amp;minus;1&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
 
     Returns
     -------
     float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return 1 / (resistivity * mobility * e)
 
@@ -103,15 +103,15 @@ def depletion_width(eps, n, d_phi):
     Parameters
     ----------
     eps : float
-        The dielectric constant.
+        The dielectric constant [1].
     n : float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     d_phi : float
-        The difference of potentials.
+        The difference of potentials [statV].
     Returns
     -------
     float
-        The width of the depletion region.
+        The width of the depletion region [cm].
     &#34;&#34;&#34;
     return sqrt(eps * d_phi / (2 * pi * e * n))
 
@@ -126,16 +126,16 @@ def debye_length(eps, n, T):
     Parameters
     ----------
     eps : float
-        The dielectric constant.
+        The dielectric constant [1].
     n : float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Debye length.
+        The Debye length [cm].
     &#34;&#34;&#34;
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))
 
@@ -152,13 +152,13 @@ class CrystalLattice:
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         r : float
-            The maximum radius of non-intersecting spheres around atoms.
+            The maximum radius of non-intersecting spheres around atoms [cm].
         N : float
-            The number of atoms in a cell.
+            The number of atoms in a cell [1].
         &#34;&#34;&#34;
         self._a = a
         self._m = m
@@ -167,28 +167,28 @@ class CrystalLattice:
 
     @property
     def a(self):
-        &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the lattice parameter [cm].&#34;&#34;&#34;
         return self._a
 
     @property
     def m(self):
-        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms) [g].&#34;&#34;&#34;
         return self._m
 
     @property
     def r(self):
-        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms [r].&#34;&#34;&#34;
         return self._r
 
     @property
     def N(self):
-        &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the number of atoms in a cell [1].&#34;&#34;&#34;
         return self._N
 
     @property
     def packing_density(self):
         r&#34;&#34;&#34;
-        Get the packing density.
+        Get the packing density [1].
 
         .. math::
             \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
@@ -198,7 +198,7 @@ class CrystalLattice:
     @property
     def concentration(self):
         r&#34;&#34;&#34;
-        Get the concentration.
+        Get the concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
 
         .. math::
             n = \frac{N}{a^3}
@@ -208,7 +208,7 @@ class CrystalLattice:
     @property
     def density(self):
         r&#34;&#34;&#34;
-        Get the density.
+        Get the density [g cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
 
         .. math::
             \rho = n m = \frac{N}{a^3} m
@@ -234,9 +234,9 @@ class PrimitiveCubicLattice(CrystalLattice):
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a / 2, 1)
 
@@ -259,9 +259,9 @@ class FaceCenteredCubicLattice(CrystalLattice):
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a * sqrt(2) / 4, 4)
 
@@ -284,9 +284,9 @@ class BodyCenteredCubicLattice(CrystalLattice):
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a * sqrt(3) / 4, 2)
 
@@ -309,9 +309,9 @@ class DiamondLikeLattice(CrystalLattice):
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a * sqrt(3) / 8, 8)
 
@@ -323,15 +323,15 @@ class Semiconductor:
     Attributes
     ----------
     me : float
-        The effective mass of an electron.
+        The effective mass of an electron [g].
     mh : float
-        The effective mass of a hole.
+        The effective mass of a hole [g].
     Eg : float
-        The energy gap.
+        The energy gap [erg].
     chi : float or None
-        The electron affinity.
+        The electron affinity [erg].
     eps : float or None
-        The dielectric constant.
+        The dielectric constant [1].
     lattice : CrystalLattice or None
         The crystal lattice.
     &#34;&#34;&#34;
@@ -343,15 +343,15 @@ class Semiconductor:
         Parameters
         ----------
         me_eff : float
-            The effective mass of an electron.
+            The effective mass of an electron [g].
         mh_eff : float
-            The effective mass of a hole.
+            The effective mass of a hole [g].
         Eg : float
-            The energy gap.
+            The energy gap [erg].
         chi : float or None
-            The electron affinity.
+            The electron affinity [erg].
         eps : float or None
-            The dielectric constant.
+            The dielectric constant [1].
         lattice : CrystalLattice or None
             The crystal lattice.
         &#34;&#34;&#34;
@@ -373,14 +373,14 @@ class Semiconductor:
         Parameters
         ----------
         m_eff : float
-            The effective mass.
+            The effective mass [g].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The effective density of states.
+            The effective density of states [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return 2 * (2 * pi * m_eff * k * T / (2 * pi * h_bar) ** 2) ** (3 / 2)
 
@@ -394,12 +394,12 @@ class Semiconductor:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The effective density of states for electrons in the conduction band.
+            The effective density of states for electrons in the conduction band [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.me, T)
 
@@ -413,12 +413,12 @@ class Semiconductor:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The effective density of states for holes in the valence band.
+            The effective density of states for holes in the valence band [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.mh, T)
 
@@ -429,12 +429,12 @@ class Semiconductor:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The intrinsic concentration of electrons.
+            The intrinsic concentration of electrons [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.n_concentration(self.intrinsic_fermi_level(), T)
 
@@ -448,14 +448,14 @@ class Semiconductor:
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The electron concentration.
+            The electron concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -471,14 +471,14 @@ class Semiconductor:
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole concentration.
+            The hole concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -508,12 +508,12 @@ class Semiconductor:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Fermi level.
+            The Fermi level [erg].
         &#34;&#34;&#34;
         return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)
 
@@ -527,12 +527,12 @@ class Semiconductor:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Fermi level.
+            The Fermi level [erg].
         &#34;&#34;&#34;
         return self._solve_electroneutrality_equation(self._charge_imbalance, T)
 
@@ -555,13 +555,13 @@ class DopedSemiconductor(Semiconductor):
     Attributes
     ----------
     Na : float
-        The acceptor concentration.
+        The acceptor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     Ea : float
-        The acceptor level.
+        The acceptor level [erg].
     Nd : float
-        The donor concentration.
+        The donor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     Ed : float
-        The donor level.
+        The donor level [erg].
     &#34;&#34;&#34;
 
     def __init__(self, mat, Na, Ea, Nd, Ed):
@@ -573,13 +573,13 @@ class DopedSemiconductor(Semiconductor):
         mat : Semiconductor
             The base intrinsic (pure) semiconductor.
         Na : float
-            The acceptor concentration.
+            The acceptor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ea : float
-            The acceptor level.
+            The acceptor level [erg].
         Nd : float
-            The donor concentration.
+            The donor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ed : float
-            The donor level.
+            The donor level [erg].
         &#34;&#34;&#34;
         super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
@@ -597,14 +597,14 @@ class DopedSemiconductor(Semiconductor):
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The concentration of positive donor ions.
+            The concentration of positive donor ions [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -620,14 +620,14 @@ class DopedSemiconductor(Semiconductor):
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The concentration of negative acceptor ions.
+            The concentration of negative acceptor ions [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -650,12 +650,12 @@ class DopedSemiconductor(Semiconductor):
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Fermi level.
+            The Fermi level [erg].
         &#34;&#34;&#34;
         return super().fermi_level(T)  # Note: the method _charge_imbalance() is overridden by DopedSemiconductor
 
@@ -666,9 +666,9 @@ class DopedSemiconductor(Semiconductor):
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float or None
-            The temperature. If `None`, `T` is assigned 300 K.
+            The temperature [K]. If `None`, `T` is assigned 300 K.
 
         Returns
         -------
@@ -706,7 +706,7 @@ class Metal:
         Parameters
         ----------
         work_function : float
-            The work function.
+            The work function [erg].
         &#34;&#34;&#34;
         self.work_function = work_function
 
@@ -756,12 +756,12 @@ class MSJunction:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
 
@@ -775,7 +775,7 @@ class MSJunction:
         Returns
         -------
         float
-            The height of the Schottky barrier.
+            The height of the Schottky barrier [statV].
         &#34;&#34;&#34;
         return (self.metal.work_function - self.sc.chi) / e
 
@@ -786,7 +786,7 @@ class MSJunction:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
@@ -822,12 +822,12 @@ class MSJunction:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The width of the depletion region.
+            The width of the depletion region [cm].
         &#34;&#34;&#34;
         return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
 
@@ -841,12 +841,12 @@ class MSJunction:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Debye length.
+            The Debye length [cm].
         &#34;&#34;&#34;
         return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)
 
@@ -874,13 +874,13 @@ class PNJunction:
         mat : Semiconductor
             The base intrinsic (pure) semiconductor.
         Na : float
-            The acceptor concentration.
+            The acceptor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ea : float
-            The acceptor level.
+            The acceptor level [erg].
         Nd : float
-            The donor concentration.
+            The donor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ed : float
-            The donor level.
+            The donor level [erg].
         &#34;&#34;&#34;
         if Ea is None:
             Ea = 0
@@ -900,12 +900,12 @@ class PNJunction:
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e
 
@@ -926,14 +926,14 @@ class PNJunctionNonDegenerate(PNJunction):
         Parameters
         ----------
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole concentration multiplied by the electron concentration.
+            The hole concentration multiplied by the electron concentration [cm&lt;sup&gt;&amp;minus;6&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
 
@@ -947,14 +947,14 @@ class PNJunctionNonDegenerate(PNJunction):
         Parameters
         ----------
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The electron concentration in the p-semiconductor.
+            The electron concentration in the p-semiconductor [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
 
@@ -968,14 +968,14 @@ class PNJunctionNonDegenerate(PNJunction):
         Parameters
         ----------
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole concentration in the n-semiconductor.
+            The hole concentration in the n-semiconductor [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
 
@@ -989,14 +989,14 @@ class PNJunctionNonDegenerate(PNJunction):
         Parameters
         ----------
         diffusivity : float
-            The hole diffusivity.
+            The hole diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The hole diffusion length.
+            The hole diffusion length [cm].
 
         Returns
         -------
         float
-            The hole current density.
+            The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
@@ -1010,14 +1010,14 @@ class PNJunctionNonDegenerate(PNJunction):
         Parameters
         ----------
         diffusivity : float
-            The electron diffusivity.
+            The electron diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The electron diffusion length.
+            The electron diffusion length [cm].
 
         Returns
         -------
         float
-            The electron current density.
+            The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
@@ -1032,18 +1032,18 @@ class PNJunctionNonDegenerate(PNJunction):
         Parameters
         ----------
         diffusivity : float
-            The hole diffusivity.
+            The hole diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The hole diffusion length.
+            The hole diffusion length [cm].
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole current density.
+            The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
 
@@ -1058,18 +1058,18 @@ class PNJunctionNonDegenerate(PNJunction):
         Parameters
         ----------
         diffusivity : float
-            The electron diffusivity.
+            The electron diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The electron diffusion length.
+            The electron diffusion length [cm].
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The electron current density.
+            The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
 
@@ -1105,12 +1105,12 @@ class PNJunctionFullDepletion(PNJunction):
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         df, a, d = self._df_Na_Nd(T)
         return df * a / (a + d)
@@ -1125,12 +1125,12 @@ class PNJunctionFullDepletion(PNJunction):
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         df, a, d = self._df_Na_Nd(T)
         return df * d / (a + d)
@@ -1145,19 +1145,19 @@ class PNJunctionFullDepletion(PNJunction):
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The full depletion width.
+            The full depletion width [cm].
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * (a + d) / (a * d))
 
     def w_n(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the depletion layer inside an n-type semiconductor.
+        Calculate the width of the depletion layer inside the n-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -1165,19 +1165,19 @@ class PNJunctionFullDepletion(PNJunction):
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The width of the negative depletion layer.
+            The width of the depletion layer inside the n-type semiconductor [cm].
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * a / d / (a + d))
 
     def w_p(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the depletion layer inside an p-type semiconductor.
+        Calculate the width of the depletion layer inside the p-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -1185,12 +1185,12 @@ class PNJunctionFullDepletion(PNJunction):
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The width of the positive depletion layer.
+            The width of the depletion layer inside the p-type semiconductor [cm].
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))</code></pre>
@@ -1214,14 +1214,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The carrier concentration.</dd>
+<dd>The carrier concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
-<dd>The carrier mobility.</dd>
+<dd>The carrier mobility [cm<sup>2</sup> statV<sup>&minus;1</sup> s<sup>&minus;1</sup>].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The conductivity.</dd>
+<dd>The conductivity [s<sup>&minus;1</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1238,14 +1238,14 @@ Parameters</p>
     Parameters
     ----------
     n : float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     mobility : float
-        The carrier mobility.
+        The carrier mobility [cm&lt;sup&gt;2&lt;/sup&gt; statV&lt;sup&gt;&amp;minus;1&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
 
     Returns
     -------
     float
-        The conductivity.
+        The conductivity [s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
     &#34;&#34;&#34;
     return e * n * mobility</code></pre>
 </details>
@@ -1260,14 +1260,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>resistivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The resistivity of the material.</dd>
+<dd>The resistivity of the material [s].</dd>
 <dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
-<dd>The carrier mobility.</dd>
+<dd>The carrier mobility [cm<sup>2</sup> statV<sup>&minus;1</sup> s<sup>&minus;1</sup>].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The carrier concentration.</dd>
+<dd>The carrier concentration [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1283,14 +1283,14 @@ Parameters</p>
     Parameters
     ----------
     resistivity : float
-        The resistivity of the material.
+        The resistivity of the material [s].
     mobility : float
-        The carrier mobility.
+        The carrier mobility [cm&lt;sup&gt;2&lt;/sup&gt; statV&lt;sup&gt;&amp;minus;1&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
 
     Returns
     -------
     float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return 1 / (resistivity * mobility * e)</code></pre>
 </details>
@@ -1305,16 +1305,16 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
-<dd>The dielectric constant.</dd>
+<dd>The dielectric constant [1].</dd>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The carrier concentration.</dd>
+<dd>The carrier concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>d_phi</code></strong> :&ensp;<code>float</code></dt>
-<dd>The difference of potentials.</dd>
+<dd>The difference of potentials [statV].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The width of the depletion region.</dd>
+<dd>The width of the depletion region [cm].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1330,15 +1330,15 @@ Parameters</p>
     Parameters
     ----------
     eps : float
-        The dielectric constant.
+        The dielectric constant [1].
     n : float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     d_phi : float
-        The difference of potentials.
+        The difference of potentials [statV].
     Returns
     -------
     float
-        The width of the depletion region.
+        The width of the depletion region [cm].
     &#34;&#34;&#34;
     return sqrt(eps * d_phi / (2 * pi * e * n))</code></pre>
 </details>
@@ -1353,16 +1353,16 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
-<dd>The dielectric constant.</dd>
+<dd>The dielectric constant [1].</dd>
 <dt><strong><code>n</code></strong> :&ensp;<code>float</code></dt>
-<dd>The carrier concentration.</dd>
+<dd>The carrier concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The Debye length.</dd>
+<dd>The Debye length [cm].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1378,16 +1378,16 @@ Parameters</p>
     Parameters
     ----------
     eps : float
-        The dielectric constant.
+        The dielectric constant [1].
     n : float
-        The carrier concentration.
+        The carrier concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Debye length.
+        The Debye length [cm].
     &#34;&#34;&#34;
     return sqrt(eps * k * T / (4 * pi * e ** 2 * n))</code></pre>
 </details>
@@ -1407,13 +1407,13 @@ Parameters</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
-<dd>The lattice parameter.</dd>
+<dd>The lattice parameter [cm].</dd>
 <dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
-<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms) [g].</dd>
 <dt><strong><code>r</code></strong> :&ensp;<code>float</code></dt>
-<dd>The maximum radius of non-intersecting spheres around atoms.</dd>
+<dd>The maximum radius of non-intersecting spheres around atoms [cm].</dd>
 <dt><strong><code>N</code></strong> :&ensp;<code>float</code></dt>
-<dd>The number of atoms in a cell.</dd>
+<dd>The number of atoms in a cell [1].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1431,13 +1431,13 @@ Parameters</p>
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         r : float
-            The maximum radius of non-intersecting spheres around atoms.
+            The maximum radius of non-intersecting spheres around atoms [cm].
         N : float
-            The number of atoms in a cell.
+            The number of atoms in a cell [1].
         &#34;&#34;&#34;
         self._a = a
         self._m = m
@@ -1446,28 +1446,28 @@ Parameters</p>
 
     @property
     def a(self):
-        &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the lattice parameter [cm].&#34;&#34;&#34;
         return self._a
 
     @property
     def m(self):
-        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms) [g].&#34;&#34;&#34;
         return self._m
 
     @property
     def r(self):
-        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms [r].&#34;&#34;&#34;
         return self._r
 
     @property
     def N(self):
-        &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+        &#34;&#34;&#34;Get the number of atoms in a cell [1].&#34;&#34;&#34;
         return self._N
 
     @property
     def packing_density(self):
         r&#34;&#34;&#34;
-        Get the packing density.
+        Get the packing density [1].
 
         .. math::
             \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
@@ -1477,7 +1477,7 @@ Parameters</p>
     @property
     def concentration(self):
         r&#34;&#34;&#34;
-        Get the concentration.
+        Get the concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
 
         .. math::
             n = \frac{N}{a^3}
@@ -1487,7 +1487,7 @@ Parameters</p>
     @property
     def density(self):
         r&#34;&#34;&#34;
-        Get the density.
+        Get the density [g cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
 
         .. math::
             \rho = n m = \frac{N}{a^3} m
@@ -1505,59 +1505,59 @@ Parameters</p>
 <dl>
 <dt id="fompy.models.CrystalLattice.a"><code class="name">var <span class="ident">a</span></code></dt>
 <dd>
-<div class="desc"><p>Get the lattice parameter.</p></div>
+<div class="desc"><p>Get the lattice parameter [cm].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def a(self):
-    &#34;&#34;&#34;Get the lattice parameter.&#34;&#34;&#34;
+    &#34;&#34;&#34;Get the lattice parameter [cm].&#34;&#34;&#34;
     return self._a</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.CrystalLattice.m"><code class="name">var <span class="ident">m</span></code></dt>
 <dd>
-<div class="desc"><p>Get the mass of an atom (the average mass in case of there being several types of atoms).</p></div>
+<div class="desc"><p>Get the mass of an atom (the average mass in case of there being several types of atoms) [g].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def m(self):
-    &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms).&#34;&#34;&#34;
+    &#34;&#34;&#34;Get the mass of an atom (the average mass in case of there being several types of atoms) [g].&#34;&#34;&#34;
     return self._m</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.CrystalLattice.r"><code class="name">var <span class="ident">r</span></code></dt>
 <dd>
-<div class="desc"><p>Get the maximum radius of non-intersecting spheres around atoms.</p></div>
+<div class="desc"><p>Get the maximum radius of non-intersecting spheres around atoms [r].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def r(self):
-    &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms.&#34;&#34;&#34;
+    &#34;&#34;&#34;Get the maximum radius of non-intersecting spheres around atoms [r].&#34;&#34;&#34;
     return self._r</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.CrystalLattice.N"><code class="name">var <span class="ident">N</span></code></dt>
 <dd>
-<div class="desc"><p>Get the number of atoms in a cell.</p></div>
+<div class="desc"><p>Get the number of atoms in a cell [1].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def N(self):
-    &#34;&#34;&#34;Get the number of atoms in a cell.&#34;&#34;&#34;
+    &#34;&#34;&#34;Get the number of atoms in a cell [1].&#34;&#34;&#34;
     return self._N</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.CrystalLattice.packing_density"><code class="name">var <span class="ident">packing_density</span></code></dt>
 <dd>
-<div class="desc"><p>Get the packing density.</p>
+<div class="desc"><p>Get the packing density [1].</p>
 <p><span><span class="MathJax_Preview"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </span><script type="math/tex; mode=display"> \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3 </script></span></p></div>
 <details class="source">
 <summary>
@@ -1566,7 +1566,7 @@ def N(self):
 <pre><code class="python">@property
 def packing_density(self):
     r&#34;&#34;&#34;
-    Get the packing density.
+    Get the packing density [1].
 
     .. math::
         \eta = \frac{N}{a^3} \frac{4}{3} \pi r^3
@@ -1576,7 +1576,7 @@ def packing_density(self):
 </dd>
 <dt id="fompy.models.CrystalLattice.concentration"><code class="name">var <span class="ident">concentration</span></code></dt>
 <dd>
-<div class="desc"><p>Get the concentration.</p>
+<div class="desc"><p>Get the concentration [cm<sup>&minus;3</sup>].</p>
 <p><span><span class="MathJax_Preview"> n = \frac{N}{a^3} </span><script type="math/tex; mode=display"> n = \frac{N}{a^3} </script></span></p></div>
 <details class="source">
 <summary>
@@ -1585,7 +1585,7 @@ def packing_density(self):
 <pre><code class="python">@property
 def concentration(self):
     r&#34;&#34;&#34;
-    Get the concentration.
+    Get the concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
 
     .. math::
         n = \frac{N}{a^3}
@@ -1595,7 +1595,7 @@ def concentration(self):
 </dd>
 <dt id="fompy.models.CrystalLattice.density"><code class="name">var <span class="ident">density</span></code></dt>
 <dd>
-<div class="desc"><p>Get the density.</p>
+<div class="desc"><p>Get the density [g cm<sup>&minus;3</sup>].</p>
 <p><span><span class="MathJax_Preview"> \rho = n m = \frac{N}{a^3} m </span><script type="math/tex; mode=display"> \rho = n m = \frac{N}{a^3} m </script></span></p></div>
 <details class="source">
 <summary>
@@ -1604,7 +1604,7 @@ def concentration(self):
 <pre><code class="python">@property
 def density(self):
     r&#34;&#34;&#34;
-    Get the density.
+    Get the density [g cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
 
     .. math::
         \rho = n m = \frac{N}{a^3} m
@@ -1628,9 +1628,9 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
-<dd>The lattice parameter.</dd>
+<dd>The lattice parameter [cm].</dd>
 <dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
-<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms) [g].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1654,9 +1654,9 @@ Parameters</p>
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a / 2, 1)</code></pre>
 </details>
@@ -1693,9 +1693,9 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
-<dd>The lattice parameter.</dd>
+<dd>The lattice parameter [cm].</dd>
 <dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
-<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms) [g].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1719,9 +1719,9 @@ Parameters</p>
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a * sqrt(2) / 4, 4)</code></pre>
 </details>
@@ -1758,9 +1758,9 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
-<dd>The lattice parameter.</dd>
+<dd>The lattice parameter [cm].</dd>
 <dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
-<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms) [g].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1784,9 +1784,9 @@ Parameters</p>
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a * sqrt(3) / 4, 2)</code></pre>
 </details>
@@ -1823,9 +1823,9 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
-<dd>The lattice parameter.</dd>
+<dd>The lattice parameter [cm].</dd>
 <dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
-<dd>The mass of an atom (the average mass in case of there being several types of atoms).</dd>
+<dd>The mass of an atom (the average mass in case of there being several types of atoms) [g].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1849,9 +1849,9 @@ Parameters</p>
         Parameters
         ----------
         a : float
-            The lattice parameter.
+            The lattice parameter [cm].
         m : float
-            The mass of an atom (the average mass in case of there being several types of atoms).
+            The mass of an atom (the average mass in case of there being several types of atoms) [g].
         &#34;&#34;&#34;
         super().__init__(a, m, a * sqrt(3) / 8, 8)</code></pre>
 </details>
@@ -1883,15 +1883,15 @@ Parameters</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>me</code></strong> :&ensp;<code>float</code></dt>
-<dd>The effective mass of an electron.</dd>
+<dd>The effective mass of an electron [g].</dd>
 <dt><strong><code>mh</code></strong> :&ensp;<code>float</code></dt>
-<dd>The effective mass of a hole.</dd>
+<dd>The effective mass of a hole [g].</dd>
 <dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
-<dd>The energy gap.</dd>
+<dd>The energy gap [erg].</dd>
 <dt><strong><code>chi</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The electron affinity.</dd>
+<dd>The electron affinity [erg].</dd>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The dielectric constant.</dd>
+<dd>The dielectric constant [1].</dd>
 <dt><strong><code>lattice</code></strong> :&ensp;<code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> or <code>None</code></dt>
 <dd>The crystal lattice.</dd>
 </dl>
@@ -1899,15 +1899,15 @@ Parameters</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>me_eff</code></strong> :&ensp;<code>float</code></dt>
-<dd>The effective mass of an electron.</dd>
+<dd>The effective mass of an electron [g].</dd>
 <dt><strong><code>mh_eff</code></strong> :&ensp;<code>float</code></dt>
-<dd>The effective mass of a hole.</dd>
+<dd>The effective mass of a hole [g].</dd>
 <dt><strong><code>Eg</code></strong> :&ensp;<code>float</code></dt>
-<dd>The energy gap.</dd>
+<dd>The energy gap [erg].</dd>
 <dt><strong><code>chi</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The electron affinity.</dd>
+<dd>The electron affinity [erg].</dd>
 <dt><strong><code>eps</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The dielectric constant.</dd>
+<dd>The dielectric constant [1].</dd>
 <dt><strong><code>lattice</code></strong> :&ensp;<code><a title="fompy.models.CrystalLattice" href="#fompy.models.CrystalLattice">CrystalLattice</a></code> or <code>None</code></dt>
 <dd>The crystal lattice.</dd>
 </dl></div>
@@ -1922,15 +1922,15 @@ Parameters</p>
     Attributes
     ----------
     me : float
-        The effective mass of an electron.
+        The effective mass of an electron [g].
     mh : float
-        The effective mass of a hole.
+        The effective mass of a hole [g].
     Eg : float
-        The energy gap.
+        The energy gap [erg].
     chi : float or None
-        The electron affinity.
+        The electron affinity [erg].
     eps : float or None
-        The dielectric constant.
+        The dielectric constant [1].
     lattice : CrystalLattice or None
         The crystal lattice.
     &#34;&#34;&#34;
@@ -1942,15 +1942,15 @@ Parameters</p>
         Parameters
         ----------
         me_eff : float
-            The effective mass of an electron.
+            The effective mass of an electron [g].
         mh_eff : float
-            The effective mass of a hole.
+            The effective mass of a hole [g].
         Eg : float
-            The energy gap.
+            The energy gap [erg].
         chi : float or None
-            The electron affinity.
+            The electron affinity [erg].
         eps : float or None
-            The dielectric constant.
+            The dielectric constant [1].
         lattice : CrystalLattice or None
             The crystal lattice.
         &#34;&#34;&#34;
@@ -1972,14 +1972,14 @@ Parameters</p>
         Parameters
         ----------
         m_eff : float
-            The effective mass.
+            The effective mass [g].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The effective density of states.
+            The effective density of states [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return 2 * (2 * pi * m_eff * k * T / (2 * pi * h_bar) ** 2) ** (3 / 2)
 
@@ -1993,12 +1993,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The effective density of states for electrons in the conduction band.
+            The effective density of states for electrons in the conduction band [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.me, T)
 
@@ -2012,12 +2012,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The effective density of states for holes in the valence band.
+            The effective density of states for holes in the valence band [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return Semiconductor.effective_state_density(self.mh, T)
 
@@ -2028,12 +2028,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The intrinsic concentration of electrons.
+            The intrinsic concentration of electrons [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.n_concentration(self.intrinsic_fermi_level(), T)
 
@@ -2047,14 +2047,14 @@ Parameters</p>
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The electron concentration.
+            The electron concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -2070,14 +2070,14 @@ Parameters</p>
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole concentration.
+            The hole concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -2107,12 +2107,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Fermi level.
+            The Fermi level [erg].
         &#34;&#34;&#34;
         return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)
 
@@ -2126,12 +2126,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Fermi level.
+            The Fermi level [erg].
         &#34;&#34;&#34;
         return self._solve_electroneutrality_equation(self._charge_imbalance, T)
 
@@ -2162,14 +2162,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>m_eff</code></strong> :&ensp;<code>float</code></dt>
-<dd>The effective mass.</dd>
+<dd>The effective mass [g].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The effective density of states.</dd>
+<dd>The effective density of states [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2186,14 +2186,14 @@ def effective_state_density(m_eff, T):
     Parameters
     ----------
     m_eff : float
-        The effective mass.
+        The effective mass [g].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The effective density of states.
+        The effective density of states [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return 2 * (2 * pi * m_eff * k * T / (2 * pi * h_bar) ** 2) ** (3 / 2)</code></pre>
 </details>
@@ -2211,12 +2211,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The effective density of states for electrons in the conduction band.</dd>
+<dd>The effective density of states for electrons in the conduction band [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2232,12 +2232,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The effective density of states for electrons in the conduction band.
+        The effective density of states for electrons in the conduction band [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return Semiconductor.effective_state_density(self.me, T)</code></pre>
 </details>
@@ -2252,12 +2252,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The effective density of states for holes in the valence band.</dd>
+<dd>The effective density of states for holes in the valence band [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2273,12 +2273,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The effective density of states for holes in the valence band.
+        The effective density of states for holes in the valence band [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return Semiconductor.effective_state_density(self.mh, T)</code></pre>
 </details>
@@ -2291,12 +2291,12 @@ Parameters</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The intrinsic concentration of electrons.</dd>
+<dd>The intrinsic concentration of electrons [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2309,12 +2309,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The intrinsic concentration of electrons.
+        The intrinsic concentration of electrons [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return self.n_concentration(self.intrinsic_fermi_level(), T)</code></pre>
 </details>
@@ -2329,14 +2329,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dd>The Fermi level [erg]. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The electron concentration.</dd>
+<dd>The electron concentration [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2352,14 +2352,14 @@ Parameters</p>
     Parameters
     ----------
     Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The electron concentration.
+        The electron concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     if Ef is None:
         Ef = self.fermi_level(T)
@@ -2376,14 +2376,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dd>The Fermi level [erg]. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The hole concentration.</dd>
+<dd>The hole concentration [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2399,14 +2399,14 @@ Parameters</p>
     Parameters
     ----------
     Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The hole concentration.
+        The hole concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     if Ef is None:
         Ef = self.fermi_level(T)
@@ -2424,12 +2424,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The Fermi level.</dd>
+<dd>The Fermi level [erg].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2446,12 +2446,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Fermi level.
+        The Fermi level [erg].
     &#34;&#34;&#34;
     return self._solve_electroneutrality_equation(self._intrinsic_charge_imbalance, T)</code></pre>
 </details>
@@ -2466,12 +2466,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The Fermi level.</dd>
+<dd>The Fermi level [erg].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2487,12 +2487,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Fermi level.
+        The Fermi level [erg].
     &#34;&#34;&#34;
     return self._solve_electroneutrality_equation(self._charge_imbalance, T)</code></pre>
 </details>
@@ -2534,13 +2534,13 @@ Parameters</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
+<dd>The acceptor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
+<dd>The acceptor level [erg].</dd>
 <dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
+<dd>The donor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
+<dd>The donor level [erg].</dd>
 </dl>
 <p>Construct the necessary attributes for the <code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code> object.</p>
 <h2 id="parameters">Parameters</h2>
@@ -2548,13 +2548,13 @@ Parameters</p>
 <dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
 <dd>The base intrinsic (pure) semiconductor.</dd>
 <dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
+<dd>The acceptor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
+<dd>The acceptor level [erg].</dd>
 <dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
+<dd>The donor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
+<dd>The donor level [erg].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2567,13 +2567,13 @@ Parameters</p>
     Attributes
     ----------
     Na : float
-        The acceptor concentration.
+        The acceptor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     Ea : float
-        The acceptor level.
+        The acceptor level [erg].
     Nd : float
-        The donor concentration.
+        The donor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     Ed : float
-        The donor level.
+        The donor level [erg].
     &#34;&#34;&#34;
 
     def __init__(self, mat, Na, Ea, Nd, Ed):
@@ -2585,13 +2585,13 @@ Parameters</p>
         mat : Semiconductor
             The base intrinsic (pure) semiconductor.
         Na : float
-            The acceptor concentration.
+            The acceptor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ea : float
-            The acceptor level.
+            The acceptor level [erg].
         Nd : float
-            The donor concentration.
+            The donor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ed : float
-            The donor level.
+            The donor level [erg].
         &#34;&#34;&#34;
         super(DopedSemiconductor, self).__init__(mat.me, mat.mh, mat.Eg, mat.chi, mat.eps, mat.lattice)
         self.Na = Na
@@ -2609,14 +2609,14 @@ Parameters</p>
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The concentration of positive donor ions.
+            The concentration of positive donor ions [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -2632,14 +2632,14 @@ Parameters</p>
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The concentration of negative acceptor ions.
+            The concentration of negative acceptor ions [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         if Ef is None:
             Ef = self.fermi_level(T)
@@ -2662,12 +2662,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Fermi level.
+            The Fermi level [erg].
         &#34;&#34;&#34;
         return super().fermi_level(T)  # Note: the method _charge_imbalance() is overridden by DopedSemiconductor
 
@@ -2678,9 +2678,9 @@ Parameters</p>
         Parameters
         ----------
         Ef : float or None
-            The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+            The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
         T : float or None
-            The temperature. If `None`, `T` is assigned 300 K.
+            The temperature [K]. If `None`, `T` is assigned 300 K.
 
         Returns
         -------
@@ -2716,14 +2716,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dd>The Fermi level [erg]. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The concentration of positive donor ions.</dd>
+<dd>The concentration of positive donor ions [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2739,14 +2739,14 @@ Parameters</p>
     Parameters
     ----------
     Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The concentration of positive donor ions.
+        The concentration of positive donor ions [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     if Ef is None:
         Ef = self.fermi_level(T)
@@ -2763,14 +2763,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dd>The Fermi level [erg]. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The concentration of negative acceptor ions.</dd>
+<dd>The concentration of negative acceptor ions [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2786,14 +2786,14 @@ Parameters</p>
     Parameters
     ----------
     Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The concentration of negative acceptor ions.
+        The concentration of negative acceptor ions [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     if Ef is None:
         Ef = self.fermi_level(T)
@@ -2811,12 +2811,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The Fermi level.</dd>
+<dd>The Fermi level [erg].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2834,12 +2834,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Fermi level.
+        The Fermi level [erg].
     &#34;&#34;&#34;
     return super().fermi_level(T)  # Note: the method _charge_imbalance() is overridden by DopedSemiconductor</code></pre>
 </details>
@@ -2852,9 +2852,9 @@ Parameters</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>Ef</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The Fermi level. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
+<dd>The Fermi level [erg]. If <code>None</code>, <code>Ef</code> is found via the <code>fermi_level</code> method.</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code> or <code>None</code></dt>
-<dd>The temperature. If <code>None</code>, <code>T</code> is assigned 300 K.</dd>
+<dd>The temperature [K]. If <code>None</code>, <code>T</code> is assigned 300 K.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2877,9 +2877,9 @@ Parameters</p>
     Parameters
     ----------
     Ef : float or None
-        The Fermi level. If `None`, `Ef` is found via the `fermi_level` method.
+        The Fermi level [erg]. If `None`, `Ef` is found via the `fermi_level` method.
     T : float or None
-        The temperature. If `None`, `T` is assigned 300 K.
+        The temperature [K]. If `None`, `T` is assigned 300 K.
 
     Returns
     -------
@@ -2931,7 +2931,7 @@ Parameters</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>work_function</code></strong> :&ensp;<code>float</code></dt>
-<dd>The work function.</dd>
+<dd>The work function [erg].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2954,7 +2954,7 @@ Parameters</p>
         Parameters
         ----------
         work_function : float
-            The work function.
+            The work function [erg].
         &#34;&#34;&#34;
         self.work_function = work_function</code></pre>
 </details>
@@ -3058,12 +3058,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e
 
@@ -3077,7 +3077,7 @@ Parameters</p>
         Returns
         -------
         float
-            The height of the Schottky barrier.
+            The height of the Schottky barrier [statV].
         &#34;&#34;&#34;
         return (self.metal.work_function - self.sc.chi) / e
 
@@ -3088,7 +3088,7 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
@@ -3124,12 +3124,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The width of the depletion region.
+            The width of the depletion region [cm].
         &#34;&#34;&#34;
         return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))
 
@@ -3143,12 +3143,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The Debye length.
+            The Debye length [cm].
         &#34;&#34;&#34;
         return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
 </details>
@@ -3164,12 +3164,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
+<dd>The difference of potentials [statV].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3185,12 +3185,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The difference of potentials.
+        The difference of potentials [statV].
     &#34;&#34;&#34;
     return -(self.sc.Eg - self.sc.fermi_level(T) + self.sc.chi - self.metal.work_function) / e</code></pre>
 </details>
@@ -3205,7 +3205,7 @@ Returns</p>
 <hr>
 <dl>
 <dt><code>float</code></dt>
-<dd>The height of the Schottky barrier.</dd>
+<dd>The height of the Schottky barrier [statV].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3221,7 +3221,7 @@ Returns</p>
     Returns
     -------
     float
-        The height of the Schottky barrier.
+        The height of the Schottky barrier [statV].
     &#34;&#34;&#34;
     return (self.metal.work_function - self.sc.chi) / e</code></pre>
 </details>
@@ -3234,7 +3234,7 @@ Returns</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -3257,7 +3257,7 @@ Returns</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
@@ -3294,12 +3294,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The width of the depletion region.</dd>
+<dd>The width of the depletion region [cm].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3315,12 +3315,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The width of the depletion region.
+        The width of the depletion region [cm].
     &#34;&#34;&#34;
     return depletion_width(self.sc.eps, self.sc.n_concentration(T=T), self.delta_phi(T))</code></pre>
 </details>
@@ -3335,12 +3335,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The Debye length.</dd>
+<dd>The Debye length [cm].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3356,12 +3356,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The Debye length.
+        The Debye length [cm].
     &#34;&#34;&#34;
     return debye_length(self.sc.eps, self.sc.n_concentration(T=T), T)</code></pre>
 </details>
@@ -3389,13 +3389,13 @@ Parameters</p>
 <dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
 <dd>The base intrinsic (pure) semiconductor.</dd>
 <dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
+<dd>The acceptor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
+<dd>The acceptor level [erg].</dd>
 <dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
+<dd>The donor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
+<dd>The donor level [erg].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3424,13 +3424,13 @@ Parameters</p>
         mat : Semiconductor
             The base intrinsic (pure) semiconductor.
         Na : float
-            The acceptor concentration.
+            The acceptor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ea : float
-            The acceptor level.
+            The acceptor level [erg].
         Nd : float
-            The donor concentration.
+            The donor concentration [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         Ed : float
-            The donor level.
+            The donor level [erg].
         &#34;&#34;&#34;
         if Ea is None:
             Ea = 0
@@ -3450,12 +3450,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e</code></pre>
 </details>
@@ -3476,12 +3476,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
+<dd>The difference of potentials [statV].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3497,12 +3497,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The difference of potentials.
+        The difference of potentials [statV].
     &#34;&#34;&#34;
     return (self.n_mat.fermi_level(T) - self.p_mat.fermi_level(T)) / e</code></pre>
 </details>
@@ -3522,13 +3522,13 @@ Parameters</p>
 <dt><strong><code>mat</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
 <dd>The base intrinsic (pure) semiconductor.</dd>
 <dt><strong><code>Na</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor concentration.</dd>
+<dd>The acceptor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ea</code></strong> :&ensp;<code>float</code></dt>
-<dd>The acceptor level.</dd>
+<dd>The acceptor level [erg].</dd>
 <dt><strong><code>Nd</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor concentration.</dd>
+<dd>The donor concentration [cm<sup>&minus;3</sup>].</dd>
 <dt><strong><code>Ed</code></strong> :&ensp;<code>float</code></dt>
-<dd>The donor level.</dd>
+<dd>The donor level [erg].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3550,14 +3550,14 @@ Parameters</p>
         Parameters
         ----------
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole concentration multiplied by the electron concentration.
+            The hole concentration multiplied by the electron concentration [cm&lt;sup&gt;&amp;minus;6&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
 
@@ -3571,14 +3571,14 @@ Parameters</p>
         Parameters
         ----------
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The electron concentration in the p-semiconductor.
+            The electron concentration in the p-semiconductor [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
 
@@ -3592,14 +3592,14 @@ Parameters</p>
         Parameters
         ----------
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole concentration in the n-semiconductor.
+            The hole concentration in the n-semiconductor [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
 
@@ -3613,14 +3613,14 @@ Parameters</p>
         Parameters
         ----------
         diffusivity : float
-            The hole diffusivity.
+            The hole diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The hole diffusion length.
+            The hole diffusion length [cm].
 
         Returns
         -------
         float
-            The hole current density.
+            The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
@@ -3634,14 +3634,14 @@ Parameters</p>
         Parameters
         ----------
         diffusivity : float
-            The electron diffusivity.
+            The electron diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The electron diffusion length.
+            The electron diffusion length [cm].
 
         Returns
         -------
         float
-            The electron current density.
+            The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return e * diffusivity * self.p_n(0) / diffusion_length
 
@@ -3656,18 +3656,18 @@ Parameters</p>
         Parameters
         ----------
         diffusivity : float
-            The hole diffusivity.
+            The hole diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The hole diffusion length.
+            The hole diffusion length [cm].
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The hole current density.
+            The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
 
@@ -3682,18 +3682,18 @@ Parameters</p>
         Parameters
         ----------
         diffusivity : float
-            The electron diffusivity.
+            The electron diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
         diffusion_length : float
-            The electron diffusion length.
+            The electron diffusion length [cm].
         voltage : float
-            The voltage at the p-n junction.
+            The voltage at the p-n junction [statV].
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The electron current density.
+            The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
         return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
@@ -3713,14 +3713,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
+<dd>The voltage at the p-n junction [statV].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The hole concentration multiplied by the electron concentration.</dd>
+<dd>The hole concentration multiplied by the electron concentration [cm<sup>&minus;6</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3736,14 +3736,14 @@ Parameters</p>
     Parameters
     ----------
     voltage : float
-        The voltage at the p-n junction.
+        The voltage at the p-n junction [statV].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The hole concentration multiplied by the electron concentration.
+        The hole concentration multiplied by the electron concentration [cm&lt;sup&gt;&amp;minus;6&lt;/sup&gt;].
     &#34;&#34;&#34;
     return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))</code></pre>
 </details>
@@ -3758,14 +3758,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
+<dd>The voltage at the p-n junction [statV].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The electron concentration in the p-semiconductor.</dd>
+<dd>The electron concentration in the p-semiconductor [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3781,14 +3781,14 @@ Parameters</p>
     Parameters
     ----------
     voltage : float
-        The voltage at the p-n junction.
+        The voltage at the p-n junction [statV].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The electron concentration in the p-semiconductor.
+        The electron concentration in the p-semiconductor [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)</code></pre>
 </details>
@@ -3803,14 +3803,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
+<dd>The voltage at the p-n junction [statV].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The hole concentration in the n-semiconductor.</dd>
+<dd>The hole concentration in the n-semiconductor [cm<sup>&minus;3</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3826,14 +3826,14 @@ Parameters</p>
     Parameters
     ----------
     voltage : float
-        The voltage at the p-n junction.
+        The voltage at the p-n junction [statV].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The hole concentration in the n-semiconductor.
+        The hole concentration in the n-semiconductor [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
     return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)</code></pre>
 </details>
@@ -3848,14 +3848,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusivity.</dd>
+<dd>The hole diffusivity [cm<sup>2</sup> s<sup>&minus;1</sup>].</dd>
 <dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusion length.</dd>
+<dd>The hole diffusion length [cm].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The hole current density.</dd>
+<dd>The hole current density [statA cm<sup>&minus;2</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3871,14 +3871,14 @@ Parameters</p>
     Parameters
     ----------
     diffusivity : float
-        The hole diffusivity.
+        The hole diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
     diffusion_length : float
-        The hole diffusion length.
+        The hole diffusion length [cm].
 
     Returns
     -------
     float
-        The hole current density.
+        The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
     return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
 </details>
@@ -3893,14 +3893,14 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusivity.</dd>
+<dd>The electron diffusivity [cm<sup>2</sup> s<sup>&minus;1</sup>].</dd>
 <dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusion length.</dd>
+<dd>The electron diffusion length [cm].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The electron current density.</dd>
+<dd>The electron current density [statA cm<sup>&minus;2</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3916,14 +3916,14 @@ Parameters</p>
     Parameters
     ----------
     diffusivity : float
-        The electron diffusivity.
+        The electron diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
     diffusion_length : float
-        The electron diffusion length.
+        The electron diffusion length [cm].
 
     Returns
     -------
     float
-        The electron current density.
+        The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
     return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
 </details>
@@ -3940,18 +3940,18 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusivity.</dd>
+<dd>The hole diffusivity [cm<sup>2</sup> s<sup>&minus;1</sup>].</dd>
 <dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The hole diffusion length.</dd>
+<dd>The hole diffusion length [cm].</dd>
 <dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
+<dd>The voltage at the p-n junction [statV].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The hole current density.</dd>
+<dd>The hole current density [statA cm<sup>&minus;2</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3968,18 +3968,18 @@ Parameters</p>
     Parameters
     ----------
     diffusivity : float
-        The hole diffusivity.
+        The hole diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
     diffusion_length : float
-        The hole diffusion length.
+        The hole diffusion length [cm].
     voltage : float
-        The voltage at the p-n junction.
+        The voltage at the p-n junction [statV].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The hole current density.
+        The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
     return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
@@ -3996,18 +3996,18 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>diffusivity</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusivity.</dd>
+<dd>The electron diffusivity [cm<sup>2</sup> s<sup>&minus;1</sup>].</dd>
 <dt><strong><code>diffusion_length</code></strong> :&ensp;<code>float</code></dt>
-<dd>The electron diffusion length.</dd>
+<dd>The electron diffusion length [cm].</dd>
 <dt><strong><code>voltage</code></strong> :&ensp;<code>float</code></dt>
-<dd>The voltage at the p-n junction.</dd>
+<dd>The voltage at the p-n junction [statV].</dd>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The electron current density.</dd>
+<dd>The electron current density [statA cm<sup>&minus;2</sup>].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -4024,18 +4024,18 @@ Parameters</p>
     Parameters
     ----------
     diffusivity : float
-        The electron diffusivity.
+        The electron diffusivity [cm&lt;sup&gt;2&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
     diffusion_length : float
-        The electron diffusion length.
+        The electron diffusion length [cm].
     voltage : float
-        The voltage at the p-n junction.
+        The voltage at the p-n junction [statV].
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The electron current density.
+        The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
     return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
@@ -4093,12 +4093,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         df, a, d = self._df_Na_Nd(T)
         return df * a / (a + d)
@@ -4113,12 +4113,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The difference of potentials.
+            The difference of potentials [statV].
         &#34;&#34;&#34;
         df, a, d = self._df_Na_Nd(T)
         return df * d / (a + d)
@@ -4133,19 +4133,19 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The full depletion width.
+            The full depletion width [cm].
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * (a + d) / (a * d))
 
     def w_n(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the depletion layer inside an n-type semiconductor.
+        Calculate the width of the depletion layer inside the n-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -4153,19 +4153,19 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The width of the negative depletion layer.
+            The width of the depletion layer inside the n-type semiconductor [cm].
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * a / d / (a + d))
 
     def w_p(self, T=300):
         r&#34;&#34;&#34;
-        Calculate the width of the depletion layer inside an p-type semiconductor.
+        Calculate the width of the depletion layer inside the p-type semiconductor.
 
         .. math::
             w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -4173,12 +4173,12 @@ Parameters</p>
         Parameters
         ----------
         T : float
-            The temperature.
+            The temperature [K].
 
         Returns
         -------
         float
-            The width of the positive depletion layer.
+            The width of the depletion layer inside the p-type semiconductor [cm].
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))</code></pre>
@@ -4199,12 +4199,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
+<dd>The difference of potentials [statV].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -4220,12 +4220,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The difference of potentials.
+        The difference of potentials [statV].
     &#34;&#34;&#34;
     df, a, d = self._df_Na_Nd(T)
     return df * a / (a + d)</code></pre>
@@ -4241,12 +4241,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The difference of potentials.</dd>
+<dd>The difference of potentials [statV].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -4262,12 +4262,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The difference of potentials.
+        The difference of potentials [statV].
     &#34;&#34;&#34;
     df, a, d = self._df_Na_Nd(T)
     return df * d / (a + d)</code></pre>
@@ -4285,12 +4285,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The full depletion width.</dd>
+<dd>The full depletion width [cm].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -4306,12 +4306,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The full depletion width.
+        The full depletion width [cm].
     &#34;&#34;&#34;
     tmp, a, d = self._w_tmp(T)
     return sqrt(tmp * (a + d) / (a * d))</code></pre>
@@ -4321,7 +4321,7 @@ Parameters</p>
 <span>def <span class="ident">w_n</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the width of the depletion layer inside an n-type semiconductor.</p>
+<div class="desc"><p>Calculate the width of the depletion layer inside the n-type semiconductor.</p>
 <p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-
 N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-
 N_d^+ } } </script></span>
@@ -4329,12 +4329,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The width of the negative depletion layer.</dd>
+<dd>The width of the depletion layer inside the n-type semiconductor [cm].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -4342,7 +4342,7 @@ Parameters</p>
 </summary>
 <pre><code class="python">def w_n(self, T=300):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion layer inside an n-type semiconductor.
+    Calculate the width of the depletion layer inside the n-type semiconductor.
 
     .. math::
         w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -4350,12 +4350,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The width of the negative depletion layer.
+        The width of the depletion layer inside the n-type semiconductor [cm].
     &#34;&#34;&#34;
     tmp, a, d = self._w_tmp(T)
     return sqrt(tmp * a / d / (a + d))</code></pre>
@@ -4365,7 +4365,7 @@ Parameters</p>
 <span>def <span class="ident">w_p</span></span>(<span>self, T=300)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the width of the depletion layer inside an p-type semiconductor.</p>
+<div class="desc"><p>Calculate the width of the depletion layer inside the p-type semiconductor.</p>
 <p><span><span class="MathJax_Preview"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
 N_d^+ } } </span><script type="math/tex; mode=display"> w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-
 N_d^+ } } </script></span>
@@ -4373,12 +4373,12 @@ Parameters</p>
 <hr>
 <dl>
 <dt><strong><code>T</code></strong> :&ensp;<code>float</code></dt>
-<dd>The temperature.</dd>
+<dd>The temperature [K].</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>float</code></dt>
-<dd>The width of the positive depletion layer.</dd>
+<dd>The width of the depletion layer inside the p-type semiconductor [cm].</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -4386,7 +4386,7 @@ Parameters</p>
 </summary>
 <pre><code class="python">def w_p(self, T=300):
     r&#34;&#34;&#34;
-    Calculate the width of the depletion layer inside an p-type semiconductor.
+    Calculate the width of the depletion layer inside the p-type semiconductor.
 
     .. math::
         w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
@@ -4394,12 +4394,12 @@ Parameters</p>
     Parameters
     ----------
     T : float
-        The temperature.
+        The temperature [K].
 
     Returns
     -------
     float
-        The width of the positive depletion layer.
+        The width of the depletion layer inside the p-type semiconductor [cm].
     &#34;&#34;&#34;
     tmp, a, d = self._w_tmp(T)
     return sqrt(tmp * d / a / (a + d))</code></pre>
