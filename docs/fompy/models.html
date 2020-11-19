@@ -142,16 +142,44 @@ def debye_length(eps, n, T):
 
 def hydrogen_like_energy(eps, m):
     r&#34;&#34;&#34;
+    Calculate the energy of the electron in a hydrogen-like atom.
+
     .. math::
         E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2}
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant [1].
+    m : float
+        The reduced (effective) mass of the electron [g].
+
+    Returns
+    -------
+    float
+        The energy of the electron [erg].
     &#34;&#34;&#34;
     return e ** 4 * m / (2 * h_bar ** 2) / eps ** 2
 
 
 def hydrogen_like_radius(eps, m):
     r&#34;&#34;&#34;
+    Calculate the radius of a hydrogen-like atom.
+
     ..math::
         r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2}
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant [1].
+    m : float
+        The reduced (effective) mass of the electron [g].
+
+    Returns
+    -------
+    float
+        The radius of the atom [cm].
     &#34;&#34;&#34;
     return eps * h_bar ** 2 / (m * e ** 2)
 
@@ -1412,15 +1440,43 @@ Parameters</p>
 <span>def <span class="ident">hydrogen_like_energy</span></span>(<span>eps, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2} </span><script type="math/tex; mode=display"> E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2} </script></span></p></div>
+<div class="desc"><p>Calculate the energy of the electron in a hydrogen-like atom.</p>
+<p><span><span class="MathJax_Preview"> E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2} </span><script type="math/tex; mode=display"> E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dd>The dielectric constant [1].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The reduced (effective) mass of the electron [g].</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The energy of the electron [erg].</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def hydrogen_like_energy(eps, m):
     r&#34;&#34;&#34;
+    Calculate the energy of the electron in a hydrogen-like atom.
+
     .. math::
         E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2}
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant [1].
+    m : float
+        The reduced (effective) mass of the electron [g].
+
+    Returns
+    -------
+    float
+        The energy of the electron [erg].
     &#34;&#34;&#34;
     return e ** 4 * m / (2 * h_bar ** 2) / eps ** 2</code></pre>
 </details>
@@ -1429,15 +1485,43 @@ Parameters</p>
 <span>def <span class="ident">hydrogen_like_radius</span></span>(<span>eps, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2} </span><script type="math/tex; mode=display"> r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2} </script></span></p></div>
+<div class="desc"><p>Calculate the radius of a hydrogen-like atom.</p>
+<p><span><span class="MathJax_Preview"> r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2} </span><script type="math/tex; mode=display"> r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dd>The dielectric constant [1].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The reduced (effective) mass of the electron [g].</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The radius of the atom [cm].</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def hydrogen_like_radius(eps, m):
     r&#34;&#34;&#34;
+    Calculate the radius of a hydrogen-like atom.
+
     ..math::
         r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2}
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant [1].
+    m : float
+        The reduced (effective) mass of the electron [g].
+
+    Returns
+    -------
+    float
+        The radius of the atom [cm].
     &#34;&#34;&#34;
     return eps * h_bar ** 2 / (m * e ** 2)</code></pre>
 </details>

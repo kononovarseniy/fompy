@@ -110,19 +110,45 @@ def debye_length(eps, n, T):
 
 def hydrogen_like_energy(eps, m):
     r"""
+    Calculate the energy of the electron in a hydrogen-like atom.
+
     .. math::
         E = \frac{1}{\epsilon^2} \cdot \frac{m_{eff} e^4}{2 {\hbar}^2}
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant [1].
+    m : float
+        The reduced (effective) mass of the electron [g].
+
+    Returns
+    -------
+    float
+        The energy of the electron [erg].
     """
-    # TODO: documentation
     return e ** 4 * m / (2 * h_bar ** 2) / eps ** 2
 
 
 def hydrogen_like_radius(eps, m):
     r"""
+    Calculate the radius of a hydrogen-like atom.
+
     ..math::
         r = \frac{\epsilon {\hbar}^2}{m_{eff} e^2}
+
+    Parameters
+    ----------
+    eps : float
+        The dielectric constant [1].
+    m : float
+        The reduced (effective) mass of the electron [g].
+
+    Returns
+    -------
+    float
+        The radius of the atom [cm].
     """
-    # TODO: documentation
     return eps * h_bar ** 2 / (m * e ** 2)
 
 
