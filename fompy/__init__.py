@@ -10,4 +10,4 @@ used in all computations is cgs (the Gaussian unit system).
 More information can be found in the descriptions of the modules.
 """
 
-VERSION = '0.1.1'
+VERSION = '0.2.0'
