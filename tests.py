@@ -134,6 +134,11 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(str(parse_unit('kg^2 m^3/2 / A^-6/7 V^100')), 'kg^2 m^3/2 / A^-6/7 V^100')
         self.assertEqual(str(parse_unit('1 / s')), '1 / s')
 
+    def test_prefixes(self):
+        self.assertEqual(unit('dam'), 1e3)
+        self.assertEqual(unit('dm'), 1e1)
+        self.assertEqual(unit('dA'), ampere / 10)
+
     def test_error(self):
         with self.assertRaises(SyntaxError):
             parse_unit('kg^2 2')

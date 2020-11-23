@@ -41,16 +41,18 @@ class SimpleUnit:
         """
         prefix = None
         multiplier = 1
+        unit_name = name
         for p, n in PREFIXES.items():
             if len(p) < len(name) and name.startswith(p):
-                name = name[len(p):]
-                prefix = p
-                multiplier = n
+                if prefix is None or len(p) > len(prefix):
+                    unit_name = name[len(p):]
+                    prefix = p
+                    multiplier = n
 
-        self.name = name
+        self.name = unit_name
         self.prefix = prefix
         self.multiplier = multiplier
-        self.value = UNITS[name]
+        self.value = UNITS[unit_name]
         self.power = power
 
     def get_number(self):
