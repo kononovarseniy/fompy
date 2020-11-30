@@ -5,15 +5,17 @@ Notes
 -----
 All energies are counted from the valence band edge E<sub>v</sub> &equiv; 0.
 """
-
+import cmath
+from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from math import pi, sqrt, exp
+from math import pi, sqrt, exp, cos, sin
 
 from scipy.optimize import bisect
 
-from fompy.constants import e, k, h_bar
+from fompy.constants import e, k, h_bar, eV
 from fompy.functions import fermi, fd1
+from fompy.util.zeros import locate_first_function_zero, locate_nth_function_zero
 
 
 def conductivity(n, mobility):
@@ -1206,3 +1208,85 @@ class PNJunctionFullDepletion(PNJunction):
         """
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))
+
+
+class PeriodicPotentialModel(ABC):
+    def __init__(self, u_min, period):
+        self.u_min = u_min
+        self.period = period
+
+    @abstractmethod
+    def _equation(self, m, k, energy):
+        pass
+
+    def estimate_band_range(self, m, e_coarse=1e-2 * eV, band=0):
+        f1 = partial(self._equation, m, 0)
+        f2 = partial(self._equation, m, pi / self.period)
+        z1 = locate_nth_function_zero(f1, self.u_min, e_coarse, band)
+        z2 = locate_nth_function_zero(f2, self.u_min, e_coarse, band)
+        return min(z1[0], z2[0]), max(z1[1], z2[1])
+
+    def get_energy(self, m, k, bracket, xtol):
+        f = partial(self._equation, m, k)
+        return bisect(f, *bracket, xtol=xtol)
+
+
+class KronigPenneyModel(PeriodicPotentialModel):
+    # TODO: add documentation (add equations to the description of the class)
+    def __init__(self, a, b, u0):
+        assert u0 > 0 and a > 0 and b > 0
+        super().__init__(-u0, a + b)
+        self.a = a
+        self.b = b
+        self.u0 = u0
+
+    def _equation(self, m, k, energy):
+        r"""
+        a - is the width of area where potential energy is -U0
+        b - is the width of area where potential energy is 0
+        .. math::
+            cos(k (a + b)) = cos(\alpha a) cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b)
+
+            \alpha^2 = \frac{2 m (E + U_0)}{\hbar^2}
+
+            \beta^2 = \frac{2 m E}{\hbar^2}
+        """
+        alf = cmath.sqrt(-2 * m * (energy + self.u0) / h_bar ** 2)
+        bet = cmath.sqrt(-2 * m * energy / h_bar ** 2)
+        left_1 = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
+        if bet == 0:
+            left_2 = - alf / 2 * self.b * cmath.sin(alf * self.a)
+        elif alf == 0:
+            left_2 = - bet / 2 * self.a * cmath.sin(bet * self.b)
+        else:
+            left_2 = - (alf ** 2 + bet ** 2) / (2 * alf * bet) * cmath.sin(alf * self.a) * cmath.sin(bet * self.b)
+
+        right = cmath.cos(k * (self.a + self.b))
+        return (left_1 - left_2 - right).real
+
+
+class DiracCombModel(PeriodicPotentialModel):
+    # TODO: add documentation
+    def __init__(self, a, G):
+        assert G > 0
+        assert a > 0
+        super().__init__(0, a)
+        self.a = a
+        self.G = G
+
+    def _equation(self, m, k, energy):
+        r"""
+        .. math::
+            cos(k a) = cos(\alpha a) - \frac{2 m G}{k \hbar^2} sin(\alpha a)
+
+            \alpha^2 = frac{2 m E}{\hbar^2}
+        """
+        if energy == 0:
+            return 0
+        alf = sqrt(2 * m * energy / h_bar ** 2)
+        if k == 0:
+            return 2 * m * self.G / h_bar ** 2 * sin(alf * self.a)
+        left = cos(alf * self.a) - 2 * m * self.G / k / h_bar ** 2 * sin(alf * self.a)
+        right = cos(k * self.a)
+        return left - right
