@@ -180,6 +180,16 @@ def unit(text):
     return parse_unit(text).get_number()
 
 
+def to_unit(val, unit_text):
+    # TODO: documentation
+    return val / unit(unit_text)
+
+
+def from_unit(val, unit_text):
+    # TODO: documentation
+    return val * unit(unit_text)
+
+
 def _register_unit(name, text):
     UNITS[name] = unit(text)
 

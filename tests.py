@@ -10,7 +10,7 @@ from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJ
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
     BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate, hydrogen_like_energy, \
     hydrogen_like_radius
-from fompy.units import unit, parse_unit
+from fompy.units import unit, parse_unit, to_unit, from_unit
 
 
 class TestCrystalLattice(unittest.TestCase):
@@ -120,6 +120,10 @@ class TestUnits(unittest.TestCase):
     def test_volt(self):
         self.assertAlmostEqual(unit('V-1'), 300, delta=1)
         self.assertAlmostEqual(unit('1 / V'), 300, delta=1)
+
+    def test_convenience_methods(self):
+        self.assertEqual(to_unit(1, 'V'), 1 / unit('V'))
+        self.assertEqual(from_unit(1, 'V'), 1 * unit('V'))
 
     def test_power(self):
         self.assertEqual(unit('kg^2'), 1e6)
