@@ -1216,19 +1216,21 @@ class PeriodicPotentialModel(ABC):
         self.period = period
 
     @abstractmethod
-    def _equation(self, m, k, energy):
+    def equation(self, energy, m, k):
         pass
 
     def estimate_band_range(self, m, e_coarse=1e-2 * eV, band=0):
-        f1 = partial(self._equation, m, 0)
-        f2 = partial(self._equation, m, pi / self.period)
-        z1 = locate_nth_function_zero(f1, self.u_min, e_coarse, band)
-        z2 = locate_nth_function_zero(f2, self.u_min, e_coarse, band)
+        f1 = partial(self.equation, m, 0)
+        f2 = partial(self.equation, m, pi / self.period)
+        # z1 = locate_nth_function_zero(f1, self.u_min, e_coarse, band)
+        # z2 = locate_nth_function_zero(f2, self.u_min, e_coarse, band)
+        z1 = locate_nth_function_zero(f1, -0.01 * eV, e_coarse, band)
+        z2 = locate_nth_function_zero(f2, -0.01 * eV, e_coarse, band)
         return min(z1[0], z2[0]), max(z1[1], z2[1])
 
     def get_energy(self, m, k, bracket, xtol):
-        f = partial(self._equation, m, k)
-        return bisect(f, *bracket, xtol=xtol)
+        start, stop = bracket
+        return bisect(self.equation, start, stop, args=(m, k), xtol=xtol)
 
 
 class KronigPenneyModel(PeriodicPotentialModel):
@@ -1240,30 +1242,34 @@ class KronigPenneyModel(PeriodicPotentialModel):
         self.b = b
         self.u0 = u0
 
-    def _equation(self, m, k, energy):
+    def equation(self, energy, m, k):
         r"""
         a - is the width of area where potential energy is -U0
         b - is the width of area where potential energy is 0
         .. math::
-            cos(k (a + b)) = cos(\alpha a) cos(\beta b) -
-            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b)
+             cos(\alpha a) cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
 
             \alpha^2 = \frac{2 m (E + U_0)}{\hbar^2}
 
             \beta^2 = \frac{2 m E}{\hbar^2}
         """
-        alf = cmath.sqrt(-2 * m * (energy + self.u0) / h_bar ** 2)
-        bet = cmath.sqrt(-2 * m * energy / h_bar ** 2)
-        left_1 = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
-        if bet == 0:
-            left_2 = - alf / 2 * self.b * cmath.sin(alf * self.a)
-        elif alf == 0:
-            left_2 = - bet / 2 * self.a * cmath.sin(bet * self.b)
-        else:
-            left_2 = - (alf ** 2 + bet ** 2) / (2 * alf * bet) * cmath.sin(alf * self.a) * cmath.sin(bet * self.b)
+        return self.equation_left_part(energy, m) - self.equation_right_part(k)
 
-        right = cmath.cos(k * (self.a + self.b))
-        return (left_1 - left_2 - right).real
+    def equation_right_part(self, k):
+        return cmath.cos(k * (self.a + self.b)).real
+
+    def equation_left_part(self, energy, m):
+        alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy + self.u0))
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
+        if bet == 0:
+            second = - alf / 2 * self.b * cmath.sin(alf * self.a)
+        elif alf == 0:
+            second = - bet / 2 * self.a * cmath.sin(bet * self.b)
+        else:
+            second = - (alf ** 2 + bet ** 2) / (2 * alf * bet) * cmath.sin(alf * self.a) * cmath.sin(bet * self.b)
+        return (first + second).real
 
 
 class DiracCombModel(PeriodicPotentialModel):
@@ -1275,7 +1281,7 @@ class DiracCombModel(PeriodicPotentialModel):
         self.a = a
         self.G = G
 
-    def _equation(self, m, k, energy):
+    def equation(self, energy, m, k):
         r"""
         .. math::
             cos(k a) = cos(\alpha a) - \frac{2 m G}{k \hbar^2} sin(\alpha a)
