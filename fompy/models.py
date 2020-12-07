@@ -1216,7 +1216,7 @@ class PeriodicPotentialModel(ABC):
         self.period = period
 
     @abstractmethod
-    def equation(self, energy, m, k):
+    def equation(self, energy, k, m):
         pass
 
     def estimate_band_range(self, m, e_coarse=1e-2 * eV, band=0):
@@ -1228,29 +1228,29 @@ class PeriodicPotentialModel(ABC):
         z2 = locate_nth_function_zero(f2, -0.01 * eV, e_coarse, band)
         return min(z1[0], z2[0]), max(z1[1], z2[1])
 
-    def get_energy(self, m, k, bracket, xtol):
+    def get_energy(self, k, m, bracket, xtol):
         start, stop = bracket
-        return bisect(self.equation, start, stop, args=(m, k), xtol=xtol)
+        return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)
 
 
 class KronigPenneyModel(PeriodicPotentialModel):
     # TODO: add documentation (add equations to the description of the class)
     def __init__(self, a, b, u0):
-        assert u0 > 0 and a > 0 and b > 0
+        assert a > 0 and b > 0
         super().__init__(-u0, a + b)
         self.a = a
         self.b = b
         self.u0 = u0
 
-    def equation(self, energy, m, k):
+    def equation(self, energy, k, m):
         r"""
-        a - is the width of area where potential energy is -U0
+        a - is the width of area where potential energy is U0
         b - is the width of area where potential energy is 0
         .. math::
              cos(\alpha a) cos(\beta b) -
             \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
 
-            \alpha^2 = \frac{2 m (E + U_0)}{\hbar^2}
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}
 
             \beta^2 = \frac{2 m E}{\hbar^2}
         """
@@ -1260,7 +1260,7 @@ class KronigPenneyModel(PeriodicPotentialModel):
         return cmath.cos(k * (self.a + self.b)).real
 
     def equation_left_part(self, energy, m):
-        alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy + self.u0))
+        alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
         bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
         first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
         if bet == 0:
