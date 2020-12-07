@@ -19,5 +19,6 @@ def locate_function_zeros(func, start, step):
 def locate_first_function_zero(func, start, step):
     return next(locate_function_zeros(func, start, step), None)
 
+
 def locate_nth_function_zero(func, start, step, num):
-    return next(islice(locate_function_zeros(func, start, step), num, num+1), None)
+    return next(islice(locate_function_zeros(func, start, step), num, num + 1), None)

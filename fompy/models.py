@@ -6,11 +6,13 @@ Notes
 All energies are counted from the valence band edge E<sub>v</sub> &equiv; 0.
 """
 import cmath
+import math
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
 from math import pi, sqrt, exp, cos, sin
 
+import numpy as np
 from scipy.optimize import bisect
 
 from fompy.constants import e, k, h_bar, eV
@@ -1215,8 +1217,14 @@ class PeriodicPotentialModel(ABC):
         self.u_min = u_min
         self.period = period
 
-    @abstractmethod
     def equation(self, energy, k, m):
+        return self.equation_left_part(energy, m) - self.equation_right_part(k)
+
+    def equation_right_part(self, k):
+        return cos(k * self.period)
+
+    @abstractmethod
+    def equation_left_part(self, energy, m):
         pass
 
     def estimate_band_range(self, m, e_coarse=1e-2 * eV, band=0):
@@ -1231,6 +1239,18 @@ class PeriodicPotentialModel(ABC):
     def get_energy(self, k, m, bracket, xtol):
         start, stop = bracket
         return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)
+
+    def get_k(self, energy, m):
+        # Returns k multiplied by period
+        val = self.equation_left_part(energy, m)
+        if not -1 <= val <= 1:
+            return None
+        return math.acos(val)
+
+    def get_ks(self, es, m):  # vectorized version of get_k
+        # Returns k multiplied by period
+        vs = np.vectorize(self.equation_left_part)(es, m)
+        return np.arccos(np.clip(vs, -1, 1))
 
 
 class KronigPenneyModel(PeriodicPotentialModel):
@@ -1254,10 +1274,7 @@ class KronigPenneyModel(PeriodicPotentialModel):
 
             \beta^2 = \frac{2 m E}{\hbar^2}
         """
-        return self.equation_left_part(energy, m) - self.equation_right_part(k)
-
-    def equation_right_part(self, k):
-        return cmath.cos(k * (self.a + self.b)).real
+        return super(KronigPenneyModel, self).equation(energy, k, m)
 
     def equation_left_part(self, energy, m):
         alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
@@ -1275,24 +1292,31 @@ class KronigPenneyModel(PeriodicPotentialModel):
 class DiracCombModel(PeriodicPotentialModel):
     # TODO: add documentation
     def __init__(self, a, G):
-        assert G > 0
         assert a > 0
         super().__init__(0, a)
-        self.a = a
         self.G = G
 
-    def equation(self, energy, m, k):
+    def equation(self, energy, k, m):
         r"""
         .. math::
-            cos(k a) = cos(\alpha a) - \frac{2 m G}{k \hbar^2} sin(\alpha a)
+            cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
 
-            \alpha^2 = frac{2 m E}{\hbar^2}
+            \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Alternative formula used in our course previously (note: different notation for alpha and beta)
+
+        .. math::
+            cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+
+            \alpha^2 = \frac{2 m E}{\hbar^2}
         """
+        return super(DiracCombModel, self).equation(energy, k, m)
+
+    def equation_left_part(self, energy, m):
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(bet * self.period)
         if energy == 0:
-            return 0
-        alf = sqrt(2 * m * energy / h_bar ** 2)
-        if k == 0:
-            return 2 * m * self.G / h_bar ** 2 * sin(alf * self.a)
-        left = cos(alf * self.a) - 2 * m * self.G / k / h_bar ** 2 * sin(alf * self.a)
-        right = cos(k * self.a)
-        return left - right
+            second = m * self.G * self.period / h_bar ** 2
+        else:
+            second = cmath.sqrt(m / (2 * h_bar ** 2 * energy)) * self.G * cmath.sin(bet * self.period)
+        return (first + second).real

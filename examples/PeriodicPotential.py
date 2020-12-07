@@ -1,64 +1,60 @@
-from math import pi
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
 from fompy.constants import eV, me
-from fompy.models import KronigPenneyModel, DiracCombModel, PeriodicPotentialModel
+from fompy.models import KronigPenneyModel, DiracCombModel
 from fompy.units import unit
 
 matplotlib.rc('axes.formatter', useoffset=False)
 
 if __name__ == '__main__':
-    # warnings.simplefilter('error')
-
-    def get_band(model: KronigPenneyModel, m):
-        ks = np.linspace(0, pi / model.period, 200)
-
-        # plt.axvline(model.u_min, color='k', linestyle='--')
-        # plt.axhline(-1, color='k', linestyle='--')
-        # plt.axhline(1, color='k', linestyle='--')
-        # plt.show()
-        #
-        # es = np.linspace(-0.02 * eV, 0, 10000000)
-        # ks2 = np.vectorize(model._equation_left)(m, es)
-        # plt.plot(es, ks2)
-        # plt.ylim(-3 / 2, 3 / 2)
-        # plt.axhline(-1, color='k', linestyle='--')
-        # plt.axhline(1, color='k', linestyle='--')
-        # plt.show()
-
-        bands = []
-        for band in range(3):
-            r = model.estimate_band_range(m, e_coarse=1e-3 * eV, band=band)
-
-            @np.vectorize
-            def energy_func(k):
-                return model.get_energy(m, k, r, 1e-7 * eV)
-
-            bands.append(energy_func(ks))
-
-        return ks * model.period, bands
-
-
-    def plot_reverse(model: KronigPenneyModel, m):
-        es = np.linspace(model.u0 - 0.1 * eV, 0.1 * eV, 100000)
-        vs = np.vectorize(model.equation_left_part)(es, m)
-        ks2 = np.arccos(np.clip(vs, -1, 1))
-        plt.plot(ks2, es / eV)
-        plt.show()
-
-
     m = 0.49 * me
     U0 = -0.58 * eV
-    a = 5 * unit('nm')
-    b = 10 * unit('nm')
+    a = 1 * unit('nm')
+    b = 200 * unit('nm')
 
     kp_model = KronigPenneyModel(a, b, U0)
-    # dc_model = DiracCombModel(a + b, a * U0)
+    dc_model = DiracCombModel(a + b, a * U0)
 
-    plot_reverse(kp_model, m)
+    es = np.linspace(-0.001 * eV, 0.002 * eV, 100000)
+
+    ks = kp_model.get_k(es, m)  # Array of k * (a+b)
+    plt.plot(ks, es / eV, label='Kronig-Penney')
+
+    ks = dc_model.get_k(es, m)
+    plt.plot(ks, es / eV, label='Dirac comb')
+
+    plt.legend()
+    plt.show()
+
+    # def get_band(model: KronigPenneyModel, m):
+    #     ks = np.linspace(0, pi / model.period, 200)
+    #
+    #     # plt.axvline(model.u_min, color='k', linestyle='--')
+    #     # plt.axhline(-1, color='k', linestyle='--')
+    #     # plt.axhline(1, color='k', linestyle='--')
+    #     # plt.show()
+    #     #
+    #     # es = np.linspace(-0.02 * eV, 0, 10000000)
+    #     # ks2 = np.vectorize(model._equation_left)(m, es)
+    #     # plt.plot(es, ks2)
+    #     # plt.ylim(-3 / 2, 3 / 2)
+    #     # plt.axhline(-1, color='k', linestyle='--')
+    #     # plt.axhline(1, color='k', linestyle='--')
+    #     # plt.show()
+    #
+    #     bands = []
+    #     for band in range(3):
+    #         r = model.estimate_band_range(m, e_coarse=1e-3 * eV, band=band)
+    #
+    #         @np.vectorize
+    #         def energy_func(k):
+    #             return model.get_energy(m, k, r, 1e-7 * eV)
+    #
+    #         bands.append(energy_func(ks))
+    #
+    #     return ks * model.period, bands
 
     # kp_ks, kp_bands = get_band(kp_model, m)
     #
