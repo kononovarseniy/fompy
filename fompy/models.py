@@ -15,9 +15,9 @@ from math import pi, sqrt, exp, cos
 import numpy as np
 from scipy.optimize import bisect
 
-from fompy.constants import e, k, h_bar, eV
+from fompy.constants import e, k, h_bar
 from fompy.functions import fermi, fd1
-from fompy.util.zeros import locate_nth_function_zero
+from fompy.util.zeros import find_nth_function_zero
 
 
 def conductivity(n, mobility):
@@ -1227,18 +1227,24 @@ class PeriodicPotentialModel(ABC):
     def equation_left_part(self, energy, m):
         pass
 
-    def estimate_band_range(self, m, e_coarse=1e-2 * eV, band=0):
-        f1 = partial(self.equation, m, 0)
-        f2 = partial(self.equation, m, pi / self.period)
-        # z1 = locate_nth_function_zero(f1, self.u_min, e_coarse, band)
-        # z2 = locate_nth_function_zero(f2, self.u_min, e_coarse, band)
-        z1 = locate_nth_function_zero(f1, -0.01 * eV, e_coarse, band)
-        z2 = locate_nth_function_zero(f2, -0.01 * eV, e_coarse, band)
-        return min(z1[0], z2[0]), max(z1[1], z2[1])
+    def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
+        assert xtol_coarse > 0 and xtol_fine > 0
+
+        # Find band with minimal energy (starts search from self.u_min)
+        def f1(energy):
+            return self.equation_left_part(energy, m) - 1
+
+        def f2(energy):
+            return self.equation_left_part(energy, m) + 1
+
+        e_start = find_nth_function_zero(f1, self.u_min, xtol_coarse, xtol_fine, num=0)
+        e_end = find_nth_function_zero(f2, e_start, xtol_coarse, xtol_fine, num=-1)
+
+        return e_start, e_end
 
     def get_energy(self, k, m, bracket, xtol):
         start, stop = bracket
-        return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)
+        return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)  # noqa
 
     def get_k(self, energy, m):
         # Returns k multiplied by period
@@ -1257,7 +1263,7 @@ class KronigPenneyModel(PeriodicPotentialModel):
     # TODO: add documentation (add equations to the description of the class)
     def __init__(self, a, b, u0):
         assert a > 0 and b > 0
-        super().__init__(-u0, a + b)
+        super().__init__(min(0, u0), a + b)
         self.a = a
         self.b = b
         self.u0 = u0

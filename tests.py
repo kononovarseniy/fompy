@@ -12,7 +12,7 @@ from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJ
     BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate, hydrogen_like_energy, \
     hydrogen_like_radius
 from fompy.units import unit, parse_unit, to_unit, from_unit
-from fompy.util.zeros import locate_nth_function_zero
+from fompy.util.zeros import locate_nth_function_zero, find_nth_function_zero
 
 
 class TestCrystalLattice(unittest.TestCase):
@@ -314,21 +314,21 @@ class TestZeros(unittest.TestCase):
         self.assertLess(abs(r[0] - r[1]), 0.01 + 1e-5)
         self.assertAlmostEqual(r[0], pi / 2, delta=0.01)
 
-    def test_assert(self):
-        with self.assertRaises(AssertionError):
-            locate_nth_function_zero(math.cos, 0, 0.01, -1)
+    def test_negative(self):
+        func = math.cos
+        r1 = locate_nth_function_zero(func, 0, -0.01, 0)
+        r2 = locate_nth_function_zero(func, 0, 0.01, -1)
+        self.assertEqual(r1, r2)
 
     def test_nth_zero(self):
         func = math.cos
-        for i in range(0, 3):
+        for i in range(-3, 3):
             r = locate_nth_function_zero(func, 0, 0.01, i)
             self.assertLess(abs(r[0] - r[1]), 0.01 + 1e-5)
             self.assertAlmostEqual(r[0], pi * (i + 1 / 2), delta=0.01)
-        # Negative values
-        for i in range(0, 3):
-            r = locate_nth_function_zero(func, 0, -0.01, i)
-            self.assertLess(abs(r[0] - r[1]), 0.01 + 1e-5)
-            self.assertAlmostEqual(r[0], -pi * (i + 1 / 2), delta=0.01)
+
+    def test_find_nth_zero(self):
+        self.assertAlmostEqual(find_nth_function_zero(math.cos, 0, 1e-2, 1e-5, 1), pi * (3 / 2), delta=1e-5)
 
 
 if __name__ == '__main__':
