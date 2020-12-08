@@ -10,14 +10,14 @@ import math
 from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from math import pi, sqrt, exp, cos, sin
+from math import pi, sqrt, exp, cos
 
 import numpy as np
 from scipy.optimize import bisect
 
 from fompy.constants import e, k, h_bar, eV
 from fompy.functions import fermi, fd1
-from fompy.util.zeros import locate_first_function_zero, locate_nth_function_zero
+from fompy.util.zeros import locate_nth_function_zero
 
 
 def conductivity(n, mobility):
