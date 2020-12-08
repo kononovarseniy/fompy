@@ -15,7 +15,7 @@ from math import pi, sqrt, exp, cos
 import numpy as np
 from scipy.optimize import bisect
 
-from fompy.constants import e, k, h_bar
+from fompy.constants import e, k, h_bar, eV
 from fompy.functions import fermi, fd1
 from fompy.util.zeros import find_nth_function_zero
 
@@ -1213,6 +1213,7 @@ class PNJunctionFullDepletion(PNJunction):
 
 
 class PeriodicPotentialModel(ABC):
+    # TODO: add documentation
     def __init__(self, u_min, period):
         self.u_min = u_min
         self.period = period
@@ -1225,7 +1226,7 @@ class PeriodicPotentialModel(ABC):
 
     @abstractmethod
     def equation_left_part(self, energy, m):
-        pass
+        """The part of the equation independent of k"""
 
     def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
         assert xtol_coarse > 0 and xtol_fine > 0
@@ -1238,7 +1239,7 @@ class PeriodicPotentialModel(ABC):
             return self.equation_left_part(energy, m) + 1
 
         e_start = find_nth_function_zero(f1, self.u_min, xtol_coarse, xtol_fine, num=0)
-        e_end = find_nth_function_zero(f2, e_start, xtol_coarse, xtol_fine, num=-1)
+        e_end = find_nth_function_zero(f2, e_start - xtol_coarse / 2, xtol_coarse, xtol_fine, num=0)
 
         return e_start, e_end
 
@@ -1299,7 +1300,7 @@ class DiracCombModel(PeriodicPotentialModel):
     # TODO: add documentation
     def __init__(self, a, G):
         assert a > 0
-        super().__init__(0, a)
+        super().__init__(-1e-10 * eV, a)
         self.G = G
 
     def equation(self, energy, k, m):

@@ -5,12 +5,12 @@ from math import sqrt, pi
 import numpy as np
 
 from fompy import functions
-from fompy.constants import eV, volt, angstrom, amu, ampere
+from fompy.constants import eV, volt, angstrom, amu, ampere, me
 from fompy.materials import Si
 from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
     BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate, hydrogen_like_energy, \
-    hydrogen_like_radius
+    hydrogen_like_radius, KronigPenneyModel, DiracCombModel
 from fompy.units import unit, parse_unit, to_unit, from_unit
 from fompy.util.zeros import locate_nth_function_zero, find_nth_function_zero
 
@@ -329,6 +329,71 @@ class TestZeros(unittest.TestCase):
 
     def test_find_nth_zero(self):
         self.assertAlmostEqual(find_nth_function_zero(math.cos, 0, 1e-2, 1e-5, 1), pi * (3 / 2), delta=1e-5)
+
+
+class TestKronigPenneyModel(unittest.TestCase):
+    def setUp(self):
+        self.mass = 0.49 * me
+        self.model = KronigPenneyModel(
+            from_unit(5, 'nm'),
+            from_unit(10, 'nm'),
+            from_unit(-0.58, 'eV'))
+
+    def test_lowest_band(self):
+        r = self.model.find_lower_band_range(self.mass, 1e-3 * eV, 1e-7 * eV)
+        self.assertLess(r[0], r[1])
+        self.assertLess(r[1] - r[0], 1e-6 * eV)
+        self.assertAlmostEqual(r[0] / eV, -0.55, delta=1e-2)
+        self.assertAlmostEqual(r[1] / eV, -0.55, delta=1e-2)
+
+    def test_limits(self):
+        self.assertAlmostEqual(self.model.equation_left_part(self.model.u0, self.mass),
+                               self.model.equation_left_part(self.model.u0 + 1e-10 * eV, self.mass),
+                               delta=3e5)
+        self.assertAlmostEqual(self.model.equation_left_part(0, self.mass),
+                               self.model.equation_left_part(1e-9 * eV, self.mass),
+                               delta=1e-5)
+
+    def test_get_energy(self):
+        bracket = (from_unit(70, 'meV'), from_unit(72, 'meV'))
+        self.assertAlmostEqual(
+            self.model.get_energy(1 / self.model.period, self.mass, bracket, unit('ueV')) / unit('meV'),
+            71.2, delta=0.1)
+
+
+class TestDiracCombModel(unittest.TestCase):
+    def setUp(self):
+        self.mass = 0.49 * me
+        self.model = DiracCombModel(
+            from_unit(201, 'nm'),
+            from_unit(-0.58, 'nm * eV'))
+
+    def test_lowest_band(self):
+        r = self.model.find_lower_band_range(self.mass, 1e-8 * eV, 1e-10 * eV)
+        self.assertLessEqual(r[0] / eV, r[1] / eV)
+        self.assertAlmostEqual(r[0] / unit('meV'), 0, delta=1e-3)
+        self.assertAlmostEqual(r[1] / unit('meV'), 0, delta=1e-3)
+
+    def test_limits(self):
+        self.assertAlmostEqual(self.model.equation_left_part(0, self.mass),
+                               self.model.equation_left_part(1e-10 * eV, self.mass),
+                               delta=1e-2)
+
+    def test_get_energy(self):
+        bracket = (from_unit(935, 'ueV'), from_unit(940, 'ueV'))
+        self.assertAlmostEqual(
+            self.model.get_energy(1 / self.model.period, self.mass, bracket, unit('ueV')) / unit('ueV'),
+            935.6, delta=0.1)
+
+    def test_get_k_equality(self):
+        es = np.linspace(0.01 * eV, 0.2 * eV, 1000)
+        ks = self.model.get_ks(es, self.mass)
+        for e, k1 in zip(es, ks):
+            k2 = self.model.get_k(e, self.mass)
+            if k2 is not None:
+                self.assertEqual(k1, k2)
+            else:
+                self.assertIn(k1, [0, pi])
 
 
 if __name__ == '__main__':
