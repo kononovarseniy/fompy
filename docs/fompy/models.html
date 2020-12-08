@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.1" />
+<meta name="generator" content="pdoc 0.9.2" />
 <title>fompy.models API documentation</title>
 <meta name="description" content="This module contains classes useful for calculating properties of different materials …" />
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/sanitize.css" crossorigin>
@@ -37,15 +37,19 @@ Notes
 -----
 All energies are counted from the valence band edge E&lt;sub&gt;v&lt;/sub&gt; &amp;equiv; 0.
 &#34;&#34;&#34;
-
+import cmath
+import math
+from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from math import pi, sqrt, exp
+from math import pi, sqrt, exp, cos
 
+import numpy as np
 from scipy.optimize import bisect
 
-from fompy.constants import e, k, h_bar
+from fompy.constants import e, k, h_bar, eV
 from fompy.functions import fermi, fd1
+from fompy.util.zeros import find_nth_function_zero
 
 
 def conductivity(n, mobility):
@@ -1237,7 +1241,130 @@ class PNJunctionFullDepletion(PNJunction):
             The width of the depletion layer inside the p-type semiconductor [cm].
         &#34;&#34;&#34;
         tmp, a, d = self._w_tmp(T)
-        return sqrt(tmp * d / a / (a + d))</code></pre>
+        return sqrt(tmp * d / a / (a + d))
+
+
+class PeriodicPotentialModel(ABC):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
+    # TODO: add documentation
+    def __init__(self, u_min, period):
+        self.u_min = u_min
+        self.period = period
+
+    def equation(self, energy, k, m):
+        return self.equation_left_part(energy, m) - self.equation_right_part(k)
+
+    def equation_right_part(self, k):
+        return cos(k * self.period)
+
+    @abstractmethod
+    def equation_left_part(self, energy, m):
+        &#34;&#34;&#34;The part of the equation independent of k&#34;&#34;&#34;
+
+    def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
+        assert xtol_coarse &gt; 0 and xtol_fine &gt; 0
+
+        # Find band with minimal energy (starts search from self.u_min)
+        def f1(energy):
+            return self.equation_left_part(energy, m) - 1
+
+        def f2(energy):
+            return self.equation_left_part(energy, m) + 1
+
+        e_start = find_nth_function_zero(f1, self.u_min, xtol_coarse, xtol_fine, num=0)
+        e_end = find_nth_function_zero(f2, e_start - xtol_coarse / 2, xtol_coarse, xtol_fine, num=0)
+
+        return e_start, e_end
+
+    def get_energy(self, k, m, bracket, xtol):
+        start, stop = bracket
+        return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)  # noqa
+
+    def get_k(self, energy, m):
+        # Returns k multiplied by period
+        val = self.equation_left_part(energy, m)
+        if not -1 &lt;= val &lt;= 1:
+            return None
+        return math.acos(val)
+
+    def get_ks(self, es, m):  # vectorized version of get_k
+        # Returns k multiplied by period
+        vs = np.vectorize(self.equation_left_part)(es, m)
+        return np.arccos(np.clip(vs, -1, 1))
+
+
+class KronigPenneyModel(PeriodicPotentialModel):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
+    # TODO: add documentation (add equations to the description of the class)
+    def __init__(self, a, b, u0):
+        assert a &gt; 0 and b &gt; 0
+        super().__init__(min(0, u0), a + b)
+        self.a = a
+        self.b = b
+        self.u0 = u0
+
+    def equation(self, energy, k, m):
+        r&#34;&#34;&#34;
+        a - is the width of area where potential energy is U0
+
+        b - is the width of area where potential energy is 0
+
+        .. math::
+             cos(\alpha a) cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+        .. math::
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+        &#34;&#34;&#34;
+        return super(KronigPenneyModel, self).equation(energy, k, m)
+
+    def equation_left_part(self, energy, m):
+        alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
+        if bet == 0:
+            second = - alf / 2 * self.b * cmath.sin(alf * self.a)
+        elif alf == 0:
+            second = - bet / 2 * self.a * cmath.sin(bet * self.b)
+        else:
+            second = - (alf ** 2 + bet ** 2) / (2 * alf * bet) * cmath.sin(alf * self.a) * cmath.sin(bet * self.b)
+        return (first + second).real
+
+
+class DiracCombModel(PeriodicPotentialModel):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
+    # TODO: add documentation
+    def __init__(self, a, G):
+        assert a &gt; 0
+        super().__init__(-1e-10 * eV, a)
+        self.G = G
+
+    def equation(self, energy, k, m):
+        r&#34;&#34;&#34;
+        .. math::
+            cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+        .. math::
+            \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Alternative formula used in our course previously (note: different notation for alpha and beta)
+
+        .. math::
+            cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+        .. math::
+            \alpha^2 = \frac{2 m E}{\hbar^2}
+        &#34;&#34;&#34;
+        return super(DiracCombModel, self).equation(energy, k, m)
+
+    def equation_left_part(self, energy, m):
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(bet * self.period)
+        if energy == 0:
+            second = m * self.G * self.period / h_bar ** 2
+        else:
+            second = cmath.sqrt(m / (2 * h_bar ** 2 * energy)) * self.G * cmath.sin(bet * self.period)
+        return (first + second).real</code></pre>
 </details>
 </section>
 <section>
@@ -4549,6 +4676,373 @@ Parameters</p>
 </li>
 </ul>
 </dd>
+<dt id="fompy.models.PeriodicPotentialModel"><code class="flex name class">
+<span>class <span class="ident">PeriodicPotentialModel</span></span>
+<span>(</span><span>u_min, period)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PeriodicPotentialModel(ABC):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
+    # TODO: add documentation
+    def __init__(self, u_min, period):
+        self.u_min = u_min
+        self.period = period
+
+    def equation(self, energy, k, m):
+        return self.equation_left_part(energy, m) - self.equation_right_part(k)
+
+    def equation_right_part(self, k):
+        return cos(k * self.period)
+
+    @abstractmethod
+    def equation_left_part(self, energy, m):
+        &#34;&#34;&#34;The part of the equation independent of k&#34;&#34;&#34;
+
+    def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
+        assert xtol_coarse &gt; 0 and xtol_fine &gt; 0
+
+        # Find band with minimal energy (starts search from self.u_min)
+        def f1(energy):
+            return self.equation_left_part(energy, m) - 1
+
+        def f2(energy):
+            return self.equation_left_part(energy, m) + 1
+
+        e_start = find_nth_function_zero(f1, self.u_min, xtol_coarse, xtol_fine, num=0)
+        e_end = find_nth_function_zero(f2, e_start - xtol_coarse / 2, xtol_coarse, xtol_fine, num=0)
+
+        return e_start, e_end
+
+    def get_energy(self, k, m, bracket, xtol):
+        start, stop = bracket
+        return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)  # noqa
+
+    def get_k(self, energy, m):
+        # Returns k multiplied by period
+        val = self.equation_left_part(energy, m)
+        if not -1 &lt;= val &lt;= 1:
+            return None
+        return math.acos(val)
+
+    def get_ks(self, es, m):  # vectorized version of get_k
+        # Returns k multiplied by period
+        vs = np.vectorize(self.equation_left_part)(es, m)
+        return np.arccos(np.clip(vs, -1, 1))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="fompy.models.DiracCombModel" href="#fompy.models.DiracCombModel">DiracCombModel</a></li>
+<li><a title="fompy.models.KronigPenneyModel" href="#fompy.models.KronigPenneyModel">KronigPenneyModel</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.PeriodicPotentialModel.equation"><code class="name flex">
+<span>def <span class="ident">equation</span></span>(<span>self, energy, k, m)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def equation(self, energy, k, m):
+    return self.equation_left_part(energy, m) - self.equation_right_part(k)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PeriodicPotentialModel.equation_right_part"><code class="name flex">
+<span>def <span class="ident">equation_right_part</span></span>(<span>self, k)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def equation_right_part(self, k):
+    return cos(k * self.period)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PeriodicPotentialModel.equation_left_part"><code class="name flex">
+<span>def <span class="ident">equation_left_part</span></span>(<span>self, energy, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The part of the equation independent of k</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def equation_left_part(self, energy, m):
+    &#34;&#34;&#34;The part of the equation independent of k&#34;&#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PeriodicPotentialModel.find_lower_band_range"><code class="name flex">
+<span>def <span class="ident">find_lower_band_range</span></span>(<span>self, m, xtol_coarse, xtol_fine)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
+    assert xtol_coarse &gt; 0 and xtol_fine &gt; 0
+
+    # Find band with minimal energy (starts search from self.u_min)
+    def f1(energy):
+        return self.equation_left_part(energy, m) - 1
+
+    def f2(energy):
+        return self.equation_left_part(energy, m) + 1
+
+    e_start = find_nth_function_zero(f1, self.u_min, xtol_coarse, xtol_fine, num=0)
+    e_end = find_nth_function_zero(f2, e_start - xtol_coarse / 2, xtol_coarse, xtol_fine, num=0)
+
+    return e_start, e_end</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PeriodicPotentialModel.get_energy"><code class="name flex">
+<span>def <span class="ident">get_energy</span></span>(<span>self, k, m, bracket, xtol)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_energy(self, k, m, bracket, xtol):
+    start, stop = bracket
+    return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)  # noqa</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PeriodicPotentialModel.get_k"><code class="name flex">
+<span>def <span class="ident">get_k</span></span>(<span>self, energy, m)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_k(self, energy, m):
+    # Returns k multiplied by period
+    val = self.equation_left_part(energy, m)
+    if not -1 &lt;= val &lt;= 1:
+        return None
+    return math.acos(val)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.PeriodicPotentialModel.get_ks"><code class="name flex">
+<span>def <span class="ident">get_ks</span></span>(<span>self, es, m)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_ks(self, es, m):  # vectorized version of get_k
+    # Returns k multiplied by period
+    vs = np.vectorize(self.equation_left_part)(es, m)
+    return np.arccos(np.clip(vs, -1, 1))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="fompy.models.KronigPenneyModel"><code class="flex name class">
+<span>class <span class="ident">KronigPenneyModel</span></span>
+<span>(</span><span>a, b, u0)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class KronigPenneyModel(PeriodicPotentialModel):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
+    # TODO: add documentation (add equations to the description of the class)
+    def __init__(self, a, b, u0):
+        assert a &gt; 0 and b &gt; 0
+        super().__init__(min(0, u0), a + b)
+        self.a = a
+        self.b = b
+        self.u0 = u0
+
+    def equation(self, energy, k, m):
+        r&#34;&#34;&#34;
+        a - is the width of area where potential energy is U0
+
+        b - is the width of area where potential energy is 0
+
+        .. math::
+             cos(\alpha a) cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+        .. math::
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+        &#34;&#34;&#34;
+        return super(KronigPenneyModel, self).equation(energy, k, m)
+
+    def equation_left_part(self, energy, m):
+        alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
+        if bet == 0:
+            second = - alf / 2 * self.b * cmath.sin(alf * self.a)
+        elif alf == 0:
+            second = - bet / 2 * self.a * cmath.sin(bet * self.b)
+        else:
+            second = - (alf ** 2 + bet ** 2) / (2 * alf * bet) * cmath.sin(alf * self.a) * cmath.sin(bet * self.b)
+        return (first + second).real</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.KronigPenneyModel.equation"><code class="name flex">
+<span>def <span class="ident">equation</span></span>(<span>self, energy, k, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>a - is the width of area where potential energy is U0</p>
+<p>b - is the width of area where potential energy is 0</p>
+<p><span><span class="MathJax_Preview"> cos(\alpha a) cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b)) </span><script type="math/tex; mode=display"> cos(\alpha a) cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b)) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def equation(self, energy, k, m):
+    r&#34;&#34;&#34;
+    a - is the width of area where potential energy is U0
+
+    b - is the width of area where potential energy is 0
+
+    .. math::
+         cos(\alpha a) cos(\beta b) -
+        \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+    .. math::
+        \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+    &#34;&#34;&#34;
+    return super(KronigPenneyModel, self).equation(energy, k, m)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.PeriodicPotentialModel.equation_left_part" href="#fompy.models.PeriodicPotentialModel.equation_left_part">equation_left_part</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="fompy.models.DiracCombModel"><code class="flex name class">
+<span>class <span class="ident">DiracCombModel</span></span>
+<span>(</span><span>a, G)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DiracCombModel(PeriodicPotentialModel):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
+    # TODO: add documentation
+    def __init__(self, a, G):
+        assert a &gt; 0
+        super().__init__(-1e-10 * eV, a)
+        self.G = G
+
+    def equation(self, energy, k, m):
+        r&#34;&#34;&#34;
+        .. math::
+            cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+        .. math::
+            \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Alternative formula used in our course previously (note: different notation for alpha and beta)
+
+        .. math::
+            cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+        .. math::
+            \alpha^2 = \frac{2 m E}{\hbar^2}
+        &#34;&#34;&#34;
+        return super(DiracCombModel, self).equation(energy, k, m)
+
+    def equation_left_part(self, energy, m):
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(bet * self.period)
+        if energy == 0:
+            second = m * self.G * self.period / h_bar ** 2
+        else:
+            second = cmath.sqrt(m / (2 * h_bar ** 2 * energy)) * self.G * cmath.sin(bet * self.period)
+        return (first + second).real</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="fompy.models.DiracCombModel.equation"><code class="name flex">
+<span>def <span class="ident">equation</span></span>(<span>self, energy, k, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b) </span><script type="math/tex; mode=display"> cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b) </script></span>
+<span><span class="MathJax_Preview"> \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \beta^2 = \frac{2 m E}{\hbar^2} </script></span>
+Alternative formula used in our course previously (note: different notation for alpha and beta)</p>
+<p><span><span class="MathJax_Preview"> cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a) </span><script type="math/tex; mode=display"> cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m E}{\hbar^2} </script></span></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def equation(self, energy, k, m):
+    r&#34;&#34;&#34;
+    .. math::
+        cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+    .. math::
+        \beta^2 = \frac{2 m E}{\hbar^2}
+
+    Alternative formula used in our course previously (note: different notation for alpha and beta)
+
+    .. math::
+        cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+    .. math::
+        \alpha^2 = \frac{2 m E}{\hbar^2}
+    &#34;&#34;&#34;
+    return super(DiracCombModel, self).equation(energy, k, m)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="fompy.models.PeriodicPotentialModel.equation_left_part" href="#fompy.models.PeriodicPotentialModel.equation_left_part">equation_left_part</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -4673,13 +5167,37 @@ Parameters</p>
 <li><code><a title="fompy.models.PNJunctionFullDepletion.w_p" href="#fompy.models.PNJunctionFullDepletion.w_p">w_p</a></code></li>
 </ul>
 </li>
+<li>
+<h4><code><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.models.PeriodicPotentialModel.equation" href="#fompy.models.PeriodicPotentialModel.equation">equation</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.equation_right_part" href="#fompy.models.PeriodicPotentialModel.equation_right_part">equation_right_part</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.equation_left_part" href="#fompy.models.PeriodicPotentialModel.equation_left_part">equation_left_part</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.find_lower_band_range" href="#fompy.models.PeriodicPotentialModel.find_lower_band_range">find_lower_band_range</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.get_energy" href="#fompy.models.PeriodicPotentialModel.get_energy">get_energy</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.get_k" href="#fompy.models.PeriodicPotentialModel.get_k">get_k</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.get_ks" href="#fompy.models.PeriodicPotentialModel.get_ks">get_ks</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.KronigPenneyModel" href="#fompy.models.KronigPenneyModel">KronigPenneyModel</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.models.KronigPenneyModel.equation" href="#fompy.models.KronigPenneyModel.equation">equation</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="fompy.models.DiracCombModel" href="#fompy.models.DiracCombModel">DiracCombModel</a></code></h4>
+<ul class="">
+<li><code><a title="fompy.models.DiracCombModel.equation" href="#fompy.models.DiracCombModel.equation">equation</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
 </footer>
 </body>
 </html>

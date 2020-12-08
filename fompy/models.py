@@ -1213,6 +1213,8 @@ class PNJunctionFullDepletion(PNJunction):
 
 
 class PeriodicPotentialModel(ABC):
+    """"""
+
     # TODO: add documentation
     def __init__(self, u_min, period):
         self.u_min = u_min
@@ -1261,6 +1263,8 @@ class PeriodicPotentialModel(ABC):
 
 
 class KronigPenneyModel(PeriodicPotentialModel):
+    """"""
+
     # TODO: add documentation (add equations to the description of the class)
     def __init__(self, a, b, u0):
         assert a > 0 and b > 0
@@ -1272,14 +1276,14 @@ class KronigPenneyModel(PeriodicPotentialModel):
     def equation(self, energy, k, m):
         r"""
         a - is the width of area where potential energy is U0
+
         b - is the width of area where potential energy is 0
+
         .. math::
              cos(\alpha a) cos(\beta b) -
             \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
-
-            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}
-
-            \beta^2 = \frac{2 m E}{\hbar^2}
+        .. math::
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
         """
         return super(KronigPenneyModel, self).equation(energy, k, m)
 
@@ -1297,6 +1301,8 @@ class KronigPenneyModel(PeriodicPotentialModel):
 
 
 class DiracCombModel(PeriodicPotentialModel):
+    """"""
+
     # TODO: add documentation
     def __init__(self, a, G):
         assert a > 0
@@ -1307,14 +1313,14 @@ class DiracCombModel(PeriodicPotentialModel):
         r"""
         .. math::
             cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
-
+        .. math::
             \beta^2 = \frac{2 m E}{\hbar^2}
 
         Alternative formula used in our course previously (note: different notation for alpha and beta)
 
         .. math::
             cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
-
+        .. math::
             \alpha^2 = \frac{2 m E}{\hbar^2}
         """
         return super(DiracCombModel, self).equation(energy, k, m)

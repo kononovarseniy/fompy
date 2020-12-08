@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>fompy.util API documentation</title>
-<meta name="description" content="The submodules of this module contain utilities for computing special functions and for lexical analysis." />
+<title>fompy.util.zeros API documentation</title>
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/sanitize.css" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://unpkg.com/sanitize.css@11.0.1/typography.css" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.3.1/build/styles/github.min.css" crossorigin>
@@ -20,40 +20,116 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>fompy.util</code></h1>
+<h1 class="title">Module <code>fompy.util.zeros</code></h1>
 </header>
 <section id="section-intro">
-<p>The submodules of this module contain utilities for computing special functions and for lexical analysis.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
-The submodules of this module contain utilities for computing special functions and for lexical analysis.
-&#34;&#34;&#34;</code></pre>
+<pre><code class="python">from itertools import count, islice
+
+from scipy.optimize import bisect
+
+
+def locate_zeros(points):
+    px = py = None
+    for x, y in points:
+        if px is not None and py * y &lt; 0:
+            yield px, x
+        px = x
+        py = y
+
+
+def locate_function_zeros(func, start, step):
+    xs = (start + step * i for i in count())
+    points = ((x, func(x)) for x in xs)
+    return locate_zeros(points)
+
+
+def locate_nth_function_zero(func, start, step, num=0):
+    if num &lt; 0:
+        step = -step
+        num = -num - 1
+    return next(islice(locate_function_zeros(func, start, step), num, num + 1), None)
+
+
+def find_nth_function_zero(func, x0, xtol_coarse, xtol_fine, num=0):
+    bracket = locate_nth_function_zero(func, x0, xtol_coarse, num)
+    return bisect(func, *bracket, xtol=xtol_fine)</code></pre>
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="fompy.util.fermi_dirac" href="fermi_dirac.html">fompy.util.fermi_dirac</a></code></dt>
-<dd>
-<div class="desc"><p>This module contains functions for calculating the Fermi-Dirac integral.
-The original code was taken from <a href="https://github.com/scott-maddox/fdint">https://github.com/scott-maddox/fdint</a> and …</p></div>
-</dd>
-<dt><code class="name"><a title="fompy.util.parser" href="parser.html">fompy.util.parser</a></code></dt>
-<dd>
-<div class="desc"><p>This module contains classes for lexical analysis of text.</p></div>
-</dd>
-<dt><code class="name"><a title="fompy.util.zeros" href="zeros.html">fompy.util.zeros</a></code></dt>
+<dt id="fompy.util.zeros.locate_zeros"><code class="name flex">
+<span>def <span class="ident">locate_zeros</span></span>(<span>points)</span>
+</code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def locate_zeros(points):
+    px = py = None
+    for x, y in points:
+        if px is not None and py * y &lt; 0:
+            yield px, x
+        px = x
+        py = y</code></pre>
+</details>
+</dd>
+<dt id="fompy.util.zeros.locate_function_zeros"><code class="name flex">
+<span>def <span class="ident">locate_function_zeros</span></span>(<span>func, start, step)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def locate_function_zeros(func, start, step):
+    xs = (start + step * i for i in count())
+    points = ((x, func(x)) for x in xs)
+    return locate_zeros(points)</code></pre>
+</details>
+</dd>
+<dt id="fompy.util.zeros.locate_nth_function_zero"><code class="name flex">
+<span>def <span class="ident">locate_nth_function_zero</span></span>(<span>func, start, step, num=0)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def locate_nth_function_zero(func, start, step, num=0):
+    if num &lt; 0:
+        step = -step
+        num = -num - 1
+    return next(islice(locate_function_zeros(func, start, step), num, num + 1), None)</code></pre>
+</details>
+</dd>
+<dt id="fompy.util.zeros.find_nth_function_zero"><code class="name flex">
+<span>def <span class="ident">find_nth_function_zero</span></span>(<span>func, x0, xtol_coarse, xtol_fine, num=0)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_nth_function_zero(func, x0, xtol_coarse, xtol_fine, num=0):
+    bracket = locate_nth_function_zero(func, x0, xtol_coarse, num)
+    return bisect(func, *bracket, xtol=xtol_fine)</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -66,14 +142,15 @@ The original code was taken from <a href="https://github.com/scott-maddox/fdint"
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="fompy" href="../index.html">fompy</a></code></li>
+<li><code><a title="fompy.util" href="index.html">fompy.util</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="fompy.util.fermi_dirac" href="fermi_dirac.html">fompy.util.fermi_dirac</a></code></li>
-<li><code><a title="fompy.util.parser" href="parser.html">fompy.util.parser</a></code></li>
-<li><code><a title="fompy.util.zeros" href="zeros.html">fompy.util.zeros</a></code></li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fompy.util.zeros.locate_zeros" href="#fompy.util.zeros.locate_zeros">locate_zeros</a></code></li>
+<li><code><a title="fompy.util.zeros.locate_function_zeros" href="#fompy.util.zeros.locate_function_zeros">locate_function_zeros</a></code></li>
+<li><code><a title="fompy.util.zeros.locate_nth_function_zero" href="#fompy.util.zeros.locate_nth_function_zero">locate_nth_function_zero</a></code></li>
+<li><code><a title="fompy.util.zeros.find_nth_function_zero" href="#fompy.util.zeros.find_nth_function_zero">find_nth_function_zero</a></code></li>
 </ul>
 </li>
 </ul>
