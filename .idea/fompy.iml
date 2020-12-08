@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/fti_fompy.egg-info" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/.ipynb_checkpoints" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

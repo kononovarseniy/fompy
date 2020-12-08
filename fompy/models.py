@@ -5,15 +5,19 @@ Notes
 -----
 All energies are counted from the valence band edge E<sub>v</sub> &equiv; 0.
 """
-
+import cmath
+import math
+from abc import ABC, abstractmethod
 from enum import Enum
 from functools import partial
-from math import pi, sqrt, exp
+from math import pi, sqrt, exp, cos
 
+import numpy as np
 from scipy.optimize import bisect
 
-from fompy.constants import e, k, h_bar
+from fompy.constants import e, k, h_bar, eV
 from fompy.functions import fermi, fd1
+from fompy.util.zeros import find_nth_function_zero
 
 
 def conductivity(n, mobility):
@@ -1206,3 +1210,120 @@ class PNJunctionFullDepletion(PNJunction):
         """
         tmp, a, d = self._w_tmp(T)
         return sqrt(tmp * d / a / (a + d))
+
+
+class PeriodicPotentialModel(ABC):
+    # TODO: add documentation
+    def __init__(self, u_min, period):
+        self.u_min = u_min
+        self.period = period
+
+    def equation(self, energy, k, m):
+        return self.equation_left_part(energy, m) - self.equation_right_part(k)
+
+    def equation_right_part(self, k):
+        return cos(k * self.period)
+
+    @abstractmethod
+    def equation_left_part(self, energy, m):
+        """The part of the equation independent of k"""
+
+    def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
+        assert xtol_coarse > 0 and xtol_fine > 0
+
+        # Find band with minimal energy (starts search from self.u_min)
+        def f1(energy):
+            return self.equation_left_part(energy, m) - 1
+
+        def f2(energy):
+            return self.equation_left_part(energy, m) + 1
+
+        e_start = find_nth_function_zero(f1, self.u_min, xtol_coarse, xtol_fine, num=0)
+        e_end = find_nth_function_zero(f2, e_start - xtol_coarse / 2, xtol_coarse, xtol_fine, num=0)
+
+        return e_start, e_end
+
+    def get_energy(self, k, m, bracket, xtol):
+        start, stop = bracket
+        return bisect(self.equation, start, stop, args=(k, m), xtol=xtol)  # noqa
+
+    def get_k(self, energy, m):
+        # Returns k multiplied by period
+        val = self.equation_left_part(energy, m)
+        if not -1 <= val <= 1:
+            return None
+        return math.acos(val)
+
+    def get_ks(self, es, m):  # vectorized version of get_k
+        # Returns k multiplied by period
+        vs = np.vectorize(self.equation_left_part)(es, m)
+        return np.arccos(np.clip(vs, -1, 1))
+
+
+class KronigPenneyModel(PeriodicPotentialModel):
+    # TODO: add documentation (add equations to the description of the class)
+    def __init__(self, a, b, u0):
+        assert a > 0 and b > 0
+        super().__init__(min(0, u0), a + b)
+        self.a = a
+        self.b = b
+        self.u0 = u0
+
+    def equation(self, energy, k, m):
+        r"""
+        a - is the width of area where potential energy is U0
+        b - is the width of area where potential energy is 0
+        .. math::
+             cos(\alpha a) cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}
+
+            \beta^2 = \frac{2 m E}{\hbar^2}
+        """
+        return super(KronigPenneyModel, self).equation(energy, k, m)
+
+    def equation_left_part(self, energy, m):
+        alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
+        if bet == 0:
+            second = - alf / 2 * self.b * cmath.sin(alf * self.a)
+        elif alf == 0:
+            second = - bet / 2 * self.a * cmath.sin(bet * self.b)
+        else:
+            second = - (alf ** 2 + bet ** 2) / (2 * alf * bet) * cmath.sin(alf * self.a) * cmath.sin(bet * self.b)
+        return (first + second).real
+
+
+class DiracCombModel(PeriodicPotentialModel):
+    # TODO: add documentation
+    def __init__(self, a, G):
+        assert a > 0
+        super().__init__(-1e-10 * eV, a)
+        self.G = G
+
+    def equation(self, energy, k, m):
+        r"""
+        .. math::
+            cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+
+            \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Alternative formula used in our course previously (note: different notation for alpha and beta)
+
+        .. math::
+            cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+
+            \alpha^2 = \frac{2 m E}{\hbar^2}
+        """
+        return super(DiracCombModel, self).equation(energy, k, m)
+
+    def equation_left_part(self, energy, m):
+        bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+        first = cmath.cos(bet * self.period)
+        if energy == 0:
+            second = m * self.G * self.period / h_bar ** 2
+        else:
+            second = cmath.sqrt(m / (2 * h_bar ** 2 * energy)) * self.G * cmath.sin(bet * self.period)
+        return (first + second).real
