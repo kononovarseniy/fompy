@@ -639,7 +639,30 @@ class DopedSemiconductor(Semiconductor):
 
     @staticmethod
     def from_materials(material, mobility, dopant, resistivity):
-        # TODO: documentation
+        &#34;&#34;&#34;
+        Construct a doped semiconductor from a base material and a dopant.
+
+        Parameters
+        ----------
+        material : Semiconductor
+            The base intrinsic (pure) semiconductor.
+        mobility : float
+            The carrier mobility [cm&lt;sup&gt;2&lt;/sup&gt; statV&lt;sup&gt;&amp;minus;1&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        dopant : str
+            The dopant (e. g. `&#39;B&#39;` for boron, `&#39;Sb&#39;` for antimony).
+        resistivity : float
+            The resistivity of the material [s].
+        Returns
+        -------
+        DopedSemiconductor
+            A doped semiconductor object with the specified parameters.
+
+        Raises
+        ------
+        KeyError
+            An unknown dopant was specified.
+        &#34;&#34;&#34;
+
         N = concentration(resistivity, mobility)
         Na = Nd = 0
         Ea = 0
@@ -1264,22 +1287,75 @@ class PNJunctionFullDepletion(PNJunction):
 
 
 class PeriodicPotentialModel(ABC):
-    &#34;&#34;&#34;&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    A class to calculate parameters of a periodic potential model.
+    A specific model defines its own equation for the energy and the mass of a particle,
+    and the wave number.
 
-    # TODO: add documentation
+    Attributes
+    ----------
+    u_min : float
+        The minimum value of the potential [erg].
+    period : float
+        The period [cm].
+    &#34;&#34;&#34;
+
+    # TODO: add documentation to PeriodicPotentialModel
     def __init__(self, u_min, period):
         self.u_min = u_min
         self.period = period
 
     def equation(self, energy, k, m):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+            where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
+        &#34;&#34;&#34;
         return self.equation_left_part(energy, m) - self.equation_right_part(k)
 
     def equation_right_part(self, k):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;) = cos(&lt;i&gt;k&lt;/i&gt; &amp;middot; `period`),
+            which is the right part of the equation.
+        &#34;&#34;&#34;
         return cos(k * self.period)
 
     @abstractmethod
     def equation_left_part(self, energy, m):
-        &#34;&#34;&#34;The part of the equation independent of k&#34;&#34;&#34;
+        &#34;&#34;&#34;
+        The part of the equation independent of &lt;i&gt;k&lt;/i&gt; (an abstract method).
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+        &#34;&#34;&#34;
 
     def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
         assert xtol_coarse &gt; 0 and xtol_fine &gt; 0
@@ -1314,10 +1390,30 @@ class PeriodicPotentialModel(ABC):
 
 
 class KronigPenneyModel(PeriodicPotentialModel):
-    &#34;&#34;&#34;&#34;&#34;&#34;
+    r&#34;&#34;&#34;
+    A class to calculate parameters of the Kronig-Penney model
+    (extends `PeriodicPotentialModel`).
 
-    # TODO: add documentation (add equations to the description of the class)
+    .. math::
+        \cos(\alpha a) \cos(\beta b) -
+        \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b) = \cos(k (a + b))
+    .. math::
+        \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+    &#34;&#34;&#34;
+
     def __init__(self, a, b, u0):
+        &#34;&#34;&#34;
+        Construct the Kronig-Penney model.
+
+        Parameters
+        ----------
+        a : float
+            The width of a well (where U = `u0`) [cm].
+        b : float
+            The distance between two wells (where U = 0) [cm].
+        u0 : float
+            The potential level of a well [erg].
+        &#34;&#34;&#34;
         assert a &gt; 0 and b &gt; 0
         super().__init__(min(0, u0), a + b)
         self.a = a
@@ -1326,19 +1422,50 @@ class KronigPenneyModel(PeriodicPotentialModel):
 
     def equation(self, energy, k, m):
         r&#34;&#34;&#34;
-        a - is the width of area where potential energy is U0
-
-        b - is the width of area where potential energy is 0
-
         .. math::
-             cos(\alpha a) cos(\beta b) -
-            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+            f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b),\\
+            f_r(k) = \cos(k (a + b))
         .. math::
             \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+            where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
         &#34;&#34;&#34;
         return super(KronigPenneyModel, self).equation(energy, k, m)
 
     def equation_left_part(self, energy, m):
+        r&#34;&#34;&#34;
+        .. math::
+            f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b)
+        .. math::
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+        &#34;&#34;&#34;
         alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
         bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
         first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
@@ -1352,10 +1479,33 @@ class KronigPenneyModel(PeriodicPotentialModel):
 
 
 class DiracCombModel(PeriodicPotentialModel):
-    &#34;&#34;&#34;&#34;&#34;&#34;
+    r&#34;&#34;&#34;
+    A class to calculate parameters of the Dirac comb model (extends `PeriodicPotentialModel`).
 
-    # TODO: add documentation
+    .. math::
+        \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b) = \cos(k b)
+    .. math::
+        \beta^2 = \frac{2 m E}{\hbar^2}
+
+    An alternative formula used in our course previously (note the different notation for alpha and beta).
+
+    .. math::
+        \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a) = \cos(k a)
+    .. math::
+        \alpha^2 = \frac{2 m E}{\hbar^2}
+    &#34;&#34;&#34;
+
     def __init__(self, a, G):
+        &#34;&#34;&#34;
+        Construct the Dirac comb model.
+
+        Parameters
+        ----------
+        a : float
+            The period of the comb [cm].
+        G : float
+            The scaling factor [1].
+        &#34;&#34;&#34;
         assert a &gt; 0
         super().__init__(-1e-10 * eV, a)
         self.G = G
@@ -1363,20 +1513,64 @@ class DiracCombModel(PeriodicPotentialModel):
     def equation(self, energy, k, m):
         r&#34;&#34;&#34;
         .. math::
-            cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+            f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+            f_r(k) = \cos(k b)
         .. math::
             \beta^2 = \frac{2 m E}{\hbar^2}
 
-        Alternative formula used in our course previously (note: different notation for alpha and beta)
+        An alternative formula used in our course previously (note the different notation for alpha and beta).
 
         .. math::
-            cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+            f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+            f_r(k) = \cos(k a)
         .. math::
             \alpha^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+            where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
         &#34;&#34;&#34;
         return super(DiracCombModel, self).equation(energy, k, m)
 
     def equation_left_part(self, energy, m):
+        r&#34;&#34;&#34;
+        .. math::
+            f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+            f_r(k) = \cos(k b)
+        .. math::
+            \beta^2 = \frac{2 m E}{\hbar^2}
+
+        An alternative formula used in our course previously (note the different notation for alpha and beta).
+
+        .. math::
+            f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+            f_r(k) = \cos(k a)
+        .. math::
+            \alpha^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+        &#34;&#34;&#34;
         bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
         first = cmath.cos(bet * self.period)
         if energy == 0:
@@ -1387,6 +1581,7 @@ class DiracCombModel(PeriodicPotentialModel):
 
 
 class JFET:
+    # TODO: add documentation to JFET
     def __init__(self, material, Nd, mobility, a, b, L):
         self.material = material
         self.Nd = Nd
@@ -2917,7 +3112,30 @@ Parameters</p>
 
     @staticmethod
     def from_materials(material, mobility, dopant, resistivity):
-        # TODO: documentation
+        &#34;&#34;&#34;
+        Construct a doped semiconductor from a base material and a dopant.
+
+        Parameters
+        ----------
+        material : Semiconductor
+            The base intrinsic (pure) semiconductor.
+        mobility : float
+            The carrier mobility [cm&lt;sup&gt;2&lt;/sup&gt; statV&lt;sup&gt;&amp;minus;1&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        dopant : str
+            The dopant (e. g. `&#39;B&#39;` for boron, `&#39;Sb&#39;` for antimony).
+        resistivity : float
+            The resistivity of the material [s].
+        Returns
+        -------
+        DopedSemiconductor
+            A doped semiconductor object with the specified parameters.
+
+        Raises
+        ------
+        KeyError
+            An unknown dopant was specified.
+        &#34;&#34;&#34;
+
         N = concentration(resistivity, mobility)
         Na = Nd = 0
         Ea = 0
@@ -3043,14 +3261,58 @@ Parameters</p>
 <span>def <span class="ident">from_materials</span></span>(<span>material, mobility, dopant, resistivity)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Construct a doped semiconductor from a base material and a dopant.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>material</code></strong> :&ensp;<code><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></code></dt>
+<dd>The base intrinsic (pure) semiconductor.</dd>
+<dt><strong><code>mobility</code></strong> :&ensp;<code>float</code></dt>
+<dd>The carrier mobility [cm<sup>2</sup> statV<sup>&minus;1</sup> s<sup>&minus;1</sup>].</dd>
+<dt><strong><code>dopant</code></strong> :&ensp;<code>str</code></dt>
+<dd>The dopant (e. g. <code>'B'</code> for boron, <code>'Sb'</code> for antimony).</dd>
+<dt><strong><code>resistivity</code></strong> :&ensp;<code>float</code></dt>
+<dd>The resistivity of the material [s].</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></dt>
+<dd>A doped semiconductor object with the specified parameters.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>KeyError</code></dt>
+<dd>An unknown dopant was specified.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def from_materials(material, mobility, dopant, resistivity):
-    # TODO: documentation
+    &#34;&#34;&#34;
+    Construct a doped semiconductor from a base material and a dopant.
+
+    Parameters
+    ----------
+    material : Semiconductor
+        The base intrinsic (pure) semiconductor.
+    mobility : float
+        The carrier mobility [cm&lt;sup&gt;2&lt;/sup&gt; statV&lt;sup&gt;&amp;minus;1&lt;/sup&gt; s&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+    dopant : str
+        The dopant (e. g. `&#39;B&#39;` for boron, `&#39;Sb&#39;` for antimony).
+    resistivity : float
+        The resistivity of the material [s].
+    Returns
+    -------
+    DopedSemiconductor
+        A doped semiconductor object with the specified parameters.
+
+    Raises
+    ------
+    KeyError
+        An unknown dopant was specified.
+    &#34;&#34;&#34;
+
     N = concentration(resistivity, mobility)
     Na = Nd = 0
     Ea = 0
@@ -4783,28 +5045,90 @@ Parameters</p>
 <span>(</span><span>u_min, period)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A class to calculate parameters of a periodic potential model.
+A specific model defines its own equation for the energy and the mass of a particle,
+and the wave number.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>u_min</code></strong> :&ensp;<code>float</code></dt>
+<dd>The minimum value of the potential [erg].</dd>
+<dt><strong><code>period</code></strong> :&ensp;<code>float</code></dt>
+<dd>The period [cm].</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class PeriodicPotentialModel(ABC):
-    &#34;&#34;&#34;&#34;&#34;&#34;
+    &#34;&#34;&#34;
+    A class to calculate parameters of a periodic potential model.
+    A specific model defines its own equation for the energy and the mass of a particle,
+    and the wave number.
 
-    # TODO: add documentation
+    Attributes
+    ----------
+    u_min : float
+        The minimum value of the potential [erg].
+    period : float
+        The period [cm].
+    &#34;&#34;&#34;
+
+    # TODO: add documentation to PeriodicPotentialModel
     def __init__(self, u_min, period):
         self.u_min = u_min
         self.period = period
 
     def equation(self, energy, k, m):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+            where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
+        &#34;&#34;&#34;
         return self.equation_left_part(energy, m) - self.equation_right_part(k)
 
     def equation_right_part(self, k):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;) = cos(&lt;i&gt;k&lt;/i&gt; &amp;middot; `period`),
+            which is the right part of the equation.
+        &#34;&#34;&#34;
         return cos(k * self.period)
 
     @abstractmethod
     def equation_left_part(self, energy, m):
-        &#34;&#34;&#34;The part of the equation independent of k&#34;&#34;&#34;
+        &#34;&#34;&#34;
+        The part of the equation independent of &lt;i&gt;k&lt;/i&gt; (an abstract method).
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+        &#34;&#34;&#34;
 
     def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
         assert xtol_coarse &gt; 0 and xtol_fine &gt; 0
@@ -4852,12 +5176,42 @@ Parameters</p>
 <span>def <span class="ident">equation</span></span>(<span>self, energy, k, m)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>energy</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy of the particle [erg].</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>float</code></dt>
+<dd>The wave number [cm<sup>&minus;1</sup>].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of the particle.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd><i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>) - <i>f<sub>r</sub></i>(<i>k</i>),
+where <i>f<sub>l</sub></i> is the left part, <i>f<sub>r</sub></i> is the right part of the equation.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def equation(self, energy, k, m):
+    &#34;&#34;&#34;
+    Parameters
+    ----------
+    energy : float
+        The energy of the particle [erg].
+    k : float
+        The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+    m : float
+        The mass of the particle.
+
+    Returns
+    -------
+    float
+        &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+        where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
+    &#34;&#34;&#34;
     return self.equation_left_part(energy, m) - self.equation_right_part(k)</code></pre>
 </details>
 </dd>
@@ -4865,12 +5219,34 @@ Parameters</p>
 <span>def <span class="ident">equation_right_part</span></span>(<span>self, k)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>k</code></strong> :&ensp;<code>float</code></dt>
+<dd>The wave number [cm<sup>&minus;1</sup>].</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd><i>f<sub>r</sub></i>(<i>k</i>) = cos(<i>k</i> &middot; <code>period</code>),
+which is the right part of the equation.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def equation_right_part(self, k):
+    &#34;&#34;&#34;
+    Parameters
+    ----------
+    k : float
+        The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+
+    Returns
+    -------
+    float
+        &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;) = cos(&lt;i&gt;k&lt;/i&gt; &amp;middot; `period`),
+        which is the right part of the equation.
+    &#34;&#34;&#34;
     return cos(k * self.period)</code></pre>
 </details>
 </dd>
@@ -4878,14 +5254,40 @@ Parameters</p>
 <span>def <span class="ident">equation_left_part</span></span>(<span>self, energy, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>The part of the equation independent of k</p></div>
+<div class="desc"><p>The part of the equation independent of <i>k</i> (an abstract method).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>energy</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy of the particle [erg].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of the particle.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd><i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>), which is the left part of the equation.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
 def equation_left_part(self, energy, m):
-    &#34;&#34;&#34;The part of the equation independent of k&#34;&#34;&#34;</code></pre>
+    &#34;&#34;&#34;
+    The part of the equation independent of &lt;i&gt;k&lt;/i&gt; (an abstract method).
+
+    Parameters
+    ----------
+    energy : float
+        The energy of the particle [erg].
+    m : float
+        The mass of the particle.
+
+    Returns
+    -------
+    float
+        &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+    &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.PeriodicPotentialModel.find_lower_band_range"><code class="name flex">
@@ -4966,16 +5368,51 @@ def equation_left_part(self, energy, m):
 <span>(</span><span>a, b, u0)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A class to calculate parameters of the Kronig-Penney model
+(extends <code><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></code>).</p>
+<p><span><span class="MathJax_Preview"> \cos(\alpha a) \cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b) = \cos(k (a + b)) </span><script type="math/tex; mode=display"> \cos(\alpha a) \cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b) = \cos(k (a + b)) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </script></span>
+Construct the Kronig-Penney model.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The width of a well (where U = <code>u0</code>) [cm].</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dd>The distance between two wells (where U = 0) [cm].</dd>
+<dt><strong><code>u0</code></strong> :&ensp;<code>float</code></dt>
+<dd>The potential level of a well [erg].</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class KronigPenneyModel(PeriodicPotentialModel):
-    &#34;&#34;&#34;&#34;&#34;&#34;
+    r&#34;&#34;&#34;
+    A class to calculate parameters of the Kronig-Penney model
+    (extends `PeriodicPotentialModel`).
 
-    # TODO: add documentation (add equations to the description of the class)
+    .. math::
+        \cos(\alpha a) \cos(\beta b) -
+        \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b) = \cos(k (a + b))
+    .. math::
+        \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+    &#34;&#34;&#34;
+
     def __init__(self, a, b, u0):
+        &#34;&#34;&#34;
+        Construct the Kronig-Penney model.
+
+        Parameters
+        ----------
+        a : float
+            The width of a well (where U = `u0`) [cm].
+        b : float
+            The distance between two wells (where U = 0) [cm].
+        u0 : float
+            The potential level of a well [erg].
+        &#34;&#34;&#34;
         assert a &gt; 0 and b &gt; 0
         super().__init__(min(0, u0), a + b)
         self.a = a
@@ -4984,19 +5421,50 @@ def equation_left_part(self, energy, m):
 
     def equation(self, energy, k, m):
         r&#34;&#34;&#34;
-        a - is the width of area where potential energy is U0
-
-        b - is the width of area where potential energy is 0
-
         .. math::
-             cos(\alpha a) cos(\beta b) -
-            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+            f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b),\\
+            f_r(k) = \cos(k (a + b))
         .. math::
             \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+            where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
         &#34;&#34;&#34;
         return super(KronigPenneyModel, self).equation(energy, k, m)
 
     def equation_left_part(self, energy, m):
+        r&#34;&#34;&#34;
+        .. math::
+            f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b)
+        .. math::
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+        &#34;&#34;&#34;
         alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
         bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
         first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
@@ -5019,29 +5487,114 @@ def equation_left_part(self, energy, m):
 <span>def <span class="ident">equation</span></span>(<span>self, energy, k, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>a - is the width of area where potential energy is U0</p>
-<p>b - is the width of area where potential energy is 0</p>
-<p><span><span class="MathJax_Preview"> cos(\alpha a) cos(\beta b) -
-\frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b)) </span><script type="math/tex; mode=display"> cos(\alpha a) cos(\beta b) -
-\frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b)) </script></span>
-<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </script></span></p></div>
+<div class="desc"><p><span><span class="MathJax_Preview"> f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b),\\
+f_r(k) = \cos(k (a + b)) </span><script type="math/tex; mode=display"> f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b),\\
+f_r(k) = \cos(k (a + b)) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>energy</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy of the particle [erg].</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>float</code></dt>
+<dd>The wave number [cm<sup>&minus;1</sup>].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of the particle.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd><i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>) - <i>f<sub>r</sub></i>(<i>k</i>),
+where <i>f<sub>l</sub></i> is the left part, <i>f<sub>r</sub></i> is the right part of the equation.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def equation(self, energy, k, m):
     r&#34;&#34;&#34;
-    a - is the width of area where potential energy is U0
-
-    b - is the width of area where potential energy is 0
-
     .. math::
-         cos(\alpha a) cos(\beta b) -
-        \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+        f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+        \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b),\\
+        f_r(k) = \cos(k (a + b))
     .. math::
         \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+    Parameters
+    ----------
+    energy : float
+        The energy of the particle [erg].
+    k : float
+        The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+    m : float
+        The mass of the particle.
+
+    Returns
+    -------
+    float
+        &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+        where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
     &#34;&#34;&#34;
     return super(KronigPenneyModel, self).equation(energy, k, m)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.KronigPenneyModel.equation_left_part"><code class="name flex">
+<span>def <span class="ident">equation_left_part</span></span>(<span>self, energy, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b) </span><script type="math/tex; mode=display"> f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+\frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>energy</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy of the particle [erg].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of the particle.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd><i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>), which is the left part of the equation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def equation_left_part(self, energy, m):
+    r&#34;&#34;&#34;
+    .. math::
+        f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+        \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b)
+    .. math::
+        \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+    Parameters
+    ----------
+    energy : float
+        The energy of the particle [erg].
+    m : float
+        The mass of the particle.
+
+    Returns
+    -------
+    float
+        &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+    &#34;&#34;&#34;
+    alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
+    bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+    first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
+    if bet == 0:
+        second = - alf / 2 * self.b * cmath.sin(alf * self.a)
+    elif alf == 0:
+        second = - bet / 2 * self.a * cmath.sin(bet * self.b)
+    else:
+        second = - (alf ** 2 + bet ** 2) / (2 * alf * bet) * cmath.sin(alf * self.a) * cmath.sin(bet * self.b)
+    return (first + second).real</code></pre>
 </details>
 </dd>
 </dl>
@@ -5049,7 +5602,7 @@ def equation_left_part(self, energy, m):
 <ul class="hlist">
 <li><code><b><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></b></code>:
 <ul class="hlist">
-<li><code><a title="fompy.models.PeriodicPotentialModel.equation_left_part" href="#fompy.models.PeriodicPotentialModel.equation_left_part">equation_left_part</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.equation_right_part" href="#fompy.models.PeriodicPotentialModel.equation_right_part">equation_right_part</a></code></li>
 </ul>
 </li>
 </ul>
@@ -5059,16 +5612,52 @@ def equation_left_part(self, energy, m):
 <span>(</span><span>a, G)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A class to calculate parameters of the Dirac comb model (extends <code><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></code>).</p>
+<p><span><span class="MathJax_Preview"> \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b) = \cos(k b) </span><script type="math/tex; mode=display"> \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b) = \cos(k b) </script></span>
+<span><span class="MathJax_Preview"> \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \beta^2 = \frac{2 m E}{\hbar^2} </script></span>
+An alternative formula used in our course previously (note the different notation for alpha and beta).</p>
+<p><span><span class="MathJax_Preview"> \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a) = \cos(k a) </span><script type="math/tex; mode=display"> \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a) = \cos(k a) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m E}{\hbar^2} </script></span>
+Construct the Dirac comb model.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>The period of the comb [cm].</dd>
+<dt><strong><code>G</code></strong> :&ensp;<code>float</code></dt>
+<dd>The scaling factor [1].</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DiracCombModel(PeriodicPotentialModel):
-    &#34;&#34;&#34;&#34;&#34;&#34;
+    r&#34;&#34;&#34;
+    A class to calculate parameters of the Dirac comb model (extends `PeriodicPotentialModel`).
 
-    # TODO: add documentation
+    .. math::
+        \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b) = \cos(k b)
+    .. math::
+        \beta^2 = \frac{2 m E}{\hbar^2}
+
+    An alternative formula used in our course previously (note the different notation for alpha and beta).
+
+    .. math::
+        \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a) = \cos(k a)
+    .. math::
+        \alpha^2 = \frac{2 m E}{\hbar^2}
+    &#34;&#34;&#34;
+
     def __init__(self, a, G):
+        &#34;&#34;&#34;
+        Construct the Dirac comb model.
+
+        Parameters
+        ----------
+        a : float
+            The period of the comb [cm].
+        G : float
+            The scaling factor [1].
+        &#34;&#34;&#34;
         assert a &gt; 0
         super().__init__(-1e-10 * eV, a)
         self.G = G
@@ -5076,20 +5665,64 @@ def equation_left_part(self, energy, m):
     def equation(self, energy, k, m):
         r&#34;&#34;&#34;
         .. math::
-            cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+            f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+            f_r(k) = \cos(k b)
         .. math::
             \beta^2 = \frac{2 m E}{\hbar^2}
 
-        Alternative formula used in our course previously (note: different notation for alpha and beta)
+        An alternative formula used in our course previously (note the different notation for alpha and beta).
 
         .. math::
-            cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+            f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+            f_r(k) = \cos(k a)
         .. math::
             \alpha^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+            where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
         &#34;&#34;&#34;
         return super(DiracCombModel, self).equation(energy, k, m)
 
     def equation_left_part(self, energy, m):
+        r&#34;&#34;&#34;
+        .. math::
+            f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+            f_r(k) = \cos(k b)
+        .. math::
+            \beta^2 = \frac{2 m E}{\hbar^2}
+
+        An alternative formula used in our course previously (note the different notation for alpha and beta).
+
+        .. math::
+            f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+            f_r(k) = \cos(k a)
+        .. math::
+            \alpha^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+        &#34;&#34;&#34;
         bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
         first = cmath.cos(bet * self.period)
         if energy == 0:
@@ -5109,11 +5742,31 @@ def equation_left_part(self, energy, m):
 <span>def <span class="ident">equation</span></span>(<span>self, energy, k, m)</span>
 </code></dt>
 <dd>
-<div class="desc"><p><span><span class="MathJax_Preview"> cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b) </span><script type="math/tex; mode=display"> cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b) </script></span>
+<div class="desc"><p><span><span class="MathJax_Preview"> f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+f_r(k) = \cos(k b) </span><script type="math/tex; mode=display"> f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+f_r(k) = \cos(k b) </script></span>
 <span><span class="MathJax_Preview"> \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \beta^2 = \frac{2 m E}{\hbar^2} </script></span>
-Alternative formula used in our course previously (note: different notation for alpha and beta)</p>
-<p><span><span class="MathJax_Preview"> cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a) </span><script type="math/tex; mode=display"> cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a) </script></span>
-<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m E}{\hbar^2} </script></span></p></div>
+An alternative formula used in our course previously (note the different notation for alpha and beta).</p>
+<p><span><span class="MathJax_Preview"> f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+f_r(k) = \cos(k a) </span><script type="math/tex; mode=display"> f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+f_r(k) = \cos(k a) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m E}{\hbar^2} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>energy</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy of the particle [erg].</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>float</code></dt>
+<dd>The wave number [cm<sup>&minus;1</sup>].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of the particle.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd><i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>) - <i>f<sub>r</sub></i>(<i>k</i>),
+where <i>f<sub>l</sub></i> is the left part, <i>f<sub>r</sub></i> is the right part of the equation.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -5121,18 +5774,102 @@ Alternative formula used in our course previously (note: different notation for 
 <pre><code class="python">def equation(self, energy, k, m):
     r&#34;&#34;&#34;
     .. math::
-        cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+        f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+        f_r(k) = \cos(k b)
     .. math::
         \beta^2 = \frac{2 m E}{\hbar^2}
 
-    Alternative formula used in our course previously (note: different notation for alpha and beta)
+    An alternative formula used in our course previously (note the different notation for alpha and beta).
 
     .. math::
-        cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+        f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+        f_r(k) = \cos(k a)
     .. math::
         \alpha^2 = \frac{2 m E}{\hbar^2}
+
+    Parameters
+    ----------
+    energy : float
+        The energy of the particle [erg].
+    k : float
+        The wave number [cm&lt;sup&gt;&amp;minus;1&lt;/sup&gt;].
+    m : float
+        The mass of the particle.
+
+    Returns
+    -------
+    float
+        &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;) - &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;k&lt;/i&gt;),
+        where &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt; is the left part, &lt;i&gt;f&lt;sub&gt;r&lt;/sub&gt;&lt;/i&gt; is the right part of the equation.
     &#34;&#34;&#34;
     return super(DiracCombModel, self).equation(energy, k, m)</code></pre>
+</details>
+</dd>
+<dt id="fompy.models.DiracCombModel.equation_left_part"><code class="name flex">
+<span>def <span class="ident">equation_left_part</span></span>(<span>self, energy, m)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><span><span class="MathJax_Preview"> f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+f_r(k) = \cos(k b) </span><script type="math/tex; mode=display"> f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+f_r(k) = \cos(k b) </script></span>
+<span><span class="MathJax_Preview"> \beta^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \beta^2 = \frac{2 m E}{\hbar^2} </script></span>
+An alternative formula used in our course previously (note the different notation for alpha and beta).</p>
+<p><span><span class="MathJax_Preview"> f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+f_r(k) = \cos(k a) </span><script type="math/tex; mode=display"> f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+f_r(k) = \cos(k a) </script></span>
+<span><span class="MathJax_Preview"> \alpha^2 = \frac{2 m E}{\hbar^2} </span><script type="math/tex; mode=display"> \alpha^2 = \frac{2 m E}{\hbar^2} </script></span>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>energy</code></strong> :&ensp;<code>float</code></dt>
+<dd>The energy of the particle [erg].</dd>
+<dt><strong><code>m</code></strong> :&ensp;<code>float</code></dt>
+<dd>The mass of the particle.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd><i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>), which is the left part of the equation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def equation_left_part(self, energy, m):
+    r&#34;&#34;&#34;
+    .. math::
+        f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+        f_r(k) = \cos(k b)
+    .. math::
+        \beta^2 = \frac{2 m E}{\hbar^2}
+
+    An alternative formula used in our course previously (note the different notation for alpha and beta).
+
+    .. math::
+        f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+        f_r(k) = \cos(k a)
+    .. math::
+        \alpha^2 = \frac{2 m E}{\hbar^2}
+
+    Parameters
+    ----------
+    energy : float
+        The energy of the particle [erg].
+    m : float
+        The mass of the particle.
+
+    Returns
+    -------
+    float
+        &lt;i&gt;f&lt;sub&gt;l&lt;/sub&gt;&lt;/i&gt;(&lt;i&gt;m&lt;/i&gt;, &lt;i&gt;E&lt;/i&gt;), which is the left part of the equation.
+    &#34;&#34;&#34;
+    bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
+    first = cmath.cos(bet * self.period)
+    if energy == 0:
+        second = m * self.G * self.period / h_bar ** 2
+    else:
+        second = cmath.sqrt(m / (2 * h_bar ** 2 * energy)) * self.G * cmath.sin(bet * self.period)
+    return (first + second).real</code></pre>
 </details>
 </dd>
 </dl>
@@ -5140,7 +5877,7 @@ Alternative formula used in our course previously (note: different notation for 
 <ul class="hlist">
 <li><code><b><a title="fompy.models.PeriodicPotentialModel" href="#fompy.models.PeriodicPotentialModel">PeriodicPotentialModel</a></b></code>:
 <ul class="hlist">
-<li><code><a title="fompy.models.PeriodicPotentialModel.equation_left_part" href="#fompy.models.PeriodicPotentialModel.equation_left_part">equation_left_part</a></code></li>
+<li><code><a title="fompy.models.PeriodicPotentialModel.equation_right_part" href="#fompy.models.PeriodicPotentialModel.equation_right_part">equation_right_part</a></code></li>
 </ul>
 </li>
 </ul>
@@ -5156,6 +5893,7 @@ Alternative formula used in our course previously (note: different notation for 
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class JFET:
+    # TODO: add documentation to JFET
     def __init__(self, material, Nd, mobility, a, b, L):
         self.material = material
         self.Nd = Nd
@@ -5387,12 +6125,14 @@ Alternative formula used in our course previously (note: different notation for 
 <h4><code><a title="fompy.models.KronigPenneyModel" href="#fompy.models.KronigPenneyModel">KronigPenneyModel</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.models.KronigPenneyModel.equation" href="#fompy.models.KronigPenneyModel.equation">equation</a></code></li>
+<li><code><a title="fompy.models.KronigPenneyModel.equation_left_part" href="#fompy.models.KronigPenneyModel.equation_left_part">equation_left_part</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="fompy.models.DiracCombModel" href="#fompy.models.DiracCombModel">DiracCombModel</a></code></h4>
 <ul class="">
 <li><code><a title="fompy.models.DiracCombModel.equation" href="#fompy.models.DiracCombModel.equation">equation</a></code></li>
+<li><code><a title="fompy.models.DiracCombModel.equation_left_part" href="#fompy.models.DiracCombModel.equation_left_part">equation_left_part</a></code></li>
 </ul>
 </li>
 <li>

@@ -607,7 +607,30 @@ class DopedSemiconductor(Semiconductor):
 
     @staticmethod
     def from_materials(material, mobility, dopant, resistivity):
-        # TODO: documentation
+        """
+        Construct a doped semiconductor from a base material and a dopant.
+
+        Parameters
+        ----------
+        material : Semiconductor
+            The base intrinsic (pure) semiconductor.
+        mobility : float
+            The carrier mobility [cm<sup>2</sup> statV<sup>&minus;1</sup> s<sup>&minus;1</sup>].
+        dopant : str
+            The dopant (e. g. `'B'` for boron, `'Sb'` for antimony).
+        resistivity : float
+            The resistivity of the material [s].
+        Returns
+        -------
+        DopedSemiconductor
+            A doped semiconductor object with the specified parameters.
+
+        Raises
+        ------
+        KeyError
+            An unknown dopant was specified.
+        """
+
         N = concentration(resistivity, mobility)
         Na = Nd = 0
         Ea = 0
@@ -1232,22 +1255,75 @@ class PNJunctionFullDepletion(PNJunction):
 
 
 class PeriodicPotentialModel(ABC):
-    """"""
+    """
+    A class to calculate parameters of a periodic potential model.
+    A specific model defines its own equation for the energy and the mass of a particle,
+    and the wave number.
 
-    # TODO: add documentation
+    Attributes
+    ----------
+    u_min : float
+        The minimum value of the potential [erg].
+    period : float
+        The period [cm].
+    """
+
+    # TODO: add documentation to PeriodicPotentialModel
     def __init__(self, u_min, period):
         self.u_min = u_min
         self.period = period
 
     def equation(self, energy, k, m):
+        """
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm<sup>&minus;1</sup>].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            <i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>) - <i>f<sub>r</sub></i>(<i>k</i>),
+            where <i>f<sub>l</sub></i> is the left part, <i>f<sub>r</sub></i> is the right part of the equation.
+        """
         return self.equation_left_part(energy, m) - self.equation_right_part(k)
 
     def equation_right_part(self, k):
+        """
+        Parameters
+        ----------
+        k : float
+            The wave number [cm<sup>&minus;1</sup>].
+
+        Returns
+        -------
+        float
+            <i>f<sub>r</sub></i>(<i>k</i>) = cos(<i>k</i> &middot; `period`),
+            which is the right part of the equation.
+        """
         return cos(k * self.period)
 
     @abstractmethod
     def equation_left_part(self, energy, m):
-        """The part of the equation independent of k"""
+        """
+        The part of the equation independent of <i>k</i> (an abstract method).
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            <i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>), which is the left part of the equation.
+        """
 
     def find_lower_band_range(self, m, xtol_coarse, xtol_fine):
         assert xtol_coarse > 0 and xtol_fine > 0
@@ -1282,10 +1358,30 @@ class PeriodicPotentialModel(ABC):
 
 
 class KronigPenneyModel(PeriodicPotentialModel):
-    """"""
+    r"""
+    A class to calculate parameters of the Kronig-Penney model
+    (extends `PeriodicPotentialModel`).
 
-    # TODO: add documentation (add equations to the description of the class)
+    .. math::
+        \cos(\alpha a) \cos(\beta b) -
+        \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b) = \cos(k (a + b))
+    .. math::
+        \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+    """
+
     def __init__(self, a, b, u0):
+        """
+        Construct the Kronig-Penney model.
+
+        Parameters
+        ----------
+        a : float
+            The width of a well (where U = `u0`) [cm].
+        b : float
+            The distance between two wells (where U = 0) [cm].
+        u0 : float
+            The potential level of a well [erg].
+        """
         assert a > 0 and b > 0
         super().__init__(min(0, u0), a + b)
         self.a = a
@@ -1294,19 +1390,50 @@ class KronigPenneyModel(PeriodicPotentialModel):
 
     def equation(self, energy, k, m):
         r"""
-        a - is the width of area where potential energy is U0
-
-        b - is the width of area where potential energy is 0
-
         .. math::
-             cos(\alpha a) cos(\beta b) -
-            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} sin(\alpha a) sin(\beta b) = cos(k (a + b))
+            f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b),\\
+            f_r(k) = \cos(k (a + b))
         .. math::
             \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm<sup>&minus;1</sup>].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            <i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>) - <i>f<sub>r</sub></i>(<i>k</i>),
+            where <i>f<sub>l</sub></i> is the left part, <i>f<sub>r</sub></i> is the right part of the equation.
         """
         return super(KronigPenneyModel, self).equation(energy, k, m)
 
     def equation_left_part(self, energy, m):
+        r"""
+        .. math::
+            f_l(m, E) = \cos(\alpha a) \cos(\beta b) -
+            \frac{\alpha^2 + \beta^2}{2 \alpha \beta} \sin(\alpha a) \sin(\beta b)
+        .. math::
+            \alpha^2 = \frac{2 m (E - U_0)}{\hbar^2}; \beta^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            <i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>), which is the left part of the equation.
+        """
         alf = cmath.sqrt(2 * m / h_bar ** 2 * (energy - self.u0))
         bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
         first = cmath.cos(alf * self.a) * cmath.cos(bet * self.b)
@@ -1320,10 +1447,33 @@ class KronigPenneyModel(PeriodicPotentialModel):
 
 
 class DiracCombModel(PeriodicPotentialModel):
-    """"""
+    r"""
+    A class to calculate parameters of the Dirac comb model (extends `PeriodicPotentialModel`).
 
-    # TODO: add documentation
+    .. math::
+        \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b) = \cos(k b)
+    .. math::
+        \beta^2 = \frac{2 m E}{\hbar^2}
+
+    An alternative formula used in our course previously (note the different notation for alpha and beta).
+
+    .. math::
+        \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a) = \cos(k a)
+    .. math::
+        \alpha^2 = \frac{2 m E}{\hbar^2}
+    """
+
     def __init__(self, a, G):
+        """
+        Construct the Dirac comb model.
+
+        Parameters
+        ----------
+        a : float
+            The period of the comb [cm].
+        G : float
+            The scaling factor [1].
+        """
         assert a > 0
         super().__init__(-1e-10 * eV, a)
         self.G = G
@@ -1331,20 +1481,64 @@ class DiracCombModel(PeriodicPotentialModel):
     def equation(self, energy, k, m):
         r"""
         .. math::
-            cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G sin(\beta b) = cos(k b)
+            f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+            f_r(k) = \cos(k b)
         .. math::
             \beta^2 = \frac{2 m E}{\hbar^2}
 
-        Alternative formula used in our course previously (note: different notation for alpha and beta)
+        An alternative formula used in our course previously (note the different notation for alpha and beta).
 
         .. math::
-            cos(\alpha a) + \frac{2 m G}{k \hbar^2} sin(\alpha a) = cos(k a)
+            f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+            f_r(k) = \cos(k a)
         .. math::
             \alpha^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        k : float
+            The wave number [cm<sup>&minus;1</sup>].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            <i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>) - <i>f<sub>r</sub></i>(<i>k</i>),
+            where <i>f<sub>l</sub></i> is the left part, <i>f<sub>r</sub></i> is the right part of the equation.
         """
         return super(DiracCombModel, self).equation(energy, k, m)
 
     def equation_left_part(self, energy, m):
+        r"""
+        .. math::
+            f_l(m, E) = \cos(\beta b) + \sqrt{\frac{m}{2 \hbar^2 E}} G \sin(\beta b),\\
+            f_r(k) = \cos(k b)
+        .. math::
+            \beta^2 = \frac{2 m E}{\hbar^2}
+
+        An alternative formula used in our course previously (note the different notation for alpha and beta).
+
+        .. math::
+            f_l(m, E) = \cos(\alpha a) + \frac{2 m G}{k \hbar^2} \sin(\alpha a),\\
+            f_r(k) = \cos(k a)
+        .. math::
+            \alpha^2 = \frac{2 m E}{\hbar^2}
+
+        Parameters
+        ----------
+        energy : float
+            The energy of the particle [erg].
+        m : float
+            The mass of the particle.
+
+        Returns
+        -------
+        float
+            <i>f<sub>l</sub></i>(<i>m</i>, <i>E</i>), which is the left part of the equation.
+        """
         bet = cmath.sqrt(2 * m / h_bar ** 2 * energy)
         first = cmath.cos(bet * self.period)
         if energy == 0:
@@ -1355,6 +1549,7 @@ class DiracCombModel(PeriodicPotentialModel):
 
 
 class JFET:
+    # TODO: add documentation to JFET
     def __init__(self, material, Nd, mobility, a, b, L):
         self.material = material
         self.Nd = Nd
