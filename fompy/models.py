@@ -1333,3 +1333,37 @@ class DiracCombModel(PeriodicPotentialModel):
         else:
             second = cmath.sqrt(m / (2 * h_bar ** 2 * energy)) * self.G * cmath.sin(bet * self.period)
         return (first + second).real
+
+
+class JFET:
+    def __init__(self, material, Nd, mobility, a, b, L):
+        self.material = material
+        self.Nd = Nd
+        self.mobility = mobility
+        self.a = a
+        self.b = b
+        self.L = L
+
+    def Vp(self):
+        r"""
+        .. math::
+            V_p = \frac{2 \pi e N_d a^3}{\epsilon}
+        """
+        return 2 * pi * e * self.Nd * self.a ** 2 / self.material.eps
+
+    def Ip(self):
+        r"""
+        .. math::
+            I_p = \frac{4 \pi e^2 \mu N_d^2 a^3 b}{3 \epsilon L}
+        """
+        return 4 * pi * e ** 2 * self.mobility * self.b * self.Nd ** 2 * self.a ** 3 / (3 * self.material.eps * self.L)
+
+    def Id_sat(self, Vg, delta_phi):
+        r"""
+        .. math::
+            I_{D,sat} = I_P ( 1 - 3 \frac{Vg + \Delta \phi}{V_p} + 2 \frac{ ( V_g + \Delta \phi )^{\frac{3}{2}}}{V_p^{\frac{3}{2}}})
+        """
+        Vp = self.Vp()
+        Ip = self.Ip()
+        v_sum = Vg + delta_phi
+        return Ip * (1 - 3 * v_sum / Vp + 2 * (v_sum / Vp) ** (3 / 2))

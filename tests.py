@@ -10,7 +10,7 @@ from fompy.materials import Si
 from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
     BodyCenteredCubicLattice, conductivity, concentration, PNJunctionNonDegenerate, hydrogen_like_energy, \
-    hydrogen_like_radius, KronigPenneyModel, DiracCombModel
+    hydrogen_like_radius, KronigPenneyModel, DiracCombModel, JFET
 from fompy.units import unit, parse_unit, to_unit, from_unit
 from fompy.util.zeros import locate_nth_function_zero, find_nth_function_zero
 
@@ -394,6 +394,20 @@ class TestDiracCombModel(unittest.TestCase):
                 self.assertEqual(k1, k2)
             else:
                 self.assertIn(k1, [0, pi])
+
+
+class JFETTests(unittest.TestCase):
+    def test_Vp(self):
+        jfet = JFET(Si, 1e17, from_unit(1400, 'cm^2 /V s'), from_unit(1, 'um'), from_unit(1, 'um'), from_unit(10, 'um'))
+        self.assertAlmostEqual(jfet.Vp() / unit('V'), 77.32, delta=0.01)
+
+    def test_Ip(self):
+        jfet = JFET(Si, 1e17, from_unit(1400, 'cm^2 /V s'), from_unit(1, 'um'), from_unit(1, 'um'), from_unit(10, 'um'))
+        self.assertAlmostEqual(jfet.Ip() / unit('mA'), 11.5, delta=0.1)
+
+    def test_Id_sat(self):
+        jfet = JFET(Si, 1e17, from_unit(1400, 'cm^2 /V s'), from_unit(1, 'um'), from_unit(1, 'um'), from_unit(10, 'um'))
+        self.assertAlmostEqual(jfet.Id_sat(from_unit(5, 'V'), from_unit(1, 'V')) / unit('mA'), 9.3, delta=0.1)
 
 
 if __name__ == '__main__':
