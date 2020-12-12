@@ -44,3 +44,7 @@ $ pip install pdoc3
 ```
 $ pdoc --force --html --template-dir=docs/templates -o docs fompy
 ```
+## Запуск тестов и проверка покрытия
+```
+coverage run --source=fompy tests.py && coverage report -m
+```
