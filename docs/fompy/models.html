@@ -637,6 +637,23 @@ class DopedSemiconductor(Semiconductor):
         self.Nd = Nd
         self.Ed = Ed
 
+    @staticmethod
+    def from_materials(material, mobility, dopant, resistivity):
+        # TODO: documentation
+        N = concentration(resistivity, mobility)
+        Na = Nd = 0
+        Ea = 0
+        Ed = material.Eg
+        if dopant in material.acceptor_energy:
+            Ea = material.acceptor_energy[dopant]
+            Na = N
+        elif dopant in material.donor_energy:
+            Ed = material.donor_energy[dopant]
+            Nd = N
+        else:
+            raise KeyError(&#39;Unknown dopant&#39;)
+        return DopedSemiconductor(material, Na, Ea, Nd, Ed)
+
     def p_donor_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
         Calculate the concentration of positive donor ions.
@@ -2898,6 +2915,23 @@ Parameters</p>
         self.Nd = Nd
         self.Ed = Ed
 
+    @staticmethod
+    def from_materials(material, mobility, dopant, resistivity):
+        # TODO: documentation
+        N = concentration(resistivity, mobility)
+        Na = Nd = 0
+        Ea = 0
+        Ed = material.Eg
+        if dopant in material.acceptor_energy:
+            Ea = material.acceptor_energy[dopant]
+            Na = N
+        elif dopant in material.donor_energy:
+            Ed = material.donor_energy[dopant]
+            Nd = N
+        else:
+            raise KeyError(&#39;Unknown dopant&#39;)
+        return DopedSemiconductor(material, Na, Ea, Nd, Ed)
+
     def p_donor_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
         Calculate the concentration of positive donor ions.
@@ -3003,6 +3037,36 @@ Parameters</p>
 <ul class="hlist">
 <li><a title="fompy.models.Semiconductor" href="#fompy.models.Semiconductor">Semiconductor</a></li>
 </ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="fompy.models.DopedSemiconductor.from_materials"><code class="name flex">
+<span>def <span class="ident">from_materials</span></span>(<span>material, mobility, dopant, resistivity)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_materials(material, mobility, dopant, resistivity):
+    # TODO: documentation
+    N = concentration(resistivity, mobility)
+    Na = Nd = 0
+    Ea = 0
+    Ed = material.Eg
+    if dopant in material.acceptor_energy:
+        Ea = material.acceptor_energy[dopant]
+        Na = N
+    elif dopant in material.donor_energy:
+        Ed = material.donor_energy[dopant]
+        Nd = N
+    else:
+        raise KeyError(&#39;Unknown dopant&#39;)
+    return DopedSemiconductor(material, Na, Ea, Nd, Ed)</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="fompy.models.DopedSemiconductor.p_donor_concentration"><code class="name flex">
@@ -5251,6 +5315,7 @@ Alternative formula used in our course previously (note: different notation for 
 <li>
 <h4><code><a title="fompy.models.DopedSemiconductor" href="#fompy.models.DopedSemiconductor">DopedSemiconductor</a></code></h4>
 <ul class="">
+<li><code><a title="fompy.models.DopedSemiconductor.from_materials" href="#fompy.models.DopedSemiconductor.from_materials">from_materials</a></code></li>
 <li><code><a title="fompy.models.DopedSemiconductor.p_donor_concentration" href="#fompy.models.DopedSemiconductor.p_donor_concentration">p_donor_concentration</a></code></li>
 <li><code><a title="fompy.models.DopedSemiconductor.n_acceptor_concentration" href="#fompy.models.DopedSemiconductor.n_acceptor_concentration">n_acceptor_concentration</a></code></li>
 <li><code><a title="fompy.models.DopedSemiconductor.fermi_level" href="#fompy.models.DopedSemiconductor.fermi_level">fermi_level</a></code></li>

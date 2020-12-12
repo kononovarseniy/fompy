@@ -117,6 +117,28 @@ class TestDopedSemiconductor(unittest.TestCase):
         self.assertEqual(self.mat_a.conductivity_type(), 'p')
         self.assertEqual(self.mat_d.conductivity_type(), 'n')
 
+    def test_from_materials(self):
+        # КДБ-100
+        res = DopedSemiconductor.from_materials(
+            Si,
+            from_unit(500, 'cm^2 / V s'),  # Mobility for holes
+            'B',
+            from_unit(100, 'Ohm cm'))
+        self.assertEqual(res.Nd, 0)
+        self.assertAlmostEqual(res.Na, 1.2e14, delta=0.1e14)
+
+        # КЭМ-100
+        res = DopedSemiconductor.from_materials(
+            Si,
+            from_unit(1500, 'cm^2 / V s'),  # Mobility for electrons
+            'As',
+            from_unit(100, 'Ohm cm'))
+        self.assertEqual(res.Na, 0)
+        self.assertAlmostEqual(res.Nd, 4.1e13, delta=0.1e13)
+
+        with self.assertRaises(KeyError):
+            DopedSemiconductor.from_materials(Si, 1, 'UNKNOWN', 1)
+
 
 class TestUnits(unittest.TestCase):
     def test_volt(self):

@@ -605,6 +605,23 @@ class DopedSemiconductor(Semiconductor):
         self.Nd = Nd
         self.Ed = Ed
 
+    @staticmethod
+    def from_materials(material, mobility, dopant, resistivity):
+        # TODO: documentation
+        N = concentration(resistivity, mobility)
+        Na = Nd = 0
+        Ea = 0
+        Ed = material.Eg
+        if dopant in material.acceptor_energy:
+            Ea = material.acceptor_energy[dopant]
+            Na = N
+        elif dopant in material.donor_energy:
+            Ed = material.donor_energy[dopant]
+            Nd = N
+        else:
+            raise KeyError('Unknown dopant')
+        return DopedSemiconductor(material, Na, Ea, Nd, Ed)
+
     def p_donor_concentration(self, Ef=None, T=300):
         r"""
         Calculate the concentration of positive donor ions.
