@@ -377,6 +377,8 @@ class Semiconductor:
         self.Eg = Eg
         self.chi = chi
         self.eps = eps
+        self.donor_energy = dict()
+        self.acceptor_energy = dict()
 
     @staticmethod
     def effective_state_density(m_eff, T):

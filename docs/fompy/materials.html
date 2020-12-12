@@ -40,18 +40,45 @@ Si = Semiconductor(
     0.36 * me, 0.81 * me, 1.12 * eV, 4.05 * eV, 11.7,
     DiamondLikeLattice(5.4307 * angstrom, 28 * amu))
 &#34;&#34;&#34;A `Semiconductor` object for silicon at 300 K.&#34;&#34;&#34;
+Si.donor_energy[&#39;As&#39;] = Si.Eg - 0.054 * eV
+Si.donor_energy[&#39;P&#39;] = Si.Eg - 0.045 * eV
+Si.donor_energy[&#39;Sb&#39;] = Si.Eg - 0.043 * eV
+Si.acceptor_energy[&#39;Al&#39;] = 0.072 * eV
+Si.acceptor_energy[&#39;B&#39;] = 0.045 * eV
+Si.acceptor_energy[&#39;Ga&#39;] = 0.074 * eV
+Si.acceptor_energy[&#39;In&#39;] = 0.157 * eV
 
 # http://www.ioffe.ru/SVA/NSM/Semicond/Ge/index.html
 Ge = Semiconductor(
     0.22 * me, 0.34 * me, 0.661 * eV, 4.0 * eV, 16.2,
     DiamondLikeLattice(5.660 * angstrom, 72.6 * amu))
 &#34;&#34;&#34;A `Semiconductor` object for germanium at 300 K.&#34;&#34;&#34;
+Ge.donor_energy[&#39;As&#39;] = Ge.Eg - 0.014 * eV
+Ge.donor_energy[&#39;P&#39;] = Ge.Eg - 0.013 * eV
+Ge.donor_energy[&#39;Sb&#39;] = Ge.Eg - 0.010 * eV
+Ge.donor_energy[&#39;Bi&#39;] = Ge.Eg - 0.013 * eV
+Ge.donor_energy[&#39;Li&#39;] = Ge.Eg - 0.093 * eV
+Ge.acceptor_energy[&#39;Al&#39;] = 0.011 * eV
+Ge.acceptor_energy[&#39;B&#39;] = 0.011 * eV
+Ge.acceptor_energy[&#39;Ga&#39;] = 0.011 * eV
+Ge.acceptor_energy[&#39;In&#39;] = 0.012 * eV
+Ge.acceptor_energy[&#39;Tl&#39;] = 0.013 * eV
 
 # http://www.ioffe.ru/SVA/NSM/Semicond/GaAs/index.html
 GaAs = Semiconductor(
     0.063 * me, 0.53 * me, 1.424 * eV, 4.07 * eV, 12.9,
     DiamondLikeLattice(5.6533 * angstrom, (69.723 + 74.922) / 2 * amu))  # Gamma-valley
 &#34;&#34;&#34;A `Semiconductor` object for gallium arsenide at 300 K in Gamma valley.&#34;&#34;&#34;
+GaAs.donor_energy[&#39;S&#39;] = GaAs.Eg - 0.006 * eV
+GaAs.donor_energy[&#39;Se&#39;] = GaAs.Eg - 0.006 * eV
+GaAs.donor_energy[&#39;Si&#39;] = GaAs.Eg - 0.006 * eV
+GaAs.donor_energy[&#39;Ge&#39;] = GaAs.Eg - 0.006 * eV
+GaAs.donor_energy[&#39;Sn&#39;] = GaAs.Eg - 0.006 * eV
+GaAs.donor_energy[&#39;Te&#39;] = GaAs.Eg - 0.03 * eV
+GaAs.donor_energy[&#39;C&#39;] = 0.02 * eV
+GaAs.donor_energy[&#39;Ge&#39;] = 0.03 * eV
+GaAs.donor_energy[&#39;Zn&#39;] = 0.025 * eV
+GaAs.donor_energy[&#39;Sn&#39;] = 0.02 * eV
 
 # TODO: add more materials</code></pre>
 </details>
