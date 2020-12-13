@@ -13,4 +13,4 @@ a function. An occurrence of "[1]" means that the quantity is dimensionless.
 More information can be found in the descriptions of the modules.
 """
 
-VERSION = '0.3.0'
+VERSION = '0.4.0'
