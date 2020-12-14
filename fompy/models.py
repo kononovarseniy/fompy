@@ -1195,7 +1195,7 @@ class PNJunctionFullDepletion(PNJunction):
         Calculate the width of the depletion layer inside the n-type semiconductor.
 
         .. math::
-            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^-  N_d^+ } }
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_a^- }{ N_d^+ } \frac{ 1 }{ N_a^- + N_d^+ } }
 
         Parameters
         ----------
@@ -1215,7 +1215,7 @@ class PNJunctionFullDepletion(PNJunction):
         Calculate the width of the depletion layer inside the p-type semiconductor.
 
         .. math::
-            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^-  N_d^+ } }
+            w = \sqrt{ \frac{ \epsilon }{ 2 \pi e } \Delta\phi \frac{ N_d^+ }{ N_a^- } \frac{ 1 }{ N_a^- + N_d^+ } }
 
         Parameters
         ----------
