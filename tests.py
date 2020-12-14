@@ -5,7 +5,7 @@ from math import sqrt, pi
 import numpy as np
 
 from fompy import functions
-from fompy.constants import eV, volt, angstrom, amu, ampere, me
+from fompy.constants import eV, volt, angstrom, amu, ampere, me, eV_T, eV_m
 from fompy.materials import Si
 from fompy.models import MSJunction, ContactType, DopedSemiconductor, Metal, PNJunction, \
     PNJunctionFullDepletion, PrimitiveCubicLattice, DiamondLikeLattice, FaceCenteredCubicLattice, \
@@ -166,6 +166,12 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(unit('dam'), 1e3)
         self.assertEqual(unit('dm'), 1e1)
         self.assertEqual(unit('dA'), ampere / 10)
+
+    def test_underscore(self):
+        self.assertEqual(unit('eV_T'), eV_T)
+        self.assertEqual(unit('eV_m'), eV_m)
+        self.assertEqual(unit('meV_T'), eV_T / 1000)
+        self.assertEqual(unit('MeV_m'), eV_m * 1e6)
 
     def test_error(self):
         with self.assertRaises(SyntaxError):

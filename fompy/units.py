@@ -8,7 +8,7 @@ from fompy import constants
 from fompy.util.parser import Tokenizer, TokenList
 
 TOKENIZER = Tokenizer({
-    'unit': r'[a-zA-Z]+',
+    'unit': r'[a-zA-Z_]+',
     'num': r'([0-9]+)|([\-+][0-9]+)',
     'div': r'/',
     'optional': r'([*^])|(\s+)',
