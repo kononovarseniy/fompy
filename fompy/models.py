@@ -9,7 +9,6 @@ import cmath
 import math
 from abc import ABC, abstractmethod
 from enum import Enum
-from functools import partial
 from math import pi, sqrt, exp, cos
 
 import numpy as np
@@ -454,7 +453,7 @@ class Semiconductor:
         float
             The intrinsic concentration of electrons [cm<sup>&minus;3</sup>].
         """
-        return self.n_concentration(self.intrinsic_fermi_level(), T)
+        return self.n_concentration(self.intrinsic_fermi_level(T=T), T)
 
     def n_concentration(self, Ef=None, T=300):
         r"""
@@ -512,8 +511,7 @@ class Semiconductor:
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def _solve_electroneutrality_equation(self, equation, T) -> float:
-        eq = partial(equation, T=T)
-        return bisect(eq, -self.Eg, 2 * self.Eg, xtol=1e-6 * self.Eg)  # noqa
+        return bisect(equation, -self.Eg, 2 * self.Eg, T, xtol=1e-6 * self.Eg)  # noqa
 
     def intrinsic_fermi_level(self, T=300):
         """
@@ -951,7 +949,7 @@ class PNJunctionNonDegenerate(PNJunction):
     (extends `PNJunction`).
     """
 
-    def pn(self, voltage, T=300):
+    def pn(self, voltage, T=300.0):
         r"""
         Calculate the product of the hole and electron concentrations.
 
@@ -972,7 +970,7 @@ class PNJunctionNonDegenerate(PNJunction):
         """
         return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
 
-    def n_p(self, voltage, T=300):
+    def n_p(self, voltage, T=300.0):
         r"""
         Calculate the electron concentration in the p-semiconductor.
 
@@ -993,7 +991,7 @@ class PNJunctionNonDegenerate(PNJunction):
         """
         return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
 
-    def p_n(self, voltage, T=300):
+    def p_n(self, voltage, T=300.0):
         r"""
         Calculate the hole concentration in the n-semiconductor.
 
@@ -1014,7 +1012,7 @@ class PNJunctionNonDegenerate(PNJunction):
         """
         return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
 
-    def j0_p(self, diffusivity, diffusion_length):
+    def j0_p(self, diffusivity, diffusion_length, T=300.0):
         r"""
         Calculate the hole current density without external voltage (the dark current).
 
@@ -1033,9 +1031,9 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The hole current density [statA cm<sup>&minus;2</sup>].
         """
-        return e * diffusivity * self.p_n(0) / diffusion_length
+        return e * diffusivity * self.p_n(0, T=T) / diffusion_length
 
-    def j0_n(self, diffusivity, diffusion_length):
+    def j0_n(self, diffusivity, diffusion_length, T=300.0):
         r"""
         Calculate the electron current density without external voltage (the dark current).
 
@@ -1054,9 +1052,9 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The electron current density [statA cm<sup>&minus;2</sup>].
         """
-        return e * diffusivity * self.p_n(0) / diffusion_length
+        return e * diffusivity * self.p_n(0, T=T) / diffusion_length
 
-    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300.0):
         r"""
         Calculate the hole current density.
 
@@ -1080,9 +1078,9 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The hole current density [statA cm<sup>&minus;2</sup>].
         """
-        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+        return self.j0_p(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)
 
-    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300.0):
         r"""
         Calculate the electron current density.
 
@@ -1106,7 +1104,7 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The electron current density [statA cm<sup>&minus;2</sup>].
         """
-        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+        return self.j0_n(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)
 
 
 class PNJunctionFullDepletion(PNJunction):

@@ -41,7 +41,6 @@ import cmath
 import math
 from abc import ABC, abstractmethod
 from enum import Enum
-from functools import partial
 from math import pi, sqrt, exp, cos
 
 import numpy as np
@@ -486,7 +485,7 @@ class Semiconductor:
         float
             The intrinsic concentration of electrons [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return self.n_concentration(self.intrinsic_fermi_level(), T)
+        return self.n_concentration(self.intrinsic_fermi_level(T=T), T)
 
     def n_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
@@ -544,8 +543,7 @@ class Semiconductor:
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def _solve_electroneutrality_equation(self, equation, T) -&gt; float:
-        eq = partial(equation, T=T)
-        return bisect(eq, -self.Eg, 2 * self.Eg, xtol=1e-6 * self.Eg)  # noqa
+        return bisect(equation, -self.Eg, 2 * self.Eg, T, xtol=1e-6 * self.Eg)  # noqa
 
     def intrinsic_fermi_level(self, T=300):
         &#34;&#34;&#34;
@@ -983,7 +981,7 @@ class PNJunctionNonDegenerate(PNJunction):
     (extends `PNJunction`).
     &#34;&#34;&#34;
 
-    def pn(self, voltage, T=300):
+    def pn(self, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the product of the hole and electron concentrations.
 
@@ -1004,7 +1002,7 @@ class PNJunctionNonDegenerate(PNJunction):
         &#34;&#34;&#34;
         return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
 
-    def n_p(self, voltage, T=300):
+    def n_p(self, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the electron concentration in the p-semiconductor.
 
@@ -1025,7 +1023,7 @@ class PNJunctionNonDegenerate(PNJunction):
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
 
-    def p_n(self, voltage, T=300):
+    def p_n(self, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the hole concentration in the n-semiconductor.
 
@@ -1046,7 +1044,7 @@ class PNJunctionNonDegenerate(PNJunction):
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
 
-    def j0_p(self, diffusivity, diffusion_length):
+    def j0_p(self, diffusivity, diffusion_length, T=300.0):
         r&#34;&#34;&#34;
         Calculate the hole current density without external voltage (the dark current).
 
@@ -1065,9 +1063,9 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return e * diffusivity * self.p_n(0) / diffusion_length
+        return e * diffusivity * self.p_n(0, T=T) / diffusion_length
 
-    def j0_n(self, diffusivity, diffusion_length):
+    def j0_n(self, diffusivity, diffusion_length, T=300.0):
         r&#34;&#34;&#34;
         Calculate the electron current density without external voltage (the dark current).
 
@@ -1086,9 +1084,9 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return e * diffusivity * self.p_n(0) / diffusion_length
+        return e * diffusivity * self.p_n(0, T=T) / diffusion_length
 
-    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the hole current density.
 
@@ -1112,9 +1110,9 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+        return self.j0_p(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)
 
-    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the electron current density.
 
@@ -1138,7 +1136,7 @@ class PNJunctionNonDegenerate(PNJunction):
         float
             The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+        return self.j0_n(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)
 
 
 class PNJunctionFullDepletion(PNJunction):
@@ -2351,7 +2349,7 @@ Parameters</p>
         float
             The intrinsic concentration of electrons [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return self.n_concentration(self.intrinsic_fermi_level(), T)
+        return self.n_concentration(self.intrinsic_fermi_level(T=T), T)
 
     def n_concentration(self, Ef=None, T=300):
         r&#34;&#34;&#34;
@@ -2409,8 +2407,7 @@ Parameters</p>
         return self.p_concentration(Ef, T) - self.n_concentration(Ef, T)
 
     def _solve_electroneutrality_equation(self, equation, T) -&gt; float:
-        eq = partial(equation, T=T)
-        return bisect(eq, -self.Eg, 2 * self.Eg, xtol=1e-6 * self.Eg)  # noqa
+        return bisect(equation, -self.Eg, 2 * self.Eg, T, xtol=1e-6 * self.Eg)  # noqa
 
     def intrinsic_fermi_level(self, T=300):
         &#34;&#34;&#34;
@@ -2632,7 +2629,7 @@ Parameters</p>
     float
         The intrinsic concentration of electrons [cm&lt;sup&gt;&amp;minus;3&lt;/sup&gt;].
     &#34;&#34;&#34;
-    return self.n_concentration(self.intrinsic_fermi_level(), T)</code></pre>
+    return self.n_concentration(self.intrinsic_fermi_level(T=T), T)</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.Semiconductor.n_concentration"><code class="name flex">
@@ -3903,7 +3900,7 @@ Parameters</p>
     (extends `PNJunction`).
     &#34;&#34;&#34;
 
-    def pn(self, voltage, T=300):
+    def pn(self, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the product of the hole and electron concentrations.
 
@@ -3924,7 +3921,7 @@ Parameters</p>
         &#34;&#34;&#34;
         return self.mat.i_concentration(T) ** 2 * exp(e * voltage / (k * T))
 
-    def n_p(self, voltage, T=300):
+    def n_p(self, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the electron concentration in the p-semiconductor.
 
@@ -3945,7 +3942,7 @@ Parameters</p>
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.p_mat.p_concentration(T=T)
 
-    def p_n(self, voltage, T=300):
+    def p_n(self, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the hole concentration in the n-semiconductor.
 
@@ -3966,7 +3963,7 @@ Parameters</p>
         &#34;&#34;&#34;
         return self.pn(voltage, T) / self.n_mat.n_concentration(T=T)
 
-    def j0_p(self, diffusivity, diffusion_length):
+    def j0_p(self, diffusivity, diffusion_length, T=300.0):
         r&#34;&#34;&#34;
         Calculate the hole current density without external voltage (the dark current).
 
@@ -3985,9 +3982,9 @@ Parameters</p>
         float
             The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return e * diffusivity * self.p_n(0) / diffusion_length
+        return e * diffusivity * self.p_n(0, T=T) / diffusion_length
 
-    def j0_n(self, diffusivity, diffusion_length):
+    def j0_n(self, diffusivity, diffusion_length, T=300.0):
         r&#34;&#34;&#34;
         Calculate the electron current density without external voltage (the dark current).
 
@@ -4006,9 +4003,9 @@ Parameters</p>
         float
             The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return e * diffusivity * self.p_n(0) / diffusion_length
+        return e * diffusivity * self.p_n(0, T=T) / diffusion_length
 
-    def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+    def current_p(self, diffusivity, diffusion_length, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the hole current density.
 
@@ -4032,9 +4029,9 @@ Parameters</p>
         float
             The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)
+        return self.j0_p(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)
 
-    def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+    def current_n(self, diffusivity, diffusion_length, voltage, T=300.0):
         r&#34;&#34;&#34;
         Calculate the electron current density.
 
@@ -4058,7 +4055,7 @@ Parameters</p>
         float
             The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
         &#34;&#34;&#34;
-        return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+        return self.j0_n(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -4067,7 +4064,7 @@ Parameters</p>
 <h3>Methods</h3>
 <dl>
 <dt id="fompy.models.PNJunctionNonDegenerate.pn"><code class="name flex">
-<span>def <span class="ident">pn</span></span>(<span>self, voltage, T=300)</span>
+<span>def <span class="ident">pn</span></span>(<span>self, voltage, T=300.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the product of the hole and electron concentrations.</p>
@@ -4089,7 +4086,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def pn(self, voltage, T=300):
+<pre><code class="python">def pn(self, voltage, T=300.0):
     r&#34;&#34;&#34;
     Calculate the product of the hole and electron concentrations.
 
@@ -4112,7 +4109,7 @@ Parameters</p>
 </details>
 </dd>
 <dt id="fompy.models.PNJunctionNonDegenerate.n_p"><code class="name flex">
-<span>def <span class="ident">n_p</span></span>(<span>self, voltage, T=300)</span>
+<span>def <span class="ident">n_p</span></span>(<span>self, voltage, T=300.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the electron concentration in the p-semiconductor.</p>
@@ -4134,7 +4131,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def n_p(self, voltage, T=300):
+<pre><code class="python">def n_p(self, voltage, T=300.0):
     r&#34;&#34;&#34;
     Calculate the electron concentration in the p-semiconductor.
 
@@ -4157,7 +4154,7 @@ Parameters</p>
 </details>
 </dd>
 <dt id="fompy.models.PNJunctionNonDegenerate.p_n"><code class="name flex">
-<span>def <span class="ident">p_n</span></span>(<span>self, voltage, T=300)</span>
+<span>def <span class="ident">p_n</span></span>(<span>self, voltage, T=300.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the hole concentration in the n-semiconductor.</p>
@@ -4179,7 +4176,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def p_n(self, voltage, T=300):
+<pre><code class="python">def p_n(self, voltage, T=300.0):
     r&#34;&#34;&#34;
     Calculate the hole concentration in the n-semiconductor.
 
@@ -4202,7 +4199,7 @@ Parameters</p>
 </details>
 </dd>
 <dt id="fompy.models.PNJunctionNonDegenerate.j0_p"><code class="name flex">
-<span>def <span class="ident">j0_p</span></span>(<span>self, diffusivity, diffusion_length)</span>
+<span>def <span class="ident">j0_p</span></span>(<span>self, diffusivity, diffusion_length, T=300.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the hole current density without external voltage (the dark current).</p>
@@ -4224,7 +4221,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def j0_p(self, diffusivity, diffusion_length):
+<pre><code class="python">def j0_p(self, diffusivity, diffusion_length, T=300.0):
     r&#34;&#34;&#34;
     Calculate the hole current density without external voltage (the dark current).
 
@@ -4243,11 +4240,11 @@ Parameters</p>
     float
         The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
-    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
+    return e * diffusivity * self.p_n(0, T=T) / diffusion_length</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.PNJunctionNonDegenerate.j0_n"><code class="name flex">
-<span>def <span class="ident">j0_n</span></span>(<span>self, diffusivity, diffusion_length)</span>
+<span>def <span class="ident">j0_n</span></span>(<span>self, diffusivity, diffusion_length, T=300.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the electron current density without external voltage (the dark current).</p>
@@ -4269,7 +4266,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def j0_n(self, diffusivity, diffusion_length):
+<pre><code class="python">def j0_n(self, diffusivity, diffusion_length, T=300.0):
     r&#34;&#34;&#34;
     Calculate the electron current density without external voltage (the dark current).
 
@@ -4288,11 +4285,11 @@ Parameters</p>
     float
         The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
-    return e * diffusivity * self.p_n(0) / diffusion_length</code></pre>
+    return e * diffusivity * self.p_n(0, T=T) / diffusion_length</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.PNJunctionNonDegenerate.current_p"><code class="name flex">
-<span>def <span class="ident">current_p</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
+<span>def <span class="ident">current_p</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the hole current density.</p>
@@ -4320,7 +4317,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def current_p(self, diffusivity, diffusion_length, voltage, T=300):
+<pre><code class="python">def current_p(self, diffusivity, diffusion_length, voltage, T=300.0):
     r&#34;&#34;&#34;
     Calculate the hole current density.
 
@@ -4344,11 +4341,11 @@ Parameters</p>
     float
         The hole current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
-    return self.j0_p(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+    return self.j0_p(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
 </dd>
 <dt id="fompy.models.PNJunctionNonDegenerate.current_n"><code class="name flex">
-<span>def <span class="ident">current_n</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300)</span>
+<span>def <span class="ident">current_n</span></span>(<span>self, diffusivity, diffusion_length, voltage, T=300.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the electron current density.</p>
@@ -4376,7 +4373,7 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def current_n(self, diffusivity, diffusion_length, voltage, T=300):
+<pre><code class="python">def current_n(self, diffusivity, diffusion_length, voltage, T=300.0):
     r&#34;&#34;&#34;
     Calculate the electron current density.
 
@@ -4400,7 +4397,7 @@ Parameters</p>
     float
         The electron current density [statA cm&lt;sup&gt;&amp;minus;2&lt;/sup&gt;].
     &#34;&#34;&#34;
-    return self.j0_n(diffusivity, diffusion_length) * (exp(e * voltage / (k * T)) - 1)</code></pre>
+    return self.j0_n(diffusivity, diffusion_length, T) * (exp(e * voltage / (k * T)) - 1)</code></pre>
 </details>
 </dd>
 </dl>
