@@ -625,7 +625,7 @@ class DopedSemiconductor(Semiconductor):
         Calculate the concentration of positive donor ions.
 
         .. math::
-            N_d^+ = N_d \cdot (1 - f(E_d))
+            N_d^+ = N_d \left(1 - \frac{1}{1 + e^{\frac{E_d - E_f}{k T}}} \right)
 
         Parameters
         ----------
@@ -648,7 +648,7 @@ class DopedSemiconductor(Semiconductor):
         Calculate the concentration of negative acceptor ions.
 
         .. math::
-            N_a^- = N_d f(E_a)
+            N_a^- = N_a \frac{1}{1 + e^{\frac{E_a - E_f}{k T}}}
 
         Parameters
         ----------

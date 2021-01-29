@@ -657,7 +657,7 @@ class DopedSemiconductor(Semiconductor):
         Calculate the concentration of positive donor ions.
 
         .. math::
-            N_d^+ = N_d \cdot (1 - f(E_d))
+            N_d^+ = N_d \left(1 - \frac{1}{1 + e^{\frac{E_d - E_f}{k T}}} \right)
 
         Parameters
         ----------
@@ -680,7 +680,7 @@ class DopedSemiconductor(Semiconductor):
         Calculate the concentration of negative acceptor ions.
 
         .. math::
-            N_a^- = N_d f(E_a)
+            N_a^- = N_a \frac{1}{1 + e^{\frac{E_a - E_f}{k T}}}
 
         Parameters
         ----------
@@ -2934,7 +2934,7 @@ Parameters</p>
         Calculate the concentration of positive donor ions.
 
         .. math::
-            N_d^+ = N_d \cdot (1 - f(E_d))
+            N_d^+ = N_d \left(1 - \frac{1}{1 + e^{\frac{E_d - E_f}{k T}}} \right)
 
         Parameters
         ----------
@@ -2957,7 +2957,7 @@ Parameters</p>
         Calculate the concentration of negative acceptor ions.
 
         .. math::
-            N_a^- = N_d f(E_a)
+            N_a^- = N_a \frac{1}{1 + e^{\frac{E_a - E_f}{k T}}}
 
         Parameters
         ----------
@@ -3071,7 +3071,7 @@ def from_materials(material, mobility, dopant, resistivity):
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the concentration of positive donor ions.</p>
-<p><span><span class="MathJax_Preview"> N_d^+ = N_d \cdot (1 - f(E_d)) </span><script type="math/tex; mode=display"> N_d^+ = N_d \cdot (1 - f(E_d)) </script></span>
+<p><span><span class="MathJax_Preview"> N_d^+ = N_d \left(1 - \frac{1}{1 + e^{\frac{E_d - E_f}{k T}}} \right) </span><script type="math/tex; mode=display"> N_d^+ = N_d \left(1 - \frac{1}{1 + e^{\frac{E_d - E_f}{k T}}} \right) </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -3094,7 +3094,7 @@ Parameters</p>
     Calculate the concentration of positive donor ions.
 
     .. math::
-        N_d^+ = N_d \cdot (1 - f(E_d))
+        N_d^+ = N_d \left(1 - \frac{1}{1 + e^{\frac{E_d - E_f}{k T}}} \right)
 
     Parameters
     ----------
@@ -3118,7 +3118,7 @@ Parameters</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the concentration of negative acceptor ions.</p>
-<p><span><span class="MathJax_Preview"> N_a^- = N_d f(E_a) </span><script type="math/tex; mode=display"> N_a^- = N_d f(E_a) </script></span>
+<p><span><span class="MathJax_Preview"> N_a^- = N_a \frac{1}{1 + e^{\frac{E_a - E_f}{k T}}} </span><script type="math/tex; mode=display"> N_a^- = N_a \frac{1}{1 + e^{\frac{E_a - E_f}{k T}}} </script></span>
 Parameters</p>
 <hr>
 <dl>
@@ -3141,7 +3141,7 @@ Parameters</p>
     Calculate the concentration of negative acceptor ions.
 
     .. math::
-        N_a^- = N_d f(E_a)
+        N_a^- = N_a \frac{1}{1 + e^{\frac{E_a - E_f}{k T}}}
 
     Parameters
     ----------
