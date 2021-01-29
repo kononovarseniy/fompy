@@ -181,12 +181,42 @@ def unit(text):
 
 
 def to_unit(val, unit_text):
-    # TODO: documentation
+    """
+    Convert a value from cgs to a specified unit.
+
+    Parameters
+    ----------
+    val : float
+        The value in cgs.
+    unit_text : str
+        The name of the unit.
+
+    Returns
+    -------
+    float
+        The value expressed in the specified unit
+        (e. g. `val=1.0`, `unit_text='m'` yields `0.01`, as 1 cm = 0.01 m).
+    """
     return val / unit(unit_text)
 
 
 def from_unit(val, unit_text):
-    # TODO: documentation
+    """
+    Convert a value to cgs.
+
+    Parameters
+    ----------
+    val : float
+        The value.
+    unit_text : str
+        The name of the unit.
+
+    Returns
+    -------
+    float
+        The value expressed in cgs
+        (e. g. `val=1.0`, `unit_text='m'` yields `100.0`, as 1 m = 100 cm).
+    """
     return val * unit(unit_text)
 
 

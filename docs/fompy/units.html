@@ -211,12 +211,42 @@ def unit(text):
 
 
 def to_unit(val, unit_text):
-    # TODO: documentation
+    &#34;&#34;&#34;
+    Convert a value from cgs to a specified unit.
+
+    Parameters
+    ----------
+    val : float
+        The value in cgs.
+    unit_text : str
+        The name of the unit.
+
+    Returns
+    -------
+    float
+        The value expressed in the specified unit
+        (e. g. `val=1.0`, `unit_text=&#39;m&#39;` yields `0.01`, as 1 cm = 0.01 m).
+    &#34;&#34;&#34;
     return val / unit(unit_text)
 
 
 def from_unit(val, unit_text):
-    # TODO: documentation
+    &#34;&#34;&#34;
+    Convert a value to cgs.
+
+    Parameters
+    ----------
+    val : float
+        The value.
+    unit_text : str
+        The name of the unit.
+
+    Returns
+    -------
+    float
+        The value expressed in cgs
+        (e. g. `val=1.0`, `unit_text=&#39;m&#39;` yields `100.0`, as 1 m = 100 cm).
+    &#34;&#34;&#34;
     return val * unit(unit_text)
 
 
@@ -394,13 +424,41 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>def <span class="ident">to_unit</span></span>(<span>val, unit_text)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Convert a value from cgs to a specified unit.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>val</code></strong> :&ensp;<code>float</code></dt>
+<dd>The value in cgs.</dd>
+<dt><strong><code>unit_text</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the unit.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The value expressed in the specified unit
+(e. g. <code>val=1.0</code>, <code>unit_text='m'</code> yields <code>0.01</code>, as 1 cm = 0.01 m).</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_unit(val, unit_text):
-    # TODO: documentation
+    &#34;&#34;&#34;
+    Convert a value from cgs to a specified unit.
+
+    Parameters
+    ----------
+    val : float
+        The value in cgs.
+    unit_text : str
+        The name of the unit.
+
+    Returns
+    -------
+    float
+        The value expressed in the specified unit
+        (e. g. `val=1.0`, `unit_text=&#39;m&#39;` yields `0.01`, as 1 cm = 0.01 m).
+    &#34;&#34;&#34;
     return val / unit(unit_text)</code></pre>
 </details>
 </dd>
@@ -408,13 +466,41 @@ _register_unit(&#39;H&#39;, &#39;kg m^2 / s^2 A^2&#39;)</code></pre>
 <span>def <span class="ident">from_unit</span></span>(<span>val, unit_text)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Convert a value to cgs.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>val</code></strong> :&ensp;<code>float</code></dt>
+<dd>The value.</dd>
+<dt><strong><code>unit_text</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the unit.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The value expressed in cgs
+(e. g. <code>val=1.0</code>, <code>unit_text='m'</code> yields <code>100.0</code>, as 1 m = 100 cm).</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def from_unit(val, unit_text):
-    # TODO: documentation
+    &#34;&#34;&#34;
+    Convert a value to cgs.
+
+    Parameters
+    ----------
+    val : float
+        The value.
+    unit_text : str
+        The name of the unit.
+
+    Returns
+    -------
+    float
+        The value expressed in cgs
+        (e. g. `val=1.0`, `unit_text=&#39;m&#39;` yields `100.0`, as 1 m = 100 cm).
+    &#34;&#34;&#34;
     return val * unit(unit_text)</code></pre>
 </details>
 </dd>
