@@ -81,7 +81,7 @@ henry = 1e9 / c ** 2
 ################################################################################
 
 Ry = e ** 4 * me / (2 * h_bar ** 2)
-"""The Reynolds number."""
+"""The Rydberg constant."""
 
 a0 = h_bar ** 2 / (me * e ** 2)
 """The Bohr radius."""
